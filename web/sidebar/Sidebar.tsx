@@ -7,6 +7,7 @@ import { toggleTheme, useTheme } from '../theme'
 import { Chevron } from '../icons'
 import { usePersisted } from '../usePersisted'
 import { DocRow, TaskRow } from './rows'
+import { SearchResults } from './SearchResults'
 
 const hit = (q: string, ...texts: string[]) => texts.some((t) => t.toLowerCase().includes(q))
 const docHit = (q: string) => (d: Doc) => hit(q, d.title, d.file)
@@ -214,6 +215,7 @@ export function Sidebar() {
         </button>
       </div>
       <div className="side-scroll">
+        <SearchResults q={q} />
         {configProblem && (
           <div className="side-problem" title={configProblem}>
             The config file has an error, so the last good settings are in use. Open settings, or run{' '}

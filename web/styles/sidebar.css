@@ -419,3 +419,22 @@
   flex: 1;
   padding: 5px 8px;
 }
+
+/* Content search results, above the tasks while searching. */
+.search-results {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.search-snippet {
+  display: block;
+  margin-top: 3px;
+  color: var(--dimmer);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.search-snippet mark {
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--accent) 30%, transparent);
+  color: var(--text);
+}

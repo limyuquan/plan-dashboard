@@ -1,4 +1,5 @@
 import type { Config } from '../shared/config'
+import type { SearchHit } from '../shared/search'
 import type { Doc, Preview, TreeResponse } from '../shared/types'
 
 async function call<T>(url: string, init?: RequestInit): Promise<T> {
@@ -23,6 +24,7 @@ export const api = {
     call<{ config: Config; overrides: Partial<Pick<Config, 'folders' | 'port'>>; file: string }>('/api/config'),
   saveConfig: (config: Config) => call<{ ok: true }>('/api/config', send('PUT', config)),
   preview: (config: Config) => call<Preview>('/api/config/preview', send('POST', config)),
+  search: (q: string) => call<SearchHit[]>(`/api/search?q=${encodeURIComponent(q)}`),
 }
 
 // The URL a pane loads a doc from. Each path segment is encoded, so file names

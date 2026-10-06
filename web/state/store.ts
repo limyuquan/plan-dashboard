@@ -43,6 +43,8 @@ export type State = {
   // Bumped when a file changes on disk, so panes showing it reload.
   versions: Record<string, number>
   settingsOpen: boolean
+  // A search result was opened: show this doc at the first match of term.
+  pendingFind: { path: string; term: string } | null
 }
 
 function loadLayouts(): Record<string, Layout> {
@@ -64,6 +66,7 @@ export const useStore = create<State>(() => ({
   drag: null,
   versions: {},
   settingsOpen: false,
+  pendingFind: null,
 }))
 
 export const getState = useStore.getState

@@ -1,4 +1,5 @@
 import { isShortcut, isTyping } from '../keys'
+import { getState, setState } from '../state/store'
 import type { Theme } from '../theme'
 import { rememberScroll, savedScroll } from './scroll'
 
@@ -83,4 +84,15 @@ export function restoreScroll(frame: HTMLIFrameElement, path: string) {
   if (!y || !win) return
   win.scrollTo(0, y)
   setTimeout(() => win.scrollY < y - 1 && win.scrollTo(0, y), 150)
+}
+
+// Shows the first match of a pending search in this doc, selected and in view.
+export function findPending(frame: HTMLIFrameElement, path: string) {
+  const want = getState().pendingFind
+  const win = frame.contentWindow as (Window & { find?: (text: string) => boolean }) | null
+  // A new frame is blank until the doc loads; the load handler calls again.
+  if (want?.path !== path || !win || win.location.href === 'about:blank') return
+  setState({ pendingFind: null })
+  win.getSelection()?.removeAllRanges()
+  win.find?.(want.term)
 }

@@ -13,6 +13,7 @@ import type { Doc } from '../../shared/types'
 import { renderMarkdown } from '../../server/markdown'
 import { scanFolder } from '../../server/scan'
 import { titleIn } from '../../server/titles'
+import { textOf } from '../../shared/search'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const docsRoot = fs.realpathSync(path.resolve(here, '../../examples/demo-docs'))
@@ -45,9 +46,15 @@ const incoming: Doc = {
   ws: INCOMING_FOLDER,
 }
 fs.mkdirSync(path.join(here, 'generated'), { recursive: true })
+// Each doc's text, so the demo can search inside docs without a server.
+const texts: Record<string, string> = { [incoming.path]: textOf(incomingSource, 'recap.md') }
+for (const { doc } of scanned.index.values()) {
+  const rel = doc.path.slice(FOLDER.length + 1)
+  texts[doc.path] = textOf(fs.readFileSync(path.join(docsRoot, rel), 'utf8'), doc.file)
+}
 fs.writeFileSync(
   path.join(here, 'generated/demo.json'),
-  JSON.stringify({ tree, preview, incoming: { doc: incoming, folder: INCOMING_FOLDER } }),
+  JSON.stringify({ tree, preview, texts, incoming: { doc: incoming, folder: INCOMING_FOLDER } }),
 )
 
 await build({ configFile: path.join(here, 'vite.config.ts') })

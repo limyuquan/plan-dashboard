@@ -3,10 +3,16 @@
 // (site/app/build.ts) and everything else happens in memory.
 import { DEFAULT_CONFIG, type Config } from '../../shared/config'
 import { docPath, splitDocPath } from '../../shared/keys'
+import { searchDocs } from '../../shared/search'
 import type { Doc, Preview, Task, TreeResponse } from '../../shared/types'
 import data from './generated/demo.json'
 
-type Data = { tree: NonNullable<TreeResponse['tree']>; preview: Preview; incoming: { doc: Doc; folder: string } }
+type Data = {
+  tree: NonNullable<TreeResponse['tree']>
+  preview: Preview
+  texts: Record<string, string>
+  incoming: { doc: Doc; folder: string }
+}
 const demo = data as unknown as Data
 
 // Live copy of the tree. Settling a task and the scripted "new plan" change it.
@@ -67,13 +73,24 @@ export const api = {
     throw new Error('This is a demo, so settings are not saved. Install it to use your own folder.')
   },
   preview: async (_config: Config) => demo.preview,
+  search: async (q: string) =>
+    searchDocs(
+      allDocs().map((doc) => ({ doc, text: demo.texts[originalPath(doc.path)] ?? '' })),
+      q,
+    ),
 }
 
 // Docs are static files next to this page. A settled task's files never really
 // moved, and markdown was rendered to HTML at build time.
+// Where a doc really is: a settled task's files only moved in memory.
+function originalPath(path: string) {
+  const { folder, rel } = splitDocPath(path)
+  const [status, task, ...rest] = rel.split('/')
+  return docPath(folder, [homeOf.get(task) ?? status, task, ...rest].join('/'))
+}
+
 export function docUrl(path: string) {
-  const [status, task, ...rest] = splitDocPath(path).rel.split('/')
-  const real = [homeOf.get(task) ?? status, task, ...rest].join('/')
+  const real = splitDocPath(originalPath(path)).rel
   const file = real.endsWith('.md') ? `${real}.html` : real
   return `docs/${file.split('/').map(encodeURIComponent).join('/')}`
 }

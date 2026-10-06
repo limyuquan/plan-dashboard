@@ -4,7 +4,7 @@ import { followHref } from '../state/links'
 import { useStore } from '../state/store'
 import { setFocus } from '../state/workspaces'
 import { setTheme, useTheme, type Theme } from '../theme'
-import { attachFrame, restoreScroll } from './frame'
+import { attachFrame, findPending, restoreScroll } from './frame'
 
 // One doc, in an iframe so its own styles and scripts stay its own.
 //   - Markdown is rendered by the server in the dashboard's theme, so it
@@ -38,6 +38,7 @@ export function Viewer({ path, paneId }: { path: string; paneId: string }) {
       detach()
       detach = attachFrame(frame, { path, theme, onLink: followHref, onFocus: () => setFocus(paneId) })
       restoreScroll(frame, path)
+      findPending(frame, path)
     }
     frame.addEventListener('load', wire)
     if (frame.contentDocument?.readyState === 'complete' && frame.contentWindow?.location.href !== 'about:blank') wire()
@@ -46,6 +47,13 @@ export function Viewer({ path, paneId }: { path: string; paneId: string }) {
       detach()
     }
   }, [path, theme, paneId])
+
+  // A search result for a doc that is already open: no reload, so look now.
+  const finding = useStore((s) => s.pendingFind?.path === path)
+  useEffect(() => {
+    const frame = ref.current
+    if (finding && frame?.contentDocument?.readyState === 'complete') findPending(frame, path)
+  }, [finding, path])
 
   const src = `${docUrl(path)}?theme=${markdown ? theme : firstTheme}${version ? `&v=${version}` : ''}`
   return <iframe ref={ref} className="viewer" src={src} title={path} />

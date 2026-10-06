@@ -102,6 +102,8 @@ files left out. `planner config check` prints the same from a terminal.
 - Pane buttons: chevrons move the shown tab to the neighbouring pane, `⊞` `⊟` split it off right or below, `×` closes
   the pane (with Undo).
 - `settle` / `restore` move a task's folder between the status folders; open tabs follow it.
+- The search box filters tasks and docs by name, and from three letters also searches inside every doc: results show
+  the matching lines, and opening one shows the doc at the first match.
 - `⧉` copies the absolute path of a file or folder.
 - `☺` on a task gives it an icon; doc types and docs folders can have one too, in Settings.
 
@@ -199,6 +201,7 @@ change something must come from the page itself (same origin).
 | `GET /api/open?ws=&plan=&doc=` | Shows a link in the open Planner tab; replies `{ listeners }` (0 means no tab heard it)   |
 | `GET /api/tree`                | Every folder, task, phase and doc, plus `configProblem` when the config file has an error |
 | `GET /api/doc?path=`           | Describes one doc, by doc path or by absolute path                                        |
+| `GET /api/search?q=`           | Docs whose title or text holds every word of `q`, best first, with a snippet of each      |
 | `GET /docs/<folder>/<path>`    | The file itself; Markdown comes back rendered as HTML (`?theme=dark\|light`)              |
 | `GET /api/events`              | Server-sent events: `tree`, `added` (a new doc), `changed` (a doc was edited), `open`     |
 | `POST /api/move`               | `{ "task": "<folder>:<task>", "to": "done" \| "active" }` settles or restores a task      |

@@ -9,9 +9,10 @@ import { configRoutes } from './routes/config'
 import type { ApiRoutes, Ctx } from './routes/context'
 import { eventRoutes } from './routes/events'
 import { fileRoutes, serveDocs } from './routes/files'
+import { searchRoutes } from './routes/search'
 import { treeRoutes } from './routes/tree'
 
-const routes: ApiRoutes = { ...treeRoutes, ...fileRoutes, ...eventRoutes, ...configRoutes }
+const routes: ApiRoutes = { ...treeRoutes, ...fileRoutes, ...eventRoutes, ...configRoutes, ...searchRoutes }
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 
