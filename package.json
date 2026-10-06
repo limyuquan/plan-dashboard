@@ -49,5 +49,10 @@
     "vite": "^8.3.3",
     "vitest": "^5.0.3",
     "zustand": "^5.0.15"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/limyuquan/planner.git"
+  },
+  "homepage": "https://limyuquan.github.io/planner/"
 }

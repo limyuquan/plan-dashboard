@@ -36,16 +36,23 @@ the agents down.
 Needs Node.js 20.19 or newer.
 
 ```sh
+npm install -g https://github.com/limyuquan/planner/releases/latest/download/planner.tgz
+planner
+```
+
+`planner` opens in your browser and asks for your docs folder. Or add folders from the terminal with
+`planner config add <folder>`, or let your agent do it: give it the [`planner-setup`](skills/planner-setup) skill and ask
+it to set Planner up. To update, run the install line again.
+
+To try it on the demo folder, or to work on Planner itself:
+
+```sh
 git clone https://github.com/limyuquan/planner
 cd planner
 npm install
 npm run build
-node dist/cli.js --root examples/demo-docs    # try it on the demo folder
+node dist/cli.js --root examples/demo-docs
 ```
-
-Run it without `--root` to choose your docs folder in the browser, or add folders with `planner config add <folder>`
-(`npm link` puts the `planner` command on your path). Or let your agent do it: give it the
-[`planner-setup`](skills/planner-setup) skill and ask it to set Planner up.
 
 ## How your docs are read
 

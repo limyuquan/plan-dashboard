@@ -4,7 +4,7 @@
 
 What agents most often need:
 
-- Install: `git clone https://github.com/limyuquan/planner && cd planner && npm install && npm run build && npm link`, then `planner` starts it on http://localhost:4173.
+- Install: `npm install -g https://github.com/limyuquan/planner/releases/latest/download/planner.tgz` (Node.js 20.19+), then `planner` starts it on http://localhost:4173.
 - Show the user a doc in the Planner tab they already have open: `planner open '<link>'`. Links are `?ws=<task>/<phase-folder>&plan=<file>` (or `?ws=<folder>:<task>/...` for any docs folder but the first), or `?doc=<path or absolute path>`.
 - Configure it: `planner config add <folder> [--name <name>]`, `planner config remove <name>`, `planner config show`, `planner config path`, and `planner config check`, which validates the config and prints what each folder holds (exits non-zero while anything is wrong).
 - The config is `~/.config/planner/config.json`. Only changed keys are needed; any docs folder can override the layout keys (`statusFolders`, `plansFolder`, `phasePattern`, `fileTypes`, `groups`, `collections`) for itself. `planner config schema` prints the JSON schema.
