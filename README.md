@@ -25,12 +25,14 @@ your machine, reads the folders they write into, and turns them into something y
 
 I built this at work, for myself. Once coding agents were writing most of the code, writing code stopped being the slow
 part of my day. Reviewing their plans was. Every task produced a plan, then an explainer, then a recap, spread across
-folders, and I was skimming them in an editor tab, or not reading them at all. That is how you stop knowing what your
-own codebase is turning into.
+folders, and I was skimming them in an editor tab, or not reading them at all. When an agent did link me a plan, every
+link opened another browser tab, one per plan, until I had dozens open and could not tell which one was current. That is
+how you stop knowing what your own codebase is turning into.
 
 I wanted reviewing to be fast enough that I would actually do it, every time. So the agents write each plan as a
 readable page, Planner shows it the moment it lands, and I read a whole phase side by side instead of opening files one
-at a time. It keeps me in the loop without slowing the agents down.
+at a time. Agents show me what they wrote with `planner open`, which puts the plan in the tab I already have open
+instead of opening a new one. It keeps me in the loop without slowing the agents down.
 
 <p align="center"><img src="docs/live.gif" alt="An agent writes a recap; a notification appears and opens it in place; a finished task is settled with Undo" width="880" /></p>
 

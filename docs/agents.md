@@ -14,14 +14,16 @@ makes is checked, and `planner config check` exits non-zero until the config is 
 
 ## Let agents show you their work
 
-Instead of pasting a file path, an agent can run:
+When an agent links you a plan, each link you click opens another browser tab. After a day of tasks that is one tab
+per plan, and you lose track of which one is current. Instead, have agents run `planner open`:
 
 ```sh
 planner open '?ws=my-task/phase-2-api&plan=plan'
 ```
 
-The plan appears in the Planner tab you already have open. The [`link-plan`](skills.md#link-plan) skill tells agents
-how to build these links.
+The plan appears in the Planner tab you already have open, so tabs never pile up. If Planner is not running it starts,
+and if no tab is open it opens one. The [`link-plan`](skills.md#link-plan) skill tells agents to do this every time,
+how to build the link, and to put the same link in their message so you can reopen it later.
 
 ## Have agents write better plans
 
