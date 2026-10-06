@@ -1,0 +1,31 @@
+# Planner
+
+> Planner is a free, open-source web app that runs on localhost and shows the HTML and Markdown plans coding agents write, side by side in split panes, live as they are written. It reads one or more docs folders (for example one per project), and has a `planner` command line that agents use to configure it and to show the user a plan.
+
+What agents most often need:
+
+- Install: `git clone https://github.com/limyuquan/planner && cd planner && npm install && npm run build && npm link`, then `planner` starts it on http://localhost:4173.
+- Show the user a doc in the Planner tab they already have open: `planner open '<link>'`. Links are `?ws=<task>/<phase-folder>&plan=<file>` (or `?ws=<folder>:<task>/...` for any docs folder but the first), or `?doc=<path or absolute path>`.
+- Configure it: `planner config add <folder> [--name <name>]`, `planner config remove <name>`, `planner config show`, `planner config path`, and `planner config check`, which validates the config and prints what each folder holds (exits non-zero while anything is wrong).
+- The config is `~/.config/planner/config.json`. Only changed keys are needed; any docs folder can override the layout keys (`statusFolders`, `plansFolder`, `phasePattern`, `fileTypes`, `groups`, `collections`) for itself. `planner config schema` prints the JSON schema.
+- A running Planner picks up config and file changes by itself; never restart it to apply them.
+
+## Docs
+
+- [Full documentation](https://limyuquan.github.io/planner/llms-full.txt): everything in one file: the README (features, folder layout, links, keyboard, command line, local HTTP API, every config key), the full text of each agent skill, and the config JSON schema
+- [README](https://raw.githubusercontent.com/limyuquan/planner/main/README.md): the same docs as Markdown
+- [Config JSON schema](https://raw.githubusercontent.com/limyuquan/planner/main/schema/config.schema.json): every config key with a description; config files point to it with `$schema`
+
+## Agent skills
+
+- [planner-setup](https://raw.githubusercontent.com/limyuquan/planner/main/skills/planner-setup/SKILL.md): set Planner up for the user: find their docs folders, match the layout rules to how each is organised, and check the result with `planner config check`
+- [link-plan](https://raw.githubusercontent.com/limyuquan/planner/main/skills/link-plan/SKILL.md): show the user a plan in Planner with `planner open` instead of pasting a file path
+- [visualise](https://raw.githubusercontent.com/limyuquan/planner/main/skills/visualise/SKILL.md): have a subagent write a plan, recap, codebase map, explainer, ELI5 picture page or review as one self-contained HTML page in a consistent style
+- [visualise render guide](https://raw.githubusercontent.com/limyuquan/planner/main/skills/visualise/render/GUIDE.md): the full brief the writing subagent follows
+- [visualise components](https://raw.githubusercontent.com/limyuquan/planner/main/skills/visualise/render/base.html): every component of the page style once, with the scripts to copy
+
+## Optional
+
+- [Code map](https://raw.githubusercontent.com/limyuquan/planner/main/CONTRIBUTING.md): how the source is laid out, for changing Planner itself
+- [Website](https://limyuquan.github.io/planner/): with a live demo of the app
+- [Repository](https://github.com/limyuquan/planner)

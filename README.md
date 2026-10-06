@@ -5,7 +5,8 @@ Read a folder of HTML and Markdown plans side by side, in split panes, and see n
 Built for working with coding agents that write plans, recaps and explainers as files: point it at the folder they
 write into and keep it open next to your editor.
 
-**[Website](https://limyuquan.github.io/planner/)** · [Install](#quick-start) · [Agent skills](#agent-skills)
+**[Website](https://limyuquan.github.io/planner/)** · [Install](#quick-start) · [Agent skills](#agent-skills) ·
+[llms.txt](https://limyuquan.github.io/planner/llms.txt)
 
 ![Planner showing three plans of one phase side by side](docs/screenshot.png)
 
@@ -170,6 +171,23 @@ planner config schema          the JSON schema, with a description of every key
 ```
 
 `--root` (repeatable) and `--port` apply to one run only and are never saved. The server listens on `localhost` only.
+
+### Local HTTP API
+
+What the CLI and the web app use, for scripts and agents. Doc paths are `<folder name>/<path inside it>`; requests that
+change something must come from the page itself (same origin).
+
+| Request                        | Does                                                                                      |
+| ------------------------------ | ----------------------------------------------------------------------------------------- |
+| `GET /api/open?ws=&plan=&doc=` | Shows a link in the open Planner tab; replies `{ listeners }` (0 means no tab heard it)   |
+| `GET /api/tree`                | Every folder, task, phase and doc, plus `configProblem` when the config file has an error |
+| `GET /api/doc?path=`           | Describes one doc, by doc path or by absolute path                                        |
+| `GET /docs/<folder>/<path>`    | The file itself; Markdown comes back rendered as HTML (`?theme=dark\|light`)              |
+| `GET /api/events`              | Server-sent events: `tree`, `added` (a new doc), `changed` (a doc was edited), `open`     |
+| `POST /api/move`               | `{ "task": "<folder>:<task>", "to": "done" \| "active" }` settles or restores a task      |
+| `GET /api/config`              | The saved config and the file's location                                                  |
+| `PUT /api/config`              | Saves a whole config after checking it; 400 with the problems if it is invalid            |
+| `POST /api/config/preview`     | What a draft config would find in each folder, without saving it                          |
 
 ## Configuration
 
