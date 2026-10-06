@@ -567,3 +567,33 @@ article img {
     flex-wrap: wrap;
   }
 }
+
+/* Endpoint headings: a method badge, then the route. */
+.method {
+  display: inline-block;
+  margin-right: 10px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font: 600 12px/1.6 var(--mono);
+  vertical-align: 3px;
+}
+.method[data-method='GET'] {
+  background: rgba(79, 174, 125, 0.16);
+  color: #7fd3a5;
+}
+.method[data-method='POST'],
+.method[data-method='PUT'] {
+  background: rgba(209, 138, 84, 0.16);
+  color: #f0ad7a;
+}
+.method[data-method='DELETE'] {
+  background: rgba(217, 105, 127, 0.16);
+  color: #f08da0;
+}
+h2 .method + code,
+h3 .method + code {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.92em;
+}

@@ -26,11 +26,37 @@ const escapeHtml = (s: string) =>
   s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
 const plain = (s: string) => s.replace(/<[^>]+>/g, '').replace(/[`*_]/g, '')
 
+// "<!-- include: shared/types.ts -->" becomes that file as a code block, and
+// "<!-- include: shared/types.ts#Doc -->" just the Doc type with its comment,
+// so the documented shapes are always the code's own.
+function withIncludes(markdown: string): string {
+  return markdown.replace(/<!-- include: ([\w./-]+)(?:#(\w+))? -->/g, (_, file: string, name?: string) => {
+    const source = fs.readFileSync(path.join(repo, file), 'utf8')
+    return '```ts\n' + (name ? typeSource(source, name, file) : source.trim()) + '\n```'
+  })
+}
+
+function typeSource(source: string, name: string, file: string): string {
+  const lines = source.split('\n')
+  const start = lines.findIndex((l) => new RegExp(`^export type ${name}\\b`).test(l))
+  if (start < 0) throw new Error(`no type ${name} in ${file}`)
+  let from = start
+  while (from > 0 && lines[from - 1].startsWith('//')) from--
+  let depth = 0
+  let end = start
+  for (; end < lines.length; end++) {
+    depth += (lines[end].match(/[{(]/g) ?? []).length - (lines[end].match(/[})]/g) ?? []).length
+    const next = lines[end + 1] ?? ''
+    if (depth <= 0 && !/^\s*\|/.test(next)) break
+  }
+  return lines.slice(from, end + 1).join('\n')
+}
+
 export function readPages(): Page[] {
   const nav: Nav = JSON.parse(fs.readFileSync(path.join(src, 'nav.json'), 'utf8'))
   return nav.flatMap(({ group, pages }) =>
     pages.map((slug) => {
-      const markdown = fs.readFileSync(path.join(src, `${slug}.md`), 'utf8').trim()
+      const markdown = withIncludes(fs.readFileSync(path.join(src, `${slug}.md`), 'utf8').trim())
       const title = markdown.match(/^# (.+)$/m)?.[1] ?? slug
       const description = markdown.split(/\n\n+/)[1]?.replace(/\n/g, ' ') ?? ''
       return { slug, group, title, description, markdown }
@@ -51,7 +77,13 @@ function render(page: Page, assets: Set<string>) {
         if (depth === 1) return ''
         const id = slug(html)
         if (depth <= 3) headings.push({ depth, id, text: plain(html) })
-        return `<h${depth} id="${id}"><a class="anchor" href="#${id}">${html}</a></h${depth}>\n`
+        // An endpoint heading, `GET /api/tree`, gets a method badge.
+        const shown = html.replace(
+          /^<code>(GET|POST|PUT|DELETE) ([^<]+)<\/code>/,
+          (_m, method: string, route: string) =>
+            `<span class="method" data-method="${method}">${method}</span><code>${route}</code>`,
+        )
+        return `<h${depth} id="${id}"><a class="anchor" href="#${id}">${shown}</a></h${depth}>\n`
       },
       link({ href, tokens }) {
         const text = this.parser.parseInline(tokens)

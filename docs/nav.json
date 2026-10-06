@@ -1,7 +1,26 @@
 [
-  { "group": "Getting started", "pages": ["introduction", "installation", "quick-tour"] },
-  { "group": "Using Planner", "pages": ["reading-plans", "keyboard-shortcuts", "links"] },
-  { "group": "Your docs", "pages": ["docs-folders", "configuration"] },
-  { "group": "Agents", "pages": ["agents", "skills"] },
-  { "group": "Reference", "pages": ["command-line", "http-api", "troubleshooting"] }
+  {
+    "group": "Getting started",
+    "pages": ["introduction", "installation", "quick-tour"]
+  },
+  {
+    "group": "Using Planner",
+    "pages": ["reading-plans", "keyboard-shortcuts", "links"]
+  },
+  {
+    "group": "Your docs",
+    "pages": ["docs-folders", "configuration"]
+  },
+  {
+    "group": "Agents",
+    "pages": ["agents", "skills"]
+  },
+  {
+    "group": "HTTP API",
+    "pages": ["http-api", "api-tree-and-docs", "api-search", "api-open-and-events", "api-tasks", "api-config"]
+  },
+  {
+    "group": "Reference",
+    "pages": ["command-line", "troubleshooting"]
+  }
 ]

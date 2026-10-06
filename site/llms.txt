@@ -26,7 +26,12 @@ Each page is also Markdown at its URL with `.md`; the HTML docs are at https://l
 - [Working with agents](https://limyuquan.github.io/planner/docs/agents.md): setting Planner up with an agent, showing plans, docs for agents
 - [Agent skills](https://limyuquan.github.io/planner/docs/skills.md): planner-setup, link-plan and visualise
 - [Command line](https://limyuquan.github.io/planner/docs/command-line.md): `planner`, `planner open`, `planner config …`
-- [HTTP API](https://limyuquan.github.io/planner/docs/http-api.md): the local API for scripts and agents
+- [API overview](https://limyuquan.github.io/planner/docs/http-api.md): the local HTTP API: base URL, names, errors, and every data shape
+- [API: Tree and docs](https://limyuquan.github.io/planner/docs/api-tree-and-docs.md): `GET /api/tree`, `GET /api/doc`, `GET /docs/<folder>/<path>`
+- [API: Search](https://limyuquan.github.io/planner/docs/api-search.md): `GET /api/search`
+- [API: Open and events](https://limyuquan.github.io/planner/docs/api-open-and-events.md): `GET /api/open`, `GET /api/events`
+- [API: Tasks](https://limyuquan.github.io/planner/docs/api-tasks.md): `POST /api/move`
+- [API: Config](https://limyuquan.github.io/planner/docs/api-config.md): `GET`/`PUT /api/config`, `POST /api/config/preview`
 - [Troubleshooting](https://limyuquan.github.io/planner/docs/troubleshooting.md): common problems
 - [Config JSON schema](https://raw.githubusercontent.com/limyuquan/planner/main/schema/config.schema.json): every config key with a description
 
