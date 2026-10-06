@@ -1,20 +1,12 @@
-import type { Dir } from './layout/model'
+import { DEFAULT_HOTKEYS, actionFor } from '../shared/hotkeys'
+import { getState } from './state/store'
 
-// The dashboard's keyboard shortcuts, in one place so the iframe bridge knows
-// which keys to pass back out of a plan:
-//   - Ctrl/Option + arrow  -> move the shown tab one pane that way
-//   - Ctrl + 1..9          -> open that phase of the current task
-//
-// Option is there because macOS keeps Ctrl + arrows for Mission Control.
-export function moveDirOf(e: KeyboardEvent): Dir | null {
-  if (!(e.ctrlKey || e.altKey) || e.metaKey || e.shiftKey) return null
-  const m = e.key.match(/^Arrow(Left|Right|Up|Down)$/)
-  return m ? (m[1].toLowerCase() as Dir) : null
-}
+// The shortcut a key press triggers under the current config, if any. The
+// iframe bridge uses isShortcut to pass exactly these keys out of a plan.
+export const actionOf = (e: KeyboardEvent) => actionFor(getState().tree?.hotkeys ?? DEFAULT_HOTKEYS, e)
 
-export function phaseNumberOf(e: KeyboardEvent): number | null {
-  if (!e.ctrlKey || e.metaKey || e.altKey) return null
-  return /^[1-9]$/.test(e.key) ? Number(e.key) : null
-}
+export const isShortcut = (e: KeyboardEvent) => actionOf(e) !== null
 
-export const isShortcut = (e: KeyboardEvent) => moveDirOf(e) !== null || phaseNumberOf(e) !== null
+// Keys typed into a field belong to the field.
+export const isTyping = (target: EventTarget | null) =>
+  !!(target as HTMLElement | null)?.closest?.('input, textarea, select, [contenteditable]')

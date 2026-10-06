@@ -1,37 +1,14 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { moveDirOf } from '../keys'
-import { getState, useStore } from '../state/store'
-import { apply, BLANK, currentLayout } from '../state/workspaces'
-import { roomIn, setAreaSize } from './area'
-import { shift } from './model'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { useStore } from '../state/store'
+import { BLANK } from '../state/workspaces'
+import { setAreaSize } from './area'
 import { NodeView } from './NodeView'
-
-// Ctrl/Option + arrow sends the shown tab one pane that way, splitting a new
-// pane off when there is none. Focus follows the tab, so pressing again walks
-// it on across the layout.
-function useMoveKeys() {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const dir = moveDirOf(e)
-      const target = e.target as HTMLElement | null
-      if (!dir || target?.closest('input, textarea, select, [contenteditable]')) return
-      // Ours whatever happens next, so Option + down never scrolls instead.
-      e.preventDefault()
-      const layout = currentLayout()
-      const result = shift(layout, getState().focus, dir, roomIn(layout))
-      if (result) apply(result)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
-}
 
 export function Panes() {
   const layout = useStore((s) => s.layouts[s.current]) ?? BLANK
   const ref = useRef<HTMLElement>(null)
   // Kept in state as well, so the split buttons re-check their room on resize.
   const [, setSize] = useState({ width: 0, height: 0 })
-  useMoveKeys()
 
   useLayoutEffect(() => {
     const el = ref.current

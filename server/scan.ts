@@ -1,6 +1,7 @@
 import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { FALLBACK_KIND, wildcard, type Config, type DocType, type Layout } from '../shared/config'
+import { hotkeysOf } from '../shared/hotkeys'
 import { docPath, taskKey } from '../shared/keys'
 import type { Collection, Doc, DocsFolderInfo, Folder, FolderPreview, Kind, Place, Task, Tree } from '../shared/types'
 import { homeRelative, resolveFolders } from './config'
@@ -246,7 +247,8 @@ export async function scanAll(config: Config): Promise<Scan> {
     collections.push(...scanned.collections)
     for (const [k, v] of scanned.index) index.set(k, v)
   }
-  return { tree: { folders, tasks, collections, kinds: kindsOf(config.docTypes) }, index, folders: previews }
+  const tree = { folders, tasks, collections, kinds: kindsOf(config.docTypes), hotkeys: hotkeysOf(config.hotkeys) }
+  return { tree, index, folders: previews }
 }
 
 // Files matching a path pattern like "weekly/*/*.html", one segment at a time.

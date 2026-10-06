@@ -4,6 +4,7 @@ import type { FolderPreview, Preview } from '../../shared/types'
 import { api } from '../api'
 import { setState } from '../state/store'
 import { pushToast } from '../state/toasts'
+import { HotkeysSection } from './HotkeysSection'
 import { CollectionsSection, DocTypesSection, FoldersSection, GroupsSection, ServerSection } from './sections'
 
 // What one folder's rules find.
@@ -149,6 +150,7 @@ export function Settings() {
             <DocTypesSection draft={draft} set={set} />
             <GroupsSection draft={draft} set={set} />
             <CollectionsSection draft={draft} set={set} />
+            <HotkeysSection draft={draft} set={set} />
             <ServerSection draft={draft} set={set} savedPort={saved.port} />
           </div>
           <PreviewPanel preview={preview} draft={draft} />

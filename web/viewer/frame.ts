@@ -1,4 +1,4 @@
-import { isShortcut } from '../keys'
+import { isShortcut, isTyping } from '../keys'
 import type { Theme } from '../theme'
 import { rememberScroll, savedScroll } from './scroll'
 
@@ -50,7 +50,7 @@ export function attachFrame(frame: HTMLIFrameElement, hooks: Hooks): () => void 
   }
   const onDown = () => hooks.onFocus()
   const onKey = (e: KeyboardEvent) => {
-    if (!isShortcut(e)) return
+    if (isTyping(e.target) || !isShortcut(e)) return
     e.preventDefault()
     window.dispatchEvent(new KeyboardEvent('keydown', e))
   }

@@ -1,4 +1,5 @@
 import type { Color } from './config'
+import type { Hotkeys } from './hotkeys'
 
 export type Status = 'active' | 'done'
 
@@ -47,6 +48,8 @@ export type Tree = {
   tasks: Task[]
   collections: Collection[]
   kinds: Kind[]
+  // Every action's combos, defaults filled in.
+  hotkeys: Hotkeys
 }
 
 // Where a doc sits, as the "new plan" toast names it.

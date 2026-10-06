@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { HOTKEY_ACTIONS, type HotkeyAction } from './hotkeys'
 
 // Colours a doc type badge can take. Each name maps to a pair of theme tokens
 // in web/styles/tokens.css, so a badge reads well in light and dark.
@@ -85,6 +86,14 @@ const docsFolder = z
   })
   .strict()
 
+// Each action may list its combos; a missing action keeps its default.
+const hotkeysShape = Object.fromEntries(
+  (Object.keys(HOTKEY_ACTIONS) as HotkeyAction[]).map((a) => [
+    a,
+    z.array(z.string().min(1)).optional().describe(HOTKEY_ACTIONS[a]),
+  ]),
+) as Record<HotkeyAction, z.ZodOptional<z.ZodArray<z.ZodString>>>
+
 export const configSchema = z
   .object({
     // Lets editors and agents check the file against the published schema.
@@ -95,6 +104,12 @@ export const configSchema = z
       .describe('The docs folders to read. Each may override any layout key below for itself.'),
     port: z.number().int().min(1).max(65535).describe('Port Planner listens on (default 4173).'),
     ...layoutShape,
+    hotkeys: z
+      .object(hotkeysShape)
+      .strict()
+      .describe(
+        'Keyboard shortcuts by action, each a list of combos like "Alt+W". Leave an action out to keep its default; [] turns it off.',
+      ),
     docTypes: z
       .array(docType)
       .describe('Badges by file name. A file takes the first match; the order is also the reading order.'),
@@ -110,6 +125,7 @@ export type Color = (typeof COLORS)[number]
 export const DEFAULT_CONFIG: Config = {
   folders: [],
   port: 4173,
+  hotkeys: {},
   statusFolders: { active: 'active', done: 'done' },
   plansFolder: 'plans',
   phasePattern: '^phase-(?<num>\\d+[a-z]*)-(?<slug>.+)$',

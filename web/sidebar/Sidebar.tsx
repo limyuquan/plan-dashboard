@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Doc, DocsFolderInfo, Task } from '../../shared/types'
+import { SEARCH_FOCUS, SIDEBAR_TOGGLE } from '../commands'
 import { trackMouse } from '../drag'
 import { useStore, setState } from '../state/store'
 import { toggleTheme, useTheme } from '../theme'
@@ -54,6 +55,26 @@ export function Sidebar() {
   const configProblem = useStore((s) => s.configProblem)
   const [dragTask, setDragTask] = useState<string | null>(null)
   const [overTask, setOverTask] = useState<string | null>(null)
+
+  // The toggleSidebar and focusSearch shortcuts (see commands.ts).
+  const searchRef = useRef<HTMLInputElement>(null)
+  const [wantSearch, setWantSearch] = useState(0)
+  useEffect(() => {
+    const toggle = () => setCollapsed((c) => !c)
+    const search = () => {
+      setCollapsed(false)
+      setWantSearch((n) => n + 1)
+    }
+    window.addEventListener(SIDEBAR_TOGGLE, toggle)
+    window.addEventListener(SEARCH_FOCUS, search)
+    return () => {
+      window.removeEventListener(SIDEBAR_TOGGLE, toggle)
+      window.removeEventListener(SEARCH_FOCUS, search)
+    }
+  }, [setCollapsed])
+  useEffect(() => {
+    if (wantSearch) searchRef.current?.focus()
+  }, [wantSearch, collapsed])
 
   // Switching workspace opens its task and folder, so you can see where you are.
   useEffect(() => {
@@ -170,7 +191,14 @@ export function Sidebar() {
   return (
     <aside className="sidebar" style={{ width }}>
       <div className="side-head">
-        <input className="input search" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
+        <input
+          ref={searchRef}
+          className="input search"
+          placeholder="Search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()}
+        />
         <button
           className="icon-btn"
           title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}

@@ -108,13 +108,22 @@ files left out. `planner config check` prints the same from a terminal.
 
 ### Keyboard
 
-| Keys                    | Does                                                                 |
-| ----------------------- | -------------------------------------------------------------------- |
-| `Ctrl`/`Option` + arrow | Move the shown tab one pane that way, splitting a new pane if needed |
-| `Ctrl` + `1`…`9`        | Open the nth phase of the current task                               |
-| Middle click on a tab   | Close it                                                             |
+Every shortcut can be changed in **Settings** (⚙ → Keyboard shortcuts, where you record a combo by pressing it) or under
+`hotkeys` in the config file. These are the defaults:
 
-Shortcuts also work while a plan has focus.
+| Keys                           | Does                                                                 |
+| ------------------------------ | -------------------------------------------------------------------- |
+| `Ctrl`/`Option` + arrow        | Move the shown tab one pane that way, splitting a new pane if needed |
+| `Option` + `Shift` + `→` / `←` | Next / previous tab in the focused pane                              |
+| `Option` + `W`                 | Close the shown tab                                                  |
+| `Ctrl` + `1`…`9`               | Open the nth phase of the current task                               |
+| `Option` + `B`                 | Show or hide the sidebar                                             |
+| `/`                            | Jump to the search box                                               |
+| _(unbound)_                    | Split the shown tab right / down                                     |
+| Middle click on a tab          | Close it                                                             |
+
+Shortcuts also work while a plan has focus, but never while you type in a field. Combos are written like `"Alt+W"`
+(`Alt` is `Option` on a Mac) and match the physical key.
 
 ## Links
 
@@ -226,6 +235,7 @@ Only the keys you change are needed; the rest are the defaults.
 | `collections`   | `[]`                                    | Docs outside any task, by path pattern, e.g. `{"label":"Weekly","path":"weekly/*/*.html"}`             |
 | `docTypes`      | plan, eli5, recap, md, …                | Badges by file name; the first match wins, and the order is the reading order                          |
 | `port`          | `4173`                                  | Port to listen on                                                                                      |
+| `hotkeys`       | see Keyboard                            | Shortcuts by action, e.g. `{"closeTab": ["Alt+Q"], "splitRight": ["Alt+\\"]}`; `[]` turns one off      |
 
 Links name a workspace as `?ws=<task>/<phase>` in the first folder and `?ws=<folder>:<task>/<phase>` in the others, so a
 single-folder setup's links never change.

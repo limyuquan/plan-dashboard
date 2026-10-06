@@ -7,6 +7,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'vite'
 import { DEFAULT_CONFIG, FALLBACK_KIND, layoutFor } from '../../shared/config'
+import { DEFAULT_HOTKEYS } from '../../shared/hotkeys'
 import { docPath, taskKey } from '../../shared/keys'
 import type { Doc } from '../../shared/types'
 import { renderMarkdown } from '../../server/markdown'
@@ -33,6 +34,7 @@ const tree = {
   tasks: scanned.tasks,
   collections: scanned.collections,
   kinds: [...DEFAULT_CONFIG.docTypes.map(({ id, label, color }) => ({ id, label, color })), FALLBACK_KIND],
+  hotkeys: DEFAULT_HOTKEYS,
 }
 const preview = { ok: true, folders: [{ ...scanned.preview, label: '~/plans' }] }
 const incoming: Doc = {

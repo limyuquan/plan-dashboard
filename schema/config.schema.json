@@ -265,6 +265,109 @@
       },
       "description": "Docs outside any task, listed by a path pattern."
     },
+    "hotkeys": {
+      "type": "object",
+      "properties": {
+        "moveTabLeft": {
+          "description": "Move the shown tab to the pane on the left, splitting one off if there is none",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "moveTabRight": {
+          "description": "Move the shown tab to the pane on the right, splitting one off if there is none",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "moveTabUp": {
+          "description": "Move the shown tab to the pane above, splitting one off if there is none",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "moveTabDown": {
+          "description": "Move the shown tab to the pane below, splitting one off if there is none",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "nextTab": {
+          "description": "Show the next tab in the focused pane",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "previousTab": {
+          "description": "Show the previous tab in the focused pane",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "closeTab": {
+          "description": "Close the shown tab",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "splitRight": {
+          "description": "Split the shown tab into a new pane on the right",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "splitDown": {
+          "description": "Split the shown tab into a new pane below",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "openPhase": {
+          "description": "Open phase 1-9 of the current task: modifiers only, e.g. \"Ctrl\" for Ctrl+1",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "toggleSidebar": {
+          "description": "Show or hide the sidebar",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "focusSearch": {
+          "description": "Jump to the search box",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "additionalProperties": false,
+      "description": "Keyboard shortcuts by action, each a list of combos like \"Alt+W\". Leave an action out to keep its default; [] turns it off."
+    },
     "docTypes": {
       "type": "array",
       "items": {
