@@ -1,0 +1,16 @@
+name: Idea or request
+description: Something you wish Planner did, or did differently.
+labels: [idea]
+body:
+  - type: textarea
+    id: want
+    attributes:
+      label: What you would like
+      description: The change, and what you are trying to do when you need it.
+    validations:
+      required: true
+  - type: textarea
+    id: how
+    attributes:
+      label: How your plans are laid out (if it matters)
+      description: For example how your agents name folders and files.

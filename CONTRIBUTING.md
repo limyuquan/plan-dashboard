@@ -1,7 +1,12 @@
 # Contributing
 
-Issues and pull requests are welcome. Please keep changes small and focused, and run `npm run lint`, `npm run typecheck`,
-`npm test` and `npm run e2e` (browser tests; `npx playwright install chromium` once first) before opening a pull request.
+The best way to help is to [open an issue](https://github.com/limyuquan/planner/issues/new/choose): a bug you hit, a
+folder layout Planner gets wrong, or something you wish it did. Issues are where changes get decided, and I would rather
+build things after we agree on them.
+
+Pull requests are still welcome, but please open an issue first so we can agree on the change before you spend time on
+it. If you do send one, keep it small and focused, and run `npm run lint`, `npm run typecheck`, `npm test` and
+`npm run e2e` (browser tests; `npx playwright install chromium` once first) first.
 
 ## How the code is laid out
 

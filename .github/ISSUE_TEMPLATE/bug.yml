@@ -1,0 +1,22 @@
+name: Something is wrong
+description: A bug, a crash, or Planner reading your folders wrongly.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what you saw instead.
+    validations:
+      required: true
+  - type: textarea
+    id: check
+    attributes:
+      label: Output of `planner config check`
+      description: Helps when plans are missing or in the wrong place. Remove any paths you would rather not share.
+      render: text
+  - type: input
+    id: setup
+    attributes:
+      label: Planner version, Node.js version, OS and browser
+      placeholder: Planner 0.1.0, Node 22, macOS 15, Chrome

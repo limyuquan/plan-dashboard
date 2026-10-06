@@ -254,7 +254,8 @@ npm run lint
 npm run typecheck
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for how the code is laid out.
+Found a bug or want something? [Open an issue](https://github.com/limyuquan/planner/issues/new/choose); that is the
+preferred way to contribute. [CONTRIBUTING.md](CONTRIBUTING.md) has more, and how the code is laid out.
 
 ## License
 
