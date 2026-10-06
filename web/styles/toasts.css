@@ -1,0 +1,101 @@
+.toasts {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 50;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 10px 10px 10px 12px;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--accent);
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 8px 24px var(--shadow);
+}
+.toast-body {
+  flex: 1;
+  min-width: 0;
+}
+.toast-eyebrow {
+  color: var(--accent);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.toast-text {
+  font-weight: 500;
+}
+.toast-detail {
+  color: var(--dim);
+  font-size: 11px;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.toast-doc {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  min-width: 0;
+}
+.toast-doc .badge {
+  margin-top: 0;
+}
+.toast-doc-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toast-action {
+  flex: none;
+  border: 1px solid var(--line);
+  background: var(--raised);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.toast-action:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* A lasting toast is the one worth acting on, so its button says so. */
+.toast[data-lasting] {
+  border-color: color-mix(in oklab, var(--accent) 35%, var(--line));
+}
+.toast[data-lasting] .toast-action {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 500;
+}
+.toast[data-lasting] .toast-action:hover {
+  filter: brightness(1.1);
+  color: var(--on-accent);
+}
+
+.toast-close {
+  flex: none;
+  border: 0;
+  background: none;
+  color: var(--dimmer);
+  font-size: 15px;
+  cursor: pointer;
+}
+.toast-close:hover {
+  color: var(--text);
+}

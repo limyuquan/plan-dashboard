@@ -1,0 +1,107 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+}
+code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+}
+
+.app {
+  display: flex;
+  height: 100%;
+}
+
+/* Covers the page while a divider is dragged, since iframes swallow the mouse. */
+.shield {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.icon-btn {
+  flex: none;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--dimmer);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+}
+.icon-btn:hover {
+  background: var(--sel);
+  color: var(--text);
+}
+
+.btn {
+  padding: 6px 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: 7px;
+  background: var(--raised);
+  color: var(--text);
+  cursor: pointer;
+}
+.btn:hover {
+  border-color: var(--accent);
+}
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 500;
+}
+.btn.primary:hover {
+  filter: brightness(1.1);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  filter: none;
+}
+
+.input {
+  min-width: 0;
+  padding: 6px 9px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+.input:focus {
+  border-color: var(--line-strong);
+}
+.input::placeholder {
+  color: var(--dimmer);
+}
+.input[data-mono] {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.form-error {
+  color: var(--danger);
+  white-space: pre-wrap;
+}

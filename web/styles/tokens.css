@@ -1,0 +1,129 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b0b0d;
+  --sidebar: #101012;
+  --sidebar-focus: #131317;
+  --card: #17171b; /* search box, toast, and other small surfaces */
+  --raised: #26262d; /* the active tab and controls that sit on top */
+  --line: #232327;
+  --line-strong: #35353c;
+  --text: #e9e9ec;
+  --dim: #85858e;
+  --dimmer: #5c5c65;
+  --faint: #46464e;
+  --sel: #1d1d22;
+  --accent: #b49df0;
+  --on-accent: #1a1030;
+  --danger: #d9697f;
+  --shadow: rgba(0, 0, 0, 0.45);
+  --font: ui-sans-serif, -apple-system, 'SF Pro Text', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Badge colours. Both the tint behind a badge and its text are mixed out of
+     the theme's own colours, so one list serves light and dark. */
+  --tint-bg: 22%;
+  --tint-fg: 80%;
+  --hue-grey: #7e7e88;
+  --hue-violet: #9a76d0;
+  --hue-blue: #5a9fda;
+  --hue-teal: #4fb3bc;
+  --hue-green: #4fae7d;
+  --hue-amber: #c7a94a;
+  --hue-orange: #d18a54;
+  --hue-pink: #d97192;
+  --hue-red: #d9697f;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f2f2f4;
+  --sidebar: #f8f8fa;
+  --sidebar-focus: #ffffff;
+  --card: #ffffff;
+  --raised: #e4e4e9;
+  --line: #e0e0e5;
+  --line-strong: #b9b9c2;
+  --text: #1c1c20;
+  --dim: #5f5f68;
+  --dimmer: #8a8a93;
+  --faint: #aaaab2;
+  --sel: #eaeaef;
+  --accent: #6741c4;
+  --on-accent: #ffffff;
+  --danger: #bd3550;
+  --shadow: rgba(0, 0, 0, 0.13);
+  --tint-bg: 15%;
+  --tint-fg: 68%;
+}
+
+/* A badge: its hue tinted into the surface, with a readable version on top. */
+.badge,
+.phase-badge {
+  --hue: var(--hue-grey);
+  background: color-mix(in oklab, var(--hue) var(--tint-bg), var(--card));
+  color: color-mix(in oklab, var(--hue) var(--tint-fg), var(--text));
+}
+.badge {
+  flex: none;
+  margin-top: 2px;
+  font-size: 9px;
+  line-height: 1.5;
+  letter-spacing: 0.03em;
+  padding: 0 5px;
+  border-radius: 4px;
+}
+.badge[data-color='violet'] {
+  --hue: var(--hue-violet);
+}
+.badge[data-color='blue'] {
+  --hue: var(--hue-blue);
+}
+.badge[data-color='teal'] {
+  --hue: var(--hue-teal);
+}
+.badge[data-color='green'] {
+  --hue: var(--hue-green);
+}
+.badge[data-color='amber'] {
+  --hue: var(--hue-amber);
+}
+.badge[data-color='orange'] {
+  --hue: var(--hue-orange);
+}
+.badge[data-color='pink'] {
+  --hue: var(--hue-pink);
+}
+.badge[data-color='red'] {
+  --hue: var(--hue-red);
+}
+
+/* One colour per phase number, cycling, so tabs from one phase match. */
+.phase-badge {
+  flex: none;
+  min-width: 19px;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.phase-badge[data-tone='0'] {
+  --hue: var(--hue-blue);
+}
+.phase-badge[data-tone='1'] {
+  --hue: var(--hue-green);
+}
+.phase-badge[data-tone='2'] {
+  --hue: var(--hue-orange);
+}
+.phase-badge[data-tone='3'] {
+  --hue: var(--hue-violet);
+}
+.phase-badge[data-tone='4'] {
+  --hue: var(--hue-pink);
+}
+.phase-badge[data-tone='5'] {
+  --hue: var(--hue-teal);
+}

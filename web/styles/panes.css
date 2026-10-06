@@ -1,0 +1,240 @@
+.panes {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+
+/* A split lays its children out with flex; each child's flex-grow is its size. */
+.split {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+.split[data-dir='col'] {
+  flex-direction: column;
+}
+.split-cell {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Dividers have a 6px grab area but show a 2px line. */
+.divider {
+  flex: none;
+  position: relative;
+}
+.divider[data-dir='row'] {
+  width: 6px;
+  cursor: col-resize;
+}
+.divider[data-dir='col'] {
+  height: 6px;
+  cursor: row-resize;
+}
+.divider::after {
+  content: '';
+  position: absolute;
+  background: var(--line);
+}
+.divider[data-dir='row']::after {
+  inset: 0 2px;
+}
+.divider[data-dir='col']::after {
+  inset: 2px 0;
+}
+.divider:hover::after {
+  background: var(--accent);
+}
+
+.pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.pane-body {
+  flex: 1;
+  position: relative;
+  display: flex;
+  min-height: 0;
+}
+
+.tabbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  flex: none;
+  padding: 0 6px;
+  border-bottom: 1px solid var(--line);
+  background: var(--sidebar);
+  overflow: hidden;
+}
+.pane[data-focused] .tabbar {
+  background: var(--sidebar-focus);
+  box-shadow: inset 0 -2px 0 color-mix(in oklab, var(--accent) 55%, transparent);
+}
+
+/* No scrollbar-width on purpose: it would hand the strip macOS's overlay
+   scrollbar, which fades out and hides that there are more tabs. */
+.tabs {
+  flex: 1;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  overflow-x: auto;
+}
+.tabs::-webkit-scrollbar {
+  height: 5px;
+}
+.tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+.tabs::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 3px;
+}
+.tabs::-webkit-scrollbar-thumb:hover {
+  background: var(--dimmer);
+}
+
+.tab {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 300px;
+  padding: 5px 7px;
+  border-radius: 6px;
+  color: var(--dim);
+  cursor: pointer;
+  user-select: none;
+}
+.tab:hover {
+  background: var(--sel);
+}
+.tab[data-active] {
+  background: var(--raised);
+  color: var(--text);
+}
+.tab .badge {
+  margin-top: 0;
+}
+/* Where a dragged tab will be inserted. */
+.tab[data-marker='before'] {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.tab[data-marker='after'] {
+  box-shadow: inset -2px 0 0 var(--accent);
+}
+
+.tab-title {
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tab-copy {
+  color: var(--dimmer);
+  padding: 0 2px;
+  opacity: 0;
+}
+.tab:hover .tab-copy,
+.tab[data-active] .tab-copy {
+  opacity: 1;
+}
+.tab-copy:hover {
+  color: var(--accent);
+}
+.tab-close {
+  color: var(--dimmer);
+  padding: 0 2px;
+}
+.tab-close:hover {
+  color: var(--danger);
+}
+
+.pane-acts {
+  display: flex;
+  gap: 2px;
+  flex: none;
+}
+.pane-act {
+  display: flex;
+  align-items: center;
+  border: 0;
+  background: none;
+  color: var(--dimmer);
+  padding: 3px 7px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.pane-act:hover {
+  background: var(--sel);
+  color: var(--text);
+}
+.chev-icon {
+  width: 12px;
+  height: 12px;
+  display: block;
+}
+.pane-close:hover {
+  background: color-mix(in oklab, var(--danger) 22%, var(--bg));
+  color: var(--danger);
+}
+
+.viewer {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: var(--bg);
+}
+
+.blank {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  color: var(--dimmer);
+  text-align: center;
+  padding: 16px;
+}
+.blank-hint {
+  font-size: 11px;
+  color: var(--faint);
+}
+
+/* Invisible drop targets over a pane while something is dragged. */
+.drop-zones {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+}
+.dz {
+  position: absolute;
+}
+
+/* Shows the space the dropped tab will take. */
+.drop-preview {
+  position: absolute;
+  z-index: 11;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--accent);
+  background: color-mix(in oklab, var(--accent) 16%, transparent);
+  color: var(--accent);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}

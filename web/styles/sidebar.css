@@ -1,0 +1,320 @@
+.sidebar {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--sidebar);
+  border-right: 1px solid var(--line);
+}
+
+/* Grab strip on the sidebar's edge, wider than it looks so it is easy to hit. */
+.side-resize {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: -4px;
+  width: 9px;
+  cursor: col-resize;
+  z-index: 5;
+}
+.side-resize:hover {
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+/* Collapsed: a thin strip you click to bring the sidebar back. */
+.rail {
+  flex: none;
+  width: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding-top: 12px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--line);
+  cursor: pointer;
+  color: var(--dimmer);
+}
+.rail:hover {
+  color: var(--text);
+}
+.rail-chev {
+  width: 12px;
+  height: 12px;
+}
+.rail-text {
+  writing-mode: vertical-rl;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.side-head {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px;
+  border-bottom: 1px solid var(--line);
+}
+.side-head .search {
+  flex: 1;
+  padding: 7px 9px;
+}
+
+.side-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 6px 24px;
+  scrollbar-width: none;
+}
+.side-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.side-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px 6px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--dimmer);
+}
+.side-label.fold {
+  cursor: pointer;
+  margin-top: 6px;
+}
+.side-label.fold:hover {
+  color: var(--dim);
+}
+.side-label .rule {
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.side-foot {
+  padding: 7px 10px;
+  border-top: 1px solid var(--line);
+  font-size: 10px;
+  color: var(--dimmer);
+  overflow-wrap: anywhere;
+}
+
+.task {
+  margin-bottom: 1px;
+}
+.task-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 15px 9px;
+  border-radius: 6px;
+  border-top: 2px solid transparent;
+  cursor: pointer;
+  user-select: none;
+}
+.task-row:hover {
+  background: var(--sel);
+}
+/* The task holding your workspace, so you can see where you are at a glance. */
+.task-row[data-cur] {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+/* Where a dragged task will land. */
+.task-row[data-dropping] {
+  border-top-color: var(--accent);
+  background: var(--sel);
+}
+
+.chev {
+  color: var(--dimmer);
+  width: 10px;
+  height: 10px;
+  flex: none;
+  margin-top: 6px;
+}
+.task-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  text-transform: capitalize;
+}
+.dot {
+  margin-top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex: none;
+}
+
+.task-act {
+  flex: none;
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--dimmer);
+  padding: 2px 6px;
+  border-radius: 5px;
+  opacity: 0;
+}
+.task-row:hover .task-act {
+  opacity: 1;
+}
+.task-act:hover {
+  background: var(--raised);
+  color: var(--text);
+}
+
+.task-body {
+  padding: 3px 0 8px 14px;
+}
+
+.folder {
+  margin: 5px 0;
+}
+.folder[data-empty] {
+  opacity: 0.42;
+}
+.folder-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 6px;
+  padding: 12px 8px 11px;
+  font-size: 13px;
+  line-height: 1.4;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.folder-row:hover {
+  background: var(--sel);
+}
+.folder[data-empty] .folder-row {
+  cursor: default;
+}
+.folder[data-empty] .folder-row:hover {
+  background: none;
+}
+.folder-row[data-cur] {
+  background: var(--sel);
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.folder-row .chev {
+  margin-top: 0;
+  align-self: center;
+}
+.folder-row[data-cur] .folder-num {
+  color: var(--text);
+}
+.folder-num {
+  color: var(--dim);
+  flex: none;
+}
+.folder-label {
+  color: var(--dimmer);
+  overflow-wrap: anywhere;
+}
+
+.tag {
+  flex: none;
+  font-size: 9px;
+  color: var(--dimmer);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 4px;
+}
+
+.doc {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 7px 8px;
+  font-size: 12px;
+  margin-left: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--dim);
+}
+.doc:hover {
+  background: var(--sel);
+  color: var(--text);
+}
+.doc[data-open] {
+  color: var(--text);
+}
+.doc[data-open] .doc-title {
+  font-weight: 500;
+}
+.doc-title {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.split-btn {
+  opacity: 0;
+  color: var(--dimmer);
+  font-size: 11px;
+  padding: 0 3px;
+  margin-top: 2px;
+}
+.doc:hover .split-btn {
+  opacity: 1;
+}
+.split-btn:hover {
+  color: var(--accent);
+}
+
+.empty-note {
+  padding: 5px 12px;
+  color: var(--dimmer);
+  font-size: 11px;
+  font-style: italic;
+}
+
+.ws-btn {
+  flex: none;
+  padding: 1px 5px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: var(--dimmer);
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.ws-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--sel);
+}
+.ws-btn[data-cur] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+/* Copy and ws travel as a pair, so a long name wraps them together. */
+.row-acts {
+  display: flex;
+  flex: none;
+  gap: 5px;
+  margin-left: auto;
+  align-items: baseline;
+}
+.task-row .row-acts {
+  margin-top: 2px;
+}
+.copy-btn {
+  opacity: 0;
+  padding: 0 5px;
+  font-size: 14px;
+  line-height: 1.15;
+}
+.task-row:hover .copy-btn,
+.folder-row:hover .copy-btn {
+  opacity: 1;
+}
