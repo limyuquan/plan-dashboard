@@ -24,6 +24,7 @@ web/             the React app
   settings/      the settings page and first-run screen
   styles/        one stylesheet per area, tokens.css for colours
 examples/        a demo docs folder, also used by the tests
+skills/          agent skills that write and show plans (not part of the app)
 ```
 
 Two rules keep it this way:

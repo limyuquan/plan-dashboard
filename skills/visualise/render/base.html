@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Base Template — Component Reference (visualise)</title>
+<!--
+  This file is the design system in code. Copy the whole <style> block and the <script>
+  block at the bottom into every page you render, then keep only the components you use.
+  Every component below is shown once with the exact markup to copy.
+-->
+<script>/* theme before first paint: ?theme= from the dashboard wins, then the browser's memory, then dark */
+(function () { var q = new URLSearchParams(location.search).get('theme'); document.documentElement.dataset.theme = (q === 'light' || q === 'dark') ? q : (localStorage.getItem('visualise-theme') || 'dark'); })();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ---------- tokens ---------- */
+:root {
+  --bg: #282c34;
+  --bg-raised: #2f343e;
+  --border: #3a3f4b;
+  --border-strong: #4b5263;
+  --text: #f2f2f2;
+  --text-dim: #9da5b4;
+  --text-faint: #5c6370;
+  /* the one accent: purple, matching the plan dashboard (light purple on dark, dark purple on light) */
+  --accent: #b49df0; --accent-l: #6741c4;
+  --del: #f87171; --del-bg: rgba(248,113,113,.10);
+  --add: #4ade80; --add-bg: rgba(74,222,128,.10);
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --measure: 72ch;
+}
+[data-theme="light"] {
+  --bg: #ffffff; --bg-raised: #f5f5f4; --border: #e6e6e6; --border-strong: #cfcfcf;
+  --text: #111111; --text-dim: #6b6b6b; --text-faint: #bdbdbd;
+  --accent: var(--accent-l);
+  --del: #b91c1c; --del-bg: rgba(185,28,28,.08);
+  --add: #15803d; --add-bg: rgba(21,128,61,.08);
+}
+/* theme toggle: top right of every page */
+.theme-toggle { position: fixed; top: 14px; right: 16px; z-index: 300; font: 11px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); background: var(--bg); border: 1px solid var(--border-strong); padding: 7px 10px; cursor: pointer; }
+.theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+/* Mermaid follows the theme through CSS, so diagrams never need re-rendering */
+.mermaid-canvas svg .node rect, .mermaid-canvas svg .node polygon, .mermaid-canvas svg .node circle, .mermaid-canvas svg .node path, .mermaid-canvas svg .cluster rect { fill: var(--bg-raised) !important; stroke: var(--border-strong) !important; }
+.mermaid-canvas svg .node.hot rect, .mermaid-canvas svg .node.hot polygon { stroke: var(--accent) !important; stroke-width: 2px !important; }
+.mermaid-canvas svg .nodeLabel, .mermaid-canvas svg .edgeLabel, .mermaid-canvas svg text, .mermaid-canvas svg .cluster-label span { color: var(--text) !important; fill: var(--text) !important; }
+.mermaid-canvas svg .edgePath path, .mermaid-canvas svg .flowchart-link, .mermaid-canvas svg .messageLine0, .mermaid-canvas svg .messageLine1 { stroke: var(--text-dim) !important; }
+.mermaid-canvas svg marker path { fill: var(--text-dim) !important; stroke: var(--text-dim) !important; }
+.mermaid-canvas svg .edgeLabel rect, .mermaid-canvas svg .edgeLabel span, .mermaid-canvas svg .labelBkg { background: var(--bg) !important; fill: var(--bg) !important; }
+.mermaid-canvas svg .actor { fill: var(--bg-raised) !important; stroke: var(--border-strong) !important; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---------- base ---------- */
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; color: var(--text); background: var(--bg);
+  font-family: var(--font-mono); font-size: 15px; line-height: 1.7;
+  overflow-wrap: break-word; -webkit-font-smoothing: antialiased;
+}
+a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--text-dim); }
+a:hover { text-decoration-color: var(--accent); }
+code, .chip { font-family: var(--font-mono); }
+code { font-size: .92em; color: var(--text); background: var(--bg-raised); padding: 1px 5px; border: 1px solid var(--border); border-radius: 3px; }
+pre { background: var(--bg-raised); border: 1px solid var(--border); padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; margin: 16px 0; }
+pre code { background: none; border: 0; padding: 0; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
+p { margin: 0 0 14px; max-width: var(--measure); }
+ul, ol { padding-left: 1.4em; max-width: var(--measure); }
+li { margin: 4px 0; }
+ul { list-style: none; padding-left: 1.2em; }
+ul li { position: relative; }
+ul li::before { content: "•"; position: absolute; left: -1.1em; color: var(--text-dim); }
+strong { font-weight: 700; color: var(--text); }
+em { font-style: italic; color: var(--text); }
+.grid > *, .flex > * { min-width: 0; }
+
+/* ---------- page frame ---------- */
+.page { max-width: 1120px; margin: 0 auto; padding: 40px 48px 120px; }
+.rule-top { border-top: 1px solid var(--text); margin-bottom: 28px; }
+.kicker { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-dim); margin: 0 0 14px; }
+.kicker .sep { margin: 0 .5em; color: var(--text-faint); }
+h1.hero { font-size: clamp(40px, 6vw, 68px); line-height: 1.02; letter-spacing: -.02em; font-weight: 700; margin: 0 0 22px; max-width: 18ch; }
+.deck { font-size: 18px; line-height: 1.55; max-width: 66ch; margin: 0 0 18px; }
+.fineprint { font-size: 12px; color: var(--text-dim); max-width: 80ch; margin: 0 0 28px; }
+.navrow { display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 0 0 56px; font-size: 13px; }
+.navrow a { color: var(--text-dim); }
+.navrow a.active, .navrow a:hover { color: var(--text); text-decoration-color: var(--accent); }
+
+/* ---------- sections ---------- */
+section.sec { padding: 8px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 40px; scroll-margin-top: 24px; }
+section.sec:last-of-type { border-bottom: 0; }
+h2 { font-size: clamp(24px, 3vw, 34px); line-height: 1.15; letter-spacing: -.015em; font-weight: 700; margin: 0 0 18px; max-width: 30ch; }
+h3 { font-size: 16px; font-weight: 700; margin: 28px 0 10px; }
+.lead { font-size: 22px; line-height: 1.4; font-weight: 400; max-width: 34ch; margin: 0 0 22px; }
+.lead b { color: var(--accent); font-weight: 700; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
+.two > * { min-width: 0; }
+@media (max-width: 860px) { .two { grid-template-columns: 1fr; } .page { padding: 28px 20px 80px; } }
+
+/* ---------- stat tiles ---------- */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; border-top: 1px solid var(--border); border-left: 1px solid var(--border); margin: 24px 0 28px; }
+.stat { padding: 18px 20px 16px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); min-width: 0; }
+.stat .n { font-size: 40px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.stat .n.accent { color: var(--accent); }
+.stat .n.dim { color: var(--text-dim); }
+.stat .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+
+/* ---------- big comparison ---------- */
+.compare { display: flex; align-items: flex-end; gap: 36px; flex-wrap: wrap; margin: 20px 0 8px; }
+.compare .big { font-size: clamp(64px, 9vw, 112px); font-weight: 700; line-height: .95; letter-spacing: -.03em; }
+.compare .big.accent { color: var(--accent); }
+.compare .big.dim { color: var(--text-faint); }
+.compare .vs { font-size: 22px; color: var(--text-dim); padding-bottom: 18px; }
+.compare .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+
+/* ---------- dot matrix (quantities) ---------- */
+.dots { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; margin: 14px 0 24px; }
+.dotgrid { display: grid; grid-template-columns: repeat(var(--cols, 20), 12px); gap: 4px; }
+.dotgrid i { width: 12px; height: 12px; border-radius: 50%; background: var(--text-faint); display: block; }
+.dotgrid i.on { background: var(--accent); }
+.dots .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+.dots .c b { color: var(--accent); }
+
+/* ---------- big numbers (no hairlines; the headline strip above a chart) ---------- */
+.bignums { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 24px 32px; margin: 26px 0 40px; }
+.bignums > * { min-width: 0; }
+.bignums .n { font-size: clamp(56px, 7vw, 104px); font-weight: 700; line-height: .95; letter-spacing: -.03em; color: var(--accent); }
+.bignums .n.dim { color: var(--text-dim); }
+.bignums .c { font-size: 14px; color: var(--text-dim); margin-top: 10px; }
+
+/* ---------- charts (data-driven: see the <script type="application/json"> inside each figure) ---------- */
+:root { --bar: #4b5263; }
+[data-theme="light"] { --bar: #d4d4d4; }
+figure.chart { margin: 26px 0 34px; }
+figure.chart .chart-title { font-size: 15px; font-weight: 700; margin: 0 0 8px; color: var(--text); }
+figure.chart .chart-svg { min-width: 0; }
+figure.chart svg { display: block; width: 100%; height: auto; font-family: var(--font-mono); }
+figure.chart svg text { font-size: 12px; fill: var(--text-dim); }
+figure.chart svg .val { font-size: 13px; }
+figure.chart svg .val.hl { fill: var(--text); font-weight: 700; }
+figure.chart svg .acc { fill: var(--accent); font-weight: 700; font-size: 14px; }
+figure.chart svg .big { font-size: 15px; }
+figure.chart figcaption { font-size: 13px; color: var(--text-dim); margin-top: 10px; max-width: 90ch; }
+
+/* ---------- ledger (entries with a label column) ---------- */
+.ledger { border-top: 1px solid var(--border); margin: 20px 0 24px; }
+.ledger .row { display: grid; grid-template-columns: 96px 1fr; gap: 0 24px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.ledger .row > * { min-width: 0; }
+.ledger .lab { color: var(--accent); font-size: 14px; padding-top: 2px; }
+.ledger .t { font-weight: 700; }
+.ledger .meta { color: var(--text-dim); }
+.ledger p { margin: 4px 0 0; max-width: none; }
+@media (max-width: 640px) { .ledger .row { grid-template-columns: 1fr; gap: 6px; } }
+
+/* ---------- callout ---------- */
+.callout { border-left: 2px solid var(--accent); padding: 12px 18px; margin: 22px 0; max-width: 80ch; background: var(--bg-raised); }
+.callout b:first-child { color: var(--accent); }
+.callout p { max-width: none; margin: 0; }
+
+/* ---------- timeline strip ---------- */
+.timeline { margin: 18px 0 28px; }
+.timeline svg { width: 100%; height: 72px; display: block; }
+.timeline .axis { font-size: 11px; color: var(--text-dim); display: flex; justify-content: space-between; margin-top: 6px; }
+
+/* ---------- tables ---------- */
+.tablewrap { overflow-x: auto; margin: 18px 0 26px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border-strong); }
+td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- chips / file map / diff ---------- */
+.chip { display: inline-block; font-size: 12px; padding: 1px 8px; border: 1px solid var(--border-strong); border-radius: 3px; color: var(--text); margin: 2px 4px 2px 0; }
+.chip.accent { border-color: var(--accent); color: var(--accent); }
+.tree { font-size: 13px; line-height: 1.6; white-space: pre; overflow-x: auto; }
+.tree .new { color: var(--add); } .tree .mod { color: var(--accent); } .tree .del { color: var(--del); }
+.diff { font-size: 13px; line-height: 1.55; }
+.diff .del { display: block; background: var(--del-bg); color: var(--del); }
+.diff .add { display: block; background: var(--add-bg); color: var(--add); }
+.diff .ctx { display: block; color: var(--text-dim); }
+
+/* ---------- collapsible ---------- */
+details { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 10px 0; margin: 16px 0; }
+details + details { border-top: 0; margin-top: -16px; }
+summary { cursor: pointer; list-style: none; display: flex; gap: 12px; align-items: baseline; color: var(--text); }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "+"; color: var(--accent); font-weight: 700; width: 1ch; }
+details[open] summary::before { content: "−"; }
+summary .meta { color: var(--text-dim); font-size: 12px; margin-left: auto; }
+details .body { padding: 12px 0 4px 2ch; }
+
+/* ---------- before / after ---------- */
+.ba { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); margin: 18px 0 26px; }
+.ba > * { min-width: 0; padding: 14px 18px; }
+.ba > :first-child { border-right: 1px solid var(--border); }
+.ba .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.ba .after .lbl { color: var(--accent); }
+@media (max-width: 720px) { .ba { grid-template-columns: 1fr; } .ba > :first-child { border-right: 0; border-bottom: 1px solid var(--border); } }
+
+/* ---------- ELI5 panel (picture-first) ---------- */
+.eli5 { margin: 30px 0 4px; border: 1px dashed var(--border-strong); padding: 18px 20px 16px; background: var(--bg-raised); }
+.eli5 .k { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.eli5 figure { margin: 0; }
+.eli5 figcaption { font-size: 14px; color: var(--text); margin-top: 12px; max-width: 60ch; }
+.eli5 .chips { margin-top: 8px; }
+/* recipe primitives used inside .eli5 — full gallery in eli5-recipes.html */
+.pic-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.pic-cards .card { border: 1px solid var(--border); padding: 14px 10px; text-align: center; min-width: 0; }
+.pic-cards .em { font-size: 40px; line-height: 1; display: block; margin-bottom: 8px; }
+.pic-cards .lbl { font-size: 12px; color: var(--text-dim); }
+.pic-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pic-flow .box { border: 1px solid var(--border-strong); padding: 10px 14px; text-align: center; min-width: 96px; }
+.pic-flow .box .em { font-size: 28px; display: block; }
+.pic-flow .box.hot { border-color: var(--accent); }
+.pic-flow .arrow { color: var(--text-dim); font-size: 20px; }
+.pic-ladder { list-style: none; padding: 0; margin: 0; counter-reset: rung; max-width: none; }
+.pic-ladder li { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.pic-ladder li::before { content: counter(rung); counter-increment: rung; position: static; color: var(--text-dim); text-align: right; }
+.pic-ladder .badge { font-size: 11px; letter-spacing: .1em; padding: 2px 8px; border: 1px solid; }
+.pic-ladder .pass { color: var(--add); border-color: var(--add); }
+.pic-ladder .deny { color: var(--del); border-color: var(--del); }
+.pic-split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pic-split > div { border: 1px solid var(--border); padding: 14px; text-align: center; min-width: 0; }
+.pic-split .em { font-size: 40px; display: block; margin-bottom: 6px; }
+.pic-split .hot { border-color: var(--accent); }
+
+/* ---------- footer ---------- */
+.foot { margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-dim); }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" type="button">light mode</button>
+<div class="page">
+
+  <div class="rule-top"></div>
+  <p class="kicker">Component reference<span class="sep">·</span>visualise skill<span class="sep">·</span>copy what you need</p>
+  <h1 class="hero">Every component, once, in the house style</h1>
+  <p class="deck">Dark canvas by default with a light mode switch that follows the plan dashboard, purple as the only accent, monospace throughout, hierarchy by size and hairlines. No shadows, gradients, icons, or rounded panels. Emoji only inside ELI5 pictures.</p>
+  <p class="fineprint">The hero block above is: .rule-top, .kicker, h1.hero, .deck, .fineprint. Every page starts this way, with the .theme-toggle button fixed top right.</p>
+
+  <nav class="navrow" id="navrow">
+    <a href="#s-stats">Stats</a>
+    <a href="#s-compare">Comparison</a>
+    <a href="#s-charts">Charts</a>
+    <a href="#s-ledger">Ledger</a>
+    <a href="#s-tables">Tables &amp; code</a>
+    <a href="#s-eli5">ELI5 panel</a>
+  </nav>
+
+  <section class="sec" id="s-stats">
+    <p class="kicker">The short version</p>
+    <h2>A section opens with a kicker, a heading, and one lead sentence</h2>
+    <p class="lead"><b>The lead carries the verdict.</b> The rest of the section supports it.</p>
+    <div class="stats">
+      <div class="stat"><div class="n">9</div><div class="c">merged PRs with direct involvement</div></div>
+      <div class="stat"><div class="n">2</div><div class="c">repositories touched</div></div>
+      <div class="stat"><div class="n accent">+3,453</div><div class="c">additions across merged PRs</div></div>
+      <div class="stat"><div class="n dim">−3,692</div><div class="c">deletions across merged PRs</div></div>
+    </div>
+    <p>Body text is 15px mono at a 72-character measure. Real names go in <code>code</code>. Keep paragraphs to two or three sentences.</p>
+  </section>
+
+  <section class="sec" id="s-compare">
+    <p class="kicker">Big comparison</p>
+    <h2>When one number against another is the whole point</h2>
+    <div class="compare">
+      <div><div class="big accent">89</div><div class="c">merged, last 24 hours</div></div>
+      <div class="vs">vs</div>
+      <div><div class="big dim">20</div><div class="c">median 24 hour window</div></div>
+      <div><div class="big dim" style="color:var(--text-dim)">4.5x</div><div class="c">the usual rate</div></div>
+    </div>
+    <div class="dots">
+      <div><div class="dotgrid" data-count="89" data-on="89" style="--cols:20"></div><div class="c"><b>89</b> merged in the last 24 hours</div></div>
+      <div><div class="dotgrid" data-count="20" data-on="0" style="--cols:20"></div><div class="c">20 in a typical 24 hours (median)</div></div>
+    </div>
+    <div class="timeline">
+      <svg viewBox="0 0 1000 72" preserveAspectRatio="none" aria-label="events over time">
+        <line x1="0" y1="60" x2="1000" y2="60" stroke="var(--border)"/>
+        <!-- one <rect> per event: x = position, height = weight -->
+        <rect x="40" y="20" width="2" height="40" fill="var(--accent)"/>
+        <rect x="120" y="30" width="2" height="30" fill="var(--accent)"/>
+        <rect x="128" y="20" width="2" height="40" fill="var(--accent)"/>
+        <rect x="610" y="10" width="2" height="50" fill="var(--accent)"/>
+        <rect x="900" y="24" width="2" height="36" fill="var(--accent)"/>
+      </svg>
+      <div class="axis"><span>08:28</span><span>14:28</span><span>20:28</span><span>02:28</span><span>08:28</span></div>
+    </div>
+  </section>
+
+  <section class="sec" id="s-charts">
+    <p class="kicker">Charts</p>
+    <h2>Give the numbers, get the picture</h2>
+    <p>Two chart types, both drawn by the page script from a JSON block: a bar chart with a highlighted range and a dashed reference line, and a cumulative line with a highlighted segment and a dashed "if the old rate had held" projection. The headline numbers above them use <code>.bignums</code>.</p>
+
+    <div class="bignums">
+      <div><div class="n">266</div><div class="c">merged in the last 24 hours</div></div>
+      <div><div class="n">452</div><div class="c">merged in the last 3 days</div></div>
+      <div><div class="n dim">21</div><div class="c">median per day, prior 11 days</div></div>
+      <div><div class="n">5.4x</div><div class="c">151 PRs/day now vs 28 PRs/day before</div></div>
+    </div>
+
+    <figure class="chart" data-chart="bars">
+      <div class="chart-title">PRs merged per day</div>
+      <script type="application/json">{
+        "labels": ["Aug 23","Aug 24","Aug 25","Aug 26","Aug 27","Aug 28","Aug 29","Aug 30","Aug 31","Sep 01","Sep 02","Sep 03","Sep 04","Sep 05"],
+        "values": [21,19,39,10,4,19,35,9,25,33,92,73,113,266],
+        "highlightFrom": 11, "highlightLabel": "last 3 days",
+        "reference": { "value": 21, "label": "median of prior 11 days: 21" }
+      }</script>
+      <figcaption>Each bar is a 24 hour bucket ending at the current time of day. Last 3 days: 73, 113, 266. Prior 11 days ranged 4 to 92.</figcaption>
+    </figure>
+
+    <figure class="chart" data-chart="line">
+      <div class="chart-title">Cumulative merges, 14 days</div>
+      <script type="application/json">{
+        "daily": [21,19,39,10,4,19,35,9,25,33,92,73,113,266],
+        "labels": ["Aug 22","Aug 23","Aug 24","Aug 25","Aug 26","Aug 27","Aug 28","Aug 29","Aug 30","Aug 31","Sep 01","Sep 02","Sep 03","Sep 04","Sep 05"],
+        "highlightFrom": 11,
+        "beforeLabel": "28 PRs/day", "afterLabel": "151 PRs/day",
+        "projection": true, "projectionLabel": "at the old rate: {value}"
+      }</script>
+      <figcaption>The slope is the velocity. Dashed line shows where the count would be if the old rate had held: 389 instead of 758. The last 3 days added 452 PRs, which is 60% of the 14 day total.</figcaption>
+    </figure>
+    <p class="fineprint">Bar config keys: <code>labels</code>, <code>values</code>, <code>highlightFrom</code> (index of the first highlighted bar), <code>highlightLabel</code>, <code>reference</code> {value, label}, optional <code>height</code>. Line config keys: <code>daily</code> (turned into a running total from 0) or <code>values</code> (already cumulative), <code>labels</code> (one per point; thinned automatically), <code>highlightFrom</code>, <code>beforeLabel</code>, <code>afterLabel</code>, <code>projection</code> (true = extend the pre-highlight slope, or a number), <code>projectionLabel</code> with <code>{value}</code>, optional <code>height</code>.</p>
+  </section>
+
+  <section class="sec" id="s-ledger">
+    <p class="kicker">Ledger</p>
+    <h2>Entries with a label column: PRs, steps, files, decisions</h2>
+    <div class="ledger">
+      <div class="row">
+        <div class="lab">2h 45m</div>
+        <div><a href="#">#5181</a>, <span class="t">rollback-safe remote updates.</span> <span class="meta">+2,831 / −2,245, 40 files, 13 commits.</span>
+          <p>This touched launchers, update state, migration, and handoff behavior. It ran 281 focused tests plus typechecks, build, and preflight checks.</p></div>
+      </div>
+      <div class="row">
+        <div class="lab">21m 02s</div>
+        <div><a href="#">#5190</a>, <span class="t">legacy settings menus.</span> <span class="meta">+475 / −88, 17 files, 4 commits.</span>
+          <p>The stronger focused example. Changed the contract, server, web, and mobile paths and attached screenshots.</p></div>
+      </div>
+    </div>
+    <div class="callout"><b>The practical pattern:</b> it often found the true runtime owner and was willing to change architecture. That was valuable on hard lifecycle work.</div>
+    <div class="two">
+      <div><h3>Strengths</h3><ul><li>Strength: high exploration throughput.</li><li>Found the real owner of the bug.</li></ul></div>
+      <div><h3>Costs</h3><ul><li>Cost: created output was much larger than landed output.</li></ul></div>
+    </div>
+  </section>
+
+  <section class="sec" id="s-tables">
+    <p class="kicker">Tables, files, diffs, collapsibles</p>
+    <h2>Reference material stays flat and quiet</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>File</th><th>Change</th><th class="num">Lines</th></tr></thead>
+      <tbody>
+        <tr><td><code>api/orders/release.go</code></td><td>priority picks the approval queue</td><td class="num">+12 / −3</td></tr>
+        <tr><td><code>config/config.go</code></td><td>two queue id fields</td><td class="num">+2</td></tr>
+      </tbody>
+    </table></div>
+    <div class="tree"><span class="mod">M</span> api/orders/release.go
+<span class="new">A</span> api/orders/release_test.go
+<span class="del">D</span> api/legacy/release.go</div>
+    <div class="ba">
+      <div class="before"><div class="lbl">Before</div><p>Every release went to the standard approval queue, however urgent.</p></div>
+      <div class="after"><div class="lbl">After</div><p>Non-zero <code>priority</code> goes to the fast queue; values above 1 also need a human sign-off.</p></div>
+    </div>
+    <details>
+      <summary>Diff: queue selection <span class="meta">release.go:93–99</span></summary>
+      <div class="body"><pre class="diff"><code><span class="ctx">  queueID := cfg.Approvals.StandardQueueID</span>
+<span class="del">- if req.Urgent {</span>
+<span class="add">+ if req.Priority != 0 {</span>
+<span class="ctx">    queueID = cfg.Approvals.FastQueueID</span></code></pre></div>
+    </details>
+    <details>
+      <summary>Second collapsible stacks flush with the first <span class="meta">optional</span></summary>
+      <div class="body"><p>Use collapsibles for long diffs, full command output, and appendix material.</p></div>
+    </details>
+    <p><span class="chip">release.go</span><span class="chip accent">priority</span><span class="chip">config.go</span></p>
+  </section>
+
+  <section class="sec" id="s-eli5">
+    <p class="kicker">ELI5 panel</p>
+    <h2>Every major section ends with a picture, not a paragraph</h2>
+    <p>The panel is dashed, raised, labelled in the accent colour, and holds one drawn figure with a one-sentence caption. Recipes for the figure are in <code>eli5-recipes.html</code>.</p>
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-flow">
+          <div class="box"><span class="em">📨</span>release request</div>
+          <span class="arrow">→</span>
+          <div class="box hot"><span class="em">🚦</span>priority?</div>
+          <span class="arrow">→</span>
+          <div class="box"><span class="em">🗂️</span>standard queue</div>
+          <span class="arrow">or</span>
+          <div class="box"><span class="em">🧑‍⚖️</span>fast queue + a human</div>
+        </div>
+        <figcaption>One traffic light looks at a single number and sends the request down one of two roads.</figcaption>
+        <div class="chips"><span class="chip">priority</span><span class="chip">FastQueueID</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <div class="foot">Rendered by the visualise skill · sources: list the files and commands this page was built from.</div>
+</div>
+
+<script>
+(function () {
+  // theme: the switch, the browser's memory, and the plan dashboard all agree.
+  // Dashboard -> page: {type:'plan-theme', theme} via postMessage. Page -> dashboard: the same message, sent on click.
+  const root = document.documentElement, btn = document.getElementById('themeToggle');
+  const setTheme = t => { root.dataset.theme = t; localStorage.setItem('visualise-theme', t); if (btn) btn.textContent = t === 'light' ? 'dark mode' : 'light mode'; };
+  setTheme(root.dataset.theme || 'dark');
+  if (btn) btn.addEventListener('click', () => {
+    const t = root.dataset.theme === 'light' ? 'dark' : 'light';
+    setTheme(t);
+    if (window.parent !== window) window.parent.postMessage({ type: 'plan-theme', theme: t }, '*');
+  });
+  window.addEventListener('message', e => {
+    const d = e.data; if (d && d.type === 'plan-theme' && (d.theme === 'light' || d.theme === 'dark')) setTheme(d.theme);
+  });
+  // dot matrices: data-count total dots, data-on highlighted (filled left to right)
+  document.querySelectorAll('.dotgrid').forEach(g => {
+    const n = +g.dataset.count || 0, on = +g.dataset.on || 0;
+    g.innerHTML = Array.from({ length: n }, (_, i) => `<i class="${i < on ? 'on' : ''}"></i>`).join('');
+  });
+  // charts: <figure class="chart" data-chart="bars|line"> with a JSON config inside
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fmt = v => Math.round(v).toLocaleString('en-US');
+  const niceStep = max => { const raw = max / 6, p = Math.pow(10, Math.floor(Math.log10(raw))); return [1, 2, 5, 10].map(m => m * p).find(s => s >= raw) || p * 10; };
+  function barsSVG(c, W) {
+    const v = c.values || [], n = v.length, hf = c.highlightFrom == null ? n : c.highlightFrom;
+    const H = c.height || 400, top = 64, bottom = 40, ref = c.reference;
+    const max = Math.max(...v, ref ? ref.value : 0) * 1.12 || 1;
+    const slot = W / n, bw = slot * 0.82, plot = H - top - bottom;
+    const y = val => top + plot * (1 - val / max), base = H - bottom;
+    let s = '';
+    v.forEach((val, i) => {
+      const x = i * slot + (slot - bw) / 2, hl = i >= hf, cx = i * slot + slot / 2;
+      s += `<rect x="${x.toFixed(1)}" y="${y(val).toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - y(val)).toFixed(1)}" style="fill:${hl ? 'var(--accent)' : 'var(--bar)'}"/>`;
+      s += `<text class="val${hl ? ' hl' : ''}" x="${cx.toFixed(1)}" y="${(y(val) - 8).toFixed(1)}" text-anchor="middle">${fmt(val)}</text>`;
+      s += `<text x="${cx.toFixed(1)}" y="${base + 24}" text-anchor="middle">${esc(c.labels?.[i] ?? '')}</text>`;
+    });
+    if (ref) {
+      const yy = y(ref.value).toFixed(1);
+      s += `<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" style="stroke:var(--text-dim)" stroke-dasharray="5 5"/>`;
+      if (ref.label) s += `<text x="${W - 4}" y="${(+yy - 7).toFixed(1)}" text-anchor="end" style="fill:var(--text)">${esc(ref.label)}</text>`;
+    }
+    if (hf < n) {
+      const x = (hf * slot).toFixed(1);
+      s += `<line x1="${x}" x2="${x}" y1="${top - 40}" y2="${base}" style="stroke:var(--accent)"/>`;
+      if (c.highlightLabel) s += `<text class="acc" x="${+x + 6}" y="${top - 24}">${esc(c.highlightLabel)}</text>`;
+    }
+    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${s}</svg>`;
+  }
+  function lineSVG(c, W) {
+    let v = c.values;
+    if (!v && c.daily) { v = [0]; c.daily.forEach(d => v.push(v[v.length - 1] + d)); }
+    v = v || []; const n = v.length, hf = c.highlightFrom == null ? n - 1 : c.highlightFrom;
+    const H = c.height || 440, left = 64, right = c.projection ? 190 : 80, top = 52, bottom = 40, plot = H - top - bottom;
+    let projEnd = null;
+    if (c.projection && hf > 0 && hf < n - 1) {
+      const slope = typeof c.projection === 'number' ? c.projection : (v[hf] - v[0]) / hf;
+      projEnd = v[hf] + slope * (n - 1 - hf);
+    }
+    const max = Math.max(...v, projEnd || 0) * 1.06 || 1, step = niceStep(max);
+    const x = i => left + (W - left - right) * (n > 1 ? i / (n - 1) : 0);
+    const y = val => top + plot * (1 - val / max);
+    let s = '';
+    for (let t = 0; t <= max; t += step) s += `<text x="${left - 12}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end">${fmt(t)}</text>`;
+    const labels = c.labels || []; const every = Math.max(1, Math.ceil(n / 8));
+    labels.forEach((l, i) => { if (l && i % every === 0) s += `<text x="${x(i).toFixed(1)}" y="${H - bottom + 26}" text-anchor="middle">${esc(l)}</text>`; });
+    const pts = (a, b) => v.slice(a, b + 1).map((val, k) => `${x(a + k).toFixed(1)},${y(val).toFixed(1)}`).join(' ');
+    if (projEnd != null) {
+      s += `<line x1="${x(hf).toFixed(1)}" y1="${y(v[hf]).toFixed(1)}" x2="${x(n - 1).toFixed(1)}" y2="${y(projEnd).toFixed(1)}" style="stroke:var(--text-dim)" stroke-dasharray="5 5"/>`;
+      const pl = (c.projectionLabel || 'at the old rate: {value}').replace('{value}', fmt(projEnd));
+      s += `<text x="${(x(n - 1) + 10).toFixed(1)}" y="${(y(projEnd) + 4).toFixed(1)}">${esc(pl)}</text>`;
+    }
+    s += `<polyline points="${pts(0, hf)}" fill="none" style="stroke:var(--text-dim)" stroke-width="2" stroke-linejoin="round"/>`;
+    if (hf < n - 1) s += `<polyline points="${pts(hf, n - 1)}" fill="none" style="stroke:var(--accent)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if (c.beforeLabel) { const m = Math.floor(hf / 2); s += `<text x="${x(m).toFixed(1)}" y="${(y(v[m]) - 16).toFixed(1)}" text-anchor="middle">${esc(c.beforeLabel)}</text>`; }
+    if (c.afterLabel && hf < n - 1) s += `<text class="acc" x="${x(hf).toFixed(1)}" y="${(y(v[hf]) - 16).toFixed(1)}" text-anchor="middle">${esc(c.afterLabel)}</text>`;
+    s += `<circle cx="${x(n - 1).toFixed(1)}" cy="${y(v[n - 1]).toFixed(1)}" r="6" style="fill:var(--accent)"/>`;
+    s += `<text class="acc big" x="${x(n - 1).toFixed(1)}" y="${(y(v[n - 1]) - 18).toFixed(1)}" text-anchor="middle">${fmt(v[n - 1])}</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${s}</svg>`;
+  }
+  function renderCharts() {
+    document.querySelectorAll('figure.chart[data-chart]').forEach(fig => {
+      const cfgEl = fig.querySelector('script[type="application/json"]'); if (!cfgEl) return;
+      let cfg; try { cfg = JSON.parse(cfgEl.textContent); } catch (e) { fig.insertAdjacentHTML('beforeend', '<figcaption>chart config is not valid JSON</figcaption>'); return; }
+      let host = fig.querySelector('.chart-svg');
+      if (!host) { host = document.createElement('div'); host.className = 'chart-svg'; cfgEl.after(host); }
+      const W = Math.max(320, Math.round(fig.clientWidth || 900));
+      host.innerHTML = fig.dataset.chart === 'bars' ? barsSVG(cfg, W) : lineSVG(cfg, W);
+    });
+  }
+  renderCharts();
+  if (window.ResizeObserver) { let raf = 0; new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(renderCharts); }).observe(document.body); }
+  // nav row scroll spy
+  const nav = document.getElementById('navrow');
+  if (nav) {
+    const links = [...nav.querySelectorAll('a')];
+    const secs = links.map(l => document.getElementById(l.getAttribute('href').slice(1))).filter(Boolean);
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return;
+      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
+    }), { rootMargin: '-10% 0px -80% 0px' });
+    secs.forEach(s => io.observe(s));
+  }
+})();
+</script>
+</body>
+</html>

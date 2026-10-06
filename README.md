@@ -16,6 +16,18 @@ write into and keep it open next to your editor.
   another plan — and `plan-dashboard open <link>` shows it in the tab you already have open.
 - **Your folder layout**: folder names, phase naming and file types are settings, not code.
 
+## Why I built this
+
+I built this at work, for myself. Once coding agents were writing most of the code, writing code stopped being the slow
+part of my day. Reviewing their plans was. Every task produced a plan, then an explainer, then a recap, spread across
+folders, and I was skimming them in an editor tab, or not reading them at all. That is how you stop knowing what your
+own codebase is turning into.
+
+I wanted reviewing to be fast enough that I would actually do it, every time. So the agents write each plan as a
+readable HTML page ([the skill they use](#agent-skills) is in this repo), the dashboard shows it the moment it lands,
+and I read a whole phase side by side instead of opening files one at a time. It keeps me in the loop without slowing
+the agents down.
+
 ## Quick start
 
 Needs Node.js 20.19 or newer.
@@ -108,6 +120,23 @@ the docs folder, and dashboard links. Links to other sites open in a browser tab
 
 A doc is loaded with `?theme=dark|light`, and receives `{ type: 'plan-theme', theme }` by `postMessage` when the
 dashboard's theme changes. A doc can post the same message to its parent to switch the dashboard.
+
+## Agent skills
+
+[`skills/`](skills) holds the two agent skills I use with the dashboard. Use them as they are, or as a starting point
+for your own:
+
+- [`visualise`](skills/visualise) has an agent turn a plan, a diff or a codebase into one self-contained HTML page in a
+  consistent style: a plan before implementation, a recap after it, a codebase map, an explainer, an ELI5 picture page,
+  or a review with selectable findings. [`render/GUIDE.md`](skills/visualise/render/GUIDE.md) is the full brief the
+  writing agent follows, and [`render/base.html`](skills/visualise/render/base.html) shows every component once (open
+  it in a browser).
+- [`link-plan`](skills/link-plan) tells the agent to show you what it wrote with `plan-dashboard open`, instead of
+  pasting a file path.
+
+They use the `SKILL.md` format that Claude Code and Codex read: copy a folder into your agent's skills directory (for
+example `~/.claude/skills/`). Pages made with `visualise` follow the dashboard's light/dark switch through the theme
+hand-off above.
 
 ## Command line
 
