@@ -31,7 +31,7 @@ review as one self-contained HTML page in a consistent, readable style, saved wh
 ## Docs for agents
 
 - **Copy Markdown.** Every page of these docs has a **Copy Markdown** button that copies the page as Markdown, ready to paste into
-  an agent, and a **View as Markdown** link to the raw file.
+  an agent. Agents can also fetch any page as Markdown by adding `.md` to its address, without the trailing slash.
 - **llms.txt.** [`/llms.txt`](https://limyuquan.github.io/planner/llms.txt) is a short index of Planner for agents,
   and [`/llms-full.txt`](https://limyuquan.github.io/planner/llms-full.txt) is every page of these docs, every skill and
   the config schema in one file.
