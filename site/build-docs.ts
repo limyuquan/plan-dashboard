@@ -24,7 +24,11 @@ type Page = { slug: string; group: string; title: string; description: string; m
 
 const escapeHtml = (s: string) =>
   s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
-const plain = (s: string) => s.replace(/<[^>]+>/g, '').replace(/[`*_]/g, '')
+const plain = (s: string) =>
+  s
+    .replace(/<[^>]+>/g, '')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/[`*_]/g, '')
 
 // "<!-- include: shared/types.ts -->" becomes that file as a code block, and
 // "<!-- include: shared/types.ts#Doc -->" just the Doc type with its comment,
@@ -111,7 +115,7 @@ function render(page: Page, assets: Set<string>) {
   })
   // The title and description are drawn by the page header.
   const body = page.markdown.split(/\n\n+/).slice(2).join('\n\n')
-  return { html: md.parse(body) as string, headings }
+  return { html: md.parse(body) as string, lede: md.parseInline(page.description) as string, headings }
 }
 
 function navHtml(pages: Page[], current: string) {
@@ -130,7 +134,7 @@ function navHtml(pages: Page[], current: string) {
     .join('')
 }
 
-function pageHtml(page: Page, pages: Page[], html: string, headings: Heading[]) {
+function pageHtml(page: Page, pages: Page[], html: string, lede: string, headings: Heading[]) {
   const at = pages.indexOf(page)
   const prev = pages[at - 1]
   const next = pages[at + 1]
@@ -143,9 +147,9 @@ function pageHtml(page: Page, pages: Page[], html: string, headings: Heading[]) 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${escapeHtml(page.title)} — Planner docs</title>
-<meta name="description" content="${escapeHtml(page.description)}">
+<meta name="description" content="${escapeHtml(plain(page.description))}">
 <meta property="og:title" content="${escapeHtml(page.title)} — Planner docs">
-<meta property="og:description" content="${escapeHtml(page.description)}">
+<meta property="og:description" content="${escapeHtml(plain(page.description))}">
 <meta property="og:image" content="${SITE}/media/og.png">
 <link rel="alternate" type="text/markdown" href="../${page.slug}.md">
 <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
@@ -188,7 +192,7 @@ function pageHtml(page: Page, pages: Page[], html: string, headings: Heading[]) 
         </div>
       </div>
       <h1>${escapeHtml(page.title)}</h1>
-      <p class="lede">${escapeHtml(page.description).replace(/`([^`]+)`/g, '<code>$1</code>')}</p>
+      <p class="lede">${lede}</p>
       ${html}
     </article>
     <nav class="pager">
@@ -221,9 +225,9 @@ function build() {
   }[] = []
 
   for (const page of pages) {
-    const { html, headings } = render(page, assets)
+    const { html, lede, headings } = render(page, assets)
     fs.mkdirSync(path.join(out, page.slug), { recursive: true })
-    fs.writeFileSync(path.join(out, page.slug, 'index.html'), pageHtml(page, pages, html, headings))
+    fs.writeFileSync(path.join(out, page.slug, 'index.html'), pageHtml(page, pages, html, lede, headings))
     fs.writeFileSync(path.join(out, `${page.slug}.md`), `${page.markdown}\n`)
     // Search covers each section's text, so a hit can jump to its heading.
     const parts = page.markdown.split(/^#{2,3} /m)
