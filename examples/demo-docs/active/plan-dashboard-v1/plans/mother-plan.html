@@ -1,0 +1,822 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>plan-dashboard v1 — overview</title>
+<script>/* theme before first paint: ?theme= from the dashboard wins, then the browser's memory, then dark */
+(function () { var q = new URLSearchParams(location.search).get('theme'); document.documentElement.dataset.theme = (q === 'light' || q === 'dark') ? q : (localStorage.getItem('visualise-theme') || 'dark'); })();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ---------- tokens ---------- */
+:root {
+  --bg: #282c34;
+  --bg-raised: #2f343e;
+  --border: #3a3f4b;
+  --border-strong: #4b5263;
+  --text: #f2f2f2;
+  --text-dim: #9da5b4;
+  --text-faint: #5c6370;
+  /* the one accent: purple, matching the plan dashboard (light purple on dark, dark purple on light) */
+  --accent: #b49df0; --accent-l: #6741c4;
+  --del: #f87171; --del-bg: rgba(248,113,113,.10);
+  --add: #4ade80; --add-bg: rgba(74,222,128,.10);
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --measure: 72ch;
+}
+[data-theme="light"] {
+  --bg: #ffffff; --bg-raised: #f5f5f4; --border: #e6e6e6; --border-strong: #cfcfcf;
+  --text: #111111; --text-dim: #6b6b6b; --text-faint: #bdbdbd;
+  --accent: var(--accent-l);
+  --del: #b91c1c; --del-bg: rgba(185,28,28,.08);
+  --add: #15803d; --add-bg: rgba(21,128,61,.08);
+}
+/* theme toggle: top right of every page */
+.theme-toggle { position: fixed; top: 14px; right: 16px; z-index: 300; font: 11px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); background: var(--bg); border: 1px solid var(--border-strong); padding: 7px 10px; cursor: pointer; }
+.theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+/* Mermaid follows the theme through CSS, so diagrams never need re-rendering */
+.mermaid-canvas svg .node rect, .mermaid-canvas svg .node polygon, .mermaid-canvas svg .node circle, .mermaid-canvas svg .node path, .mermaid-canvas svg .cluster rect { fill: var(--bg-raised) !important; stroke: var(--border-strong) !important; }
+.mermaid-canvas svg .node.hot rect, .mermaid-canvas svg .node.hot polygon { stroke: var(--accent) !important; stroke-width: 2px !important; }
+.mermaid-canvas svg .nodeLabel, .mermaid-canvas svg .edgeLabel, .mermaid-canvas svg text, .mermaid-canvas svg .cluster-label span { color: var(--text) !important; fill: var(--text) !important; }
+.mermaid-canvas svg .edgePath path, .mermaid-canvas svg .flowchart-link, .mermaid-canvas svg .messageLine0, .mermaid-canvas svg .messageLine1 { stroke: var(--text-dim) !important; }
+.mermaid-canvas svg marker path { fill: var(--text-dim) !important; stroke: var(--text-dim) !important; }
+.mermaid-canvas svg .edgeLabel rect, .mermaid-canvas svg .edgeLabel span, .mermaid-canvas svg .labelBkg { background: var(--bg) !important; fill: var(--bg) !important; }
+.mermaid-canvas svg .actor { fill: var(--bg-raised) !important; stroke: var(--border-strong) !important; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---------- base ---------- */
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; color: var(--text); background: var(--bg);
+  font-family: var(--font-mono); font-size: 15px; line-height: 1.7;
+  overflow-wrap: break-word; -webkit-font-smoothing: antialiased;
+}
+a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--text-dim); }
+a:hover { text-decoration-color: var(--accent); }
+code, .chip { font-family: var(--font-mono); }
+code { font-size: .92em; color: var(--text); background: var(--bg-raised); padding: 1px 5px; border: 1px solid var(--border); border-radius: 3px; }
+pre { background: var(--bg-raised); border: 1px solid var(--border); padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; margin: 16px 0; }
+pre code { background: none; border: 0; padding: 0; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
+p { margin: 0 0 14px; max-width: var(--measure); }
+ul, ol { padding-left: 1.4em; max-width: var(--measure); }
+li { margin: 4px 0; }
+ul { list-style: none; padding-left: 1.2em; }
+ul li { position: relative; }
+ul li::before { content: "•"; position: absolute; left: -1.1em; color: var(--text-dim); }
+strong { font-weight: 700; color: var(--text); }
+em { font-style: italic; color: var(--text); }
+.grid > *, .flex > * { min-width: 0; }
+
+/* ---------- page frame ---------- */
+.page { max-width: 1120px; margin: 0 auto; padding: 40px 48px 120px; }
+.rule-top { border-top: 1px solid var(--text); margin-bottom: 28px; }
+.kicker { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-dim); margin: 0 0 14px; }
+.kicker .sep { margin: 0 .5em; color: var(--text-faint); }
+h1.hero { font-size: clamp(40px, 6vw, 68px); line-height: 1.02; letter-spacing: -.02em; font-weight: 700; margin: 0 0 22px; max-width: 18ch; }
+.deck { font-size: 18px; line-height: 1.55; max-width: 66ch; margin: 0 0 18px; }
+.fineprint { font-size: 12px; color: var(--text-dim); max-width: 80ch; margin: 0 0 28px; }
+.navrow { display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 0 0 56px; font-size: 13px; }
+.navrow a { color: var(--text-dim); }
+.navrow a.active, .navrow a:hover { color: var(--text); text-decoration-color: var(--accent); }
+
+/* ---------- sections ---------- */
+section.sec { padding: 8px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 40px; scroll-margin-top: 24px; }
+section.sec:last-of-type { border-bottom: 0; }
+h2 { font-size: clamp(24px, 3vw, 34px); line-height: 1.15; letter-spacing: -.015em; font-weight: 700; margin: 0 0 18px; max-width: 30ch; }
+h3 { font-size: 16px; font-weight: 700; margin: 28px 0 10px; }
+.lead { font-size: 22px; line-height: 1.4; font-weight: 400; max-width: 34ch; margin: 0 0 22px; }
+.lead b { color: var(--accent); font-weight: 700; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
+.two > * { min-width: 0; }
+@media (max-width: 860px) { .two { grid-template-columns: 1fr; } .page { padding: 28px 20px 80px; } }
+
+/* ---------- stat tiles ---------- */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; border-top: 1px solid var(--border); border-left: 1px solid var(--border); margin: 24px 0 28px; }
+.stat { padding: 18px 20px 16px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); min-width: 0; }
+.stat .n { font-size: 40px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.stat .n.accent { color: var(--accent); }
+.stat .n.dim { color: var(--text-dim); }
+.stat .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+
+/* ---------- big comparison ---------- */
+.compare { display: flex; align-items: flex-end; gap: 36px; flex-wrap: wrap; margin: 20px 0 8px; }
+.compare .big { font-size: clamp(64px, 9vw, 112px); font-weight: 700; line-height: .95; letter-spacing: -.03em; }
+.compare .big.accent { color: var(--accent); }
+.compare .big.dim { color: var(--text-faint); }
+.compare .vs { font-size: 22px; color: var(--text-dim); padding-bottom: 18px; }
+.compare .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+
+/* ---------- dot matrix (quantities) ---------- */
+.dots { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; margin: 14px 0 24px; }
+.dotgrid { display: grid; grid-template-columns: repeat(var(--cols, 20), 12px); gap: 4px; }
+.dotgrid i { width: 12px; height: 12px; border-radius: 50%; background: var(--text-faint); display: block; }
+.dotgrid i.on { background: var(--accent); }
+.dots .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+.dots .c b { color: var(--accent); }
+
+/* ---------- big numbers (no hairlines; the headline strip above a chart) ---------- */
+.bignums { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 24px 32px; margin: 26px 0 40px; }
+.bignums > * { min-width: 0; }
+.bignums .n { font-size: clamp(56px, 7vw, 104px); font-weight: 700; line-height: .95; letter-spacing: -.03em; color: var(--accent); }
+.bignums .n.dim { color: var(--text-dim); }
+.bignums .c { font-size: 14px; color: var(--text-dim); margin-top: 10px; }
+
+/* ---------- charts (data-driven: see the <script type="application/json"> inside each figure) ---------- */
+:root { --bar: #4b5263; }
+[data-theme="light"] { --bar: #d4d4d4; }
+figure.chart { margin: 26px 0 34px; }
+figure.chart .chart-title { font-size: 15px; font-weight: 700; margin: 0 0 8px; color: var(--text); }
+figure.chart .chart-svg { min-width: 0; }
+figure.chart svg { display: block; width: 100%; height: auto; font-family: var(--font-mono); }
+figure.chart svg text { font-size: 12px; fill: var(--text-dim); }
+figure.chart svg .val { font-size: 13px; }
+figure.chart svg .val.hl { fill: var(--text); font-weight: 700; }
+figure.chart svg .acc { fill: var(--accent); font-weight: 700; font-size: 14px; }
+figure.chart svg .big { font-size: 15px; }
+figure.chart figcaption { font-size: 13px; color: var(--text-dim); margin-top: 10px; max-width: 90ch; }
+
+/* ---------- ledger (entries with a label column) ---------- */
+.ledger { border-top: 1px solid var(--border); margin: 20px 0 24px; }
+.ledger .row { display: grid; grid-template-columns: 96px 1fr; gap: 0 24px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.ledger .row > * { min-width: 0; }
+.ledger .lab { color: var(--accent); font-size: 14px; padding-top: 2px; }
+.ledger .t { font-weight: 700; }
+.ledger .meta { color: var(--text-dim); }
+.ledger p { margin: 4px 0 0; max-width: none; }
+@media (max-width: 640px) { .ledger .row { grid-template-columns: 1fr; gap: 6px; } }
+
+/* ---------- callout ---------- */
+.callout { border-left: 2px solid var(--accent); padding: 12px 18px; margin: 22px 0; max-width: 80ch; background: var(--bg-raised); }
+.callout b:first-child { color: var(--accent); }
+.callout p { max-width: none; margin: 0; }
+
+/* ---------- timeline strip ---------- */
+.timeline { margin: 18px 0 28px; }
+.timeline svg { width: 100%; height: 72px; display: block; }
+.timeline .axis { font-size: 11px; color: var(--text-dim); display: flex; justify-content: space-between; margin-top: 6px; }
+
+/* ---------- tables ---------- */
+.tablewrap { overflow-x: auto; margin: 18px 0 26px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border-strong); }
+td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- chips / file map / diff ---------- */
+.chip { display: inline-block; font-size: 12px; padding: 1px 8px; border: 1px solid var(--border-strong); border-radius: 3px; color: var(--text); margin: 2px 4px 2px 0; }
+.chip.accent { border-color: var(--accent); color: var(--accent); }
+.tree { font-size: 13px; line-height: 1.6; white-space: pre; overflow-x: auto; }
+.tree .new { color: var(--add); } .tree .mod { color: var(--accent); } .tree .del { color: var(--del); }
+.diff { font-size: 13px; line-height: 1.55; }
+.diff .del { display: block; background: var(--del-bg); color: var(--del); }
+.diff .add { display: block; background: var(--add-bg); color: var(--add); }
+.diff .ctx { display: block; color: var(--text-dim); }
+
+/* ---------- collapsible ---------- */
+details { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 10px 0; margin: 16px 0; }
+details + details { border-top: 0; margin-top: -16px; }
+summary { cursor: pointer; list-style: none; display: flex; gap: 12px; align-items: baseline; color: var(--text); }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "+"; color: var(--accent); font-weight: 700; width: 1ch; }
+details[open] summary::before { content: "−"; }
+summary .meta { color: var(--text-dim); font-size: 12px; margin-left: auto; }
+details .body { padding: 12px 0 4px 2ch; }
+
+/* ---------- before / after ---------- */
+.ba { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); margin: 18px 0 26px; }
+.ba > * { min-width: 0; padding: 14px 18px; }
+.ba > :first-child { border-right: 1px solid var(--border); }
+.ba .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.ba .after .lbl { color: var(--accent); }
+@media (max-width: 720px) { .ba { grid-template-columns: 1fr; } .ba > :first-child { border-right: 0; border-bottom: 1px solid var(--border); } }
+
+/* ---------- ELI5 panel (picture-first) ---------- */
+.eli5 { margin: 30px 0 4px; border: 1px dashed var(--border-strong); padding: 18px 20px 16px; background: var(--bg-raised); }
+.eli5 .k { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.eli5 figure { margin: 0; }
+.eli5 figcaption { font-size: 14px; color: var(--text); margin-top: 12px; max-width: 60ch; }
+.eli5 .chips { margin-top: 8px; }
+/* recipe primitives used inside .eli5 — full gallery in eli5-recipes.html */
+.pic-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.pic-cards .card { border: 1px solid var(--border); padding: 14px 10px; text-align: center; min-width: 0; }
+.pic-cards .em { font-size: 40px; line-height: 1; display: block; margin-bottom: 8px; }
+.pic-cards .lbl { font-size: 12px; color: var(--text-dim); }
+.pic-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pic-flow .box { border: 1px solid var(--border-strong); padding: 10px 14px; text-align: center; min-width: 96px; }
+.pic-flow .box .em { font-size: 28px; display: block; }
+.pic-flow .box.hot { border-color: var(--accent); }
+.pic-flow .arrow { color: var(--text-dim); font-size: 20px; }
+.pic-ladder { list-style: none; padding: 0; margin: 0; counter-reset: rung; max-width: none; }
+.pic-ladder li { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.pic-ladder li::before { content: counter(rung); counter-increment: rung; position: static; color: var(--text-dim); text-align: right; }
+.pic-ladder .badge { font-size: 11px; letter-spacing: .1em; padding: 2px 8px; border: 1px solid; }
+.pic-ladder .pass { color: var(--add); border-color: var(--add); }
+.pic-ladder .deny { color: var(--del); border-color: var(--del); }
+.pic-split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pic-split > div { border: 1px solid var(--border); padding: 14px; text-align: center; min-width: 0; }
+.pic-split .em { font-size: 40px; display: block; margin-bottom: 6px; }
+.pic-split .hot { border-color: var(--accent); }
+
+/* ---------- footer ---------- */
+.foot { margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-dim); }
+
+/* ---------- page additions (tokens only) ---------- */
+.eli5 .pic-ladder .badge.review { color: var(--accent); border-color: var(--accent); }
+.eli5 .pic-ladder .badge.writing { color: var(--text-dim); border-color: var(--border-strong); border-style: dashed; }
+.eli5 .pic-ladder li .em { font-size: 22px; margin-right: 10px; }
+.pic-nest { border: 1px solid var(--border-strong); padding: 12px; min-width: 0; }
+.pic-nest.hot { border-color: var(--accent); }
+.pic-nest .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.pic-nest .inner { display: flex; gap: 10px; flex-wrap: wrap; }
+.pic-nest .inner > div { border: 1px solid var(--border); padding: 10px 12px; text-align: center; font-size: 12px; flex: 1 1 90px; }
+.pic-nest .inner > div.hot { border-color: var(--accent); }
+.pic-nest .inner .em { font-size: 28px; display: block; }
+.nests { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+.nests .arrow { color: var(--text-dim); font-size: 20px; text-align: center; }
+@media (max-width: 640px) { .nests { grid-template-columns: 1fr; } .nests .arrow { transform: rotate(90deg); } }
+
+/* phase track: one column per phase, the top rule shows its state */
+.track { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 20px; margin: 26px 0 30px; }
+.track .ph { position: relative; padding: 16px 0 4px; border-top: 3px solid var(--border); min-width: 0; }
+.track .ph.done { border-top-color: var(--accent); }
+.track .ph.review { border-top: 3px dashed var(--accent); }
+.track .ph.prog::before { content: ""; position: absolute; top: -3px; left: 0; width: 35%; height: 3px; background: var(--accent); }
+.track .num { font-size: clamp(44px, 6vw, 64px); font-weight: 700; line-height: 1; letter-spacing: -.03em; }
+.track .ph.done .num { color: var(--accent); }
+.track .ph.prog .num, .track .ph.review .num { color: var(--text-dim); }
+.track .state { font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--text-dim); margin: 10px 0 4px; }
+.track .ph.done .state, .track .ph.review .state { color: var(--accent); }
+.track .name { font-size: 14px; font-weight: 700; line-height: 1.35; }
+@media (max-width: 640px) { .track { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px 20px; } }
+
+.ledger .docs { margin-top: 8px; font-size: 13px; }
+.ledger .docs a { margin-right: 14px; }
+.ledger.q .row { grid-template-columns: 230px 1fr; }
+.ledger.q .lab { color: var(--text); }
+.ledger .chip { font-size: 11px; }
+@media (max-width: 640px) { .ledger.q .row { grid-template-columns: 1fr; } }
+
+/* horizontal bars: lines per area (plain HTML, scales with the pane) */
+.hbars { margin: 22px 0 10px; border-top: 1px solid var(--border); }
+.hbars .r { display: grid; grid-template-columns: 150px 1fr 64px; gap: 0 16px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+.hbars .r > * { min-width: 0; }
+.hbars .p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hbars .p small { color: var(--text-dim); font-size: 11px; margin-left: 6px; }
+.hbars .bar { height: 12px; background: var(--bar); }
+.hbars .r.web .bar { background: var(--accent); }
+.hbars .v { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-dim); }
+.hbars .r.web .v { color: var(--text); }
+@media (max-width: 560px) { .hbars .r { grid-template-columns: 1fr 56px; } .hbars .bar-wrap { grid-column: 1 / -1; grid-row: 2; margin-top: 4px; } }
+
+/* hops: a numbered trace with a file:line chip per hop */
+.hops { list-style: none; padding: 0; margin: 22px 0 10px; max-width: none; counter-reset: hop; border-top: 1px solid var(--border); }
+.hops li { display: grid; grid-template-columns: 44px 1fr; gap: 0 14px; padding: 12px 0; border-bottom: 1px solid var(--border); margin: 0; }
+.hops li::before { content: counter(hop, decimal-leading-zero); counter-increment: hop; position: static; font-size: 22px; font-weight: 700; color: var(--text-faint); line-height: 1.2; }
+.hops li.hot::before { color: var(--accent); }
+.hops li > div { min-width: 0; }
+.hops .t { font-weight: 700; }
+.hops p { margin: 2px 0 4px; max-width: none; color: var(--text-dim); font-size: 14px; }
+
+/* Mermaid shell, in the house style */
+.diagram-shell { margin: 22px 0 10px; }
+.diagram-shell__hint { font-size: 11px; color: var(--text-dim); margin: 0 0 8px; }
+.mermaid-wrap { position: relative; border: 1px solid var(--border); background: var(--bg); overflow: hidden; min-height: 360px; cursor: grab; }
+.mermaid-wrap.is-panning { cursor: grabbing; user-select: none; }
+.zoom-controls { position: absolute; top: 8px; right: 8px; display: flex; align-items: center; gap: 2px; z-index: 10; background: var(--bg); border: 1px solid var(--border-strong); padding: 2px; }
+.zoom-controls button { min-width: 28px; white-space: nowrap; height: 26px; border: 0; background: transparent; color: var(--text-dim); font: 13px var(--font-mono); cursor: pointer; }
+.zoom-controls button:hover { color: var(--text); background: var(--bg-raised); }
+.zoom-label { font-size: 10px; color: var(--text-dim); padding: 0 6px; white-space: nowrap; }
+.mermaid-viewport { position: relative; overflow: hidden; width: 100%; height: 100%; }
+.mermaid-canvas { position: absolute; top: 0; left: 0; }
+.mermaid-canvas svg .nodeLabel { font-size: 14px; }
+.mermaid-canvas svg .edgeLabel { font-size: 12px; }
+.mermaid-canvas svg .cluster rect { fill: transparent !important; stroke: var(--border-strong) !important; stroke-dasharray: 4 4; }
+.mermaid-canvas svg .cluster-label span, .mermaid-canvas svg .cluster-label .nodeLabel { color: var(--text-dim) !important; fill: var(--text-dim) !important; letter-spacing: .08em; }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" type="button">light mode</button>
+<div class="page">
+
+  <div class="rule-top"></div>
+  <p class="kicker">Task overview<span class="sep">·</span>6 Oct 2026<span class="sep">·</span>plan-dashboard v1</p>
+  <h1 class="hero">Plans open side by side the moment an agent writes them</h1>
+  <p class="deck">plan-dashboard v1 turns a folder of agent-written plans into a live, split-pane reader. Two of four phases have shipped: a real server and command line, and the split-tree pane layout. Settings is in review, and the landing page is being built.</p>
+  <p class="fineprint">Built from README.md, CONTRIBUTING.md and the source in server/, shared/ and web/. Line and file counts: <code>wc -l</code> over tracked non-test files. Tests: <code>npx vitest run</code>, 28 passed in 2 files.</p>
+
+  <nav class="navrow" id="navrow">
+    <a href="#s-short">Short version</a>
+    <a href="#s-phases">Phases</a>
+    <a href="#s-map">The map</a>
+    <a href="#s-flow">A new plan, end to end</a>
+    <a href="#s-look">Where to look</a>
+    <a href="#s-words">Words</a>
+  </nav>
+
+  <section class="sec" id="s-short">
+    <p class="kicker">The short version</p>
+    <h2>A small Node server watches a folder; a React app lays it out in panes</h2>
+    <p class="lead"><b>One folder in, one live reader out.</b> No database, no server framework, three runtime packages.</p>
+    <div class="stats">
+      <div class="stat"><div class="n accent">2 / 4</div><div class="c">phases done; one in review, one in progress</div></div>
+      <div class="stat"><div class="n">58</div><div class="c">source files: server 13 · shared 2 · web 43</div></div>
+      <div class="stat"><div class="n">4,911</div><div class="c">lines of source, tests not counted</div></div>
+      <div class="stat"><div class="n">28</div><div class="c">tests passing, in 2 test files</div></div>
+      <div class="stat"><div class="n dim">3</div><div class="c">runtime packages: chokidar, marked, zod</div></div>
+    </div>
+    <p>The server (<code>server/</code>) reads the docs folder into a tree of tasks, phases and docs, watches it, and pushes events to the browser. The web app (<code>web/</code>) never parses paths itself: it shows the tree it is sent and keeps every pane change inside one pure, tested module. <code>shared/</code> holds the types and the config schema both sides use.</p>
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-cards">
+          <div class="card"><span class="em">✍️</span><span class="lbl">the writer: a coding agent</span></div>
+          <div class="card"><span class="em">🗄️</span><span class="lbl">the cabinet: your docs folder</span></div>
+          <div class="card"><span class="em">🧑‍💼</span><span class="lbl">the clerk: the server</span></div>
+          <div class="card"><span class="em">🔔</span><span class="lbl">the bell: live events</span></div>
+          <div class="card"><span class="em">🗂️</span><span class="lbl">the desk: panes you read in</span></div>
+        </div>
+        <figcaption>A writer files pages in a cabinet, a clerk notices each one, rings a bell, and lays it on your desk next to the others.</figcaption>
+        <div class="chips"><span class="chip">server/</span><span class="chip">web/</span><span class="chip">shared/</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <section class="sec" id="s-phases">
+    <p class="kicker">Phases</p>
+    <h2>The engine and the panes are done; settings and the landing page remain</h2>
+    <p class="lead"><b>Half shipped, half moving.</b> Each phase links to its own docs, which open as tabs here.</p>
+    <div class="track">
+      <div class="ph done"><div class="num">1</div><div class="state">done</div><div class="name">Server and CLI</div></div>
+      <div class="ph done"><div class="num">2</div><div class="state">done</div><div class="name">Split-tree layout</div></div>
+      <div class="ph review"><div class="num">3</div><div class="state">in review</div><div class="name">Settings</div></div>
+      <div class="ph prog"><div class="num">4</div><div class="state">in progress</div><div class="name">Landing page</div></div>
+    </div>
+    <div class="ledger">
+      <div class="row">
+        <div class="lab">done</div>
+        <div><span class="t">Phase 1, a small Node server and CLI.</span> <span class="meta">server/cli.ts · server/app.ts · server/routes/</span>
+          <p>Replaces a dev-only setup with one HTTP server that serves the API, the doc files and the built web app (<code>server/app.ts:47</code>). The command line starts it, or sends a link to the tab you already have open (<code>server/cli.ts:75</code>). Routes are split into five small files, one per group.</p>
+          <div class="docs"><a href="phase-1-server-and-cli/recap.md">recap</a></div></div>
+      </div>
+      <div class="row">
+        <div class="lab">done</div>
+        <div><span class="t">Phase 2, the split-tree pane layout.</span> <span class="meta">web/layout/ · 8 files, 748 lines</span>
+          <p>Panes form a tree, like an editor's split groups: a pane holds tabs, a split lays its children side by side or stacked (<code>web/layout/model.ts:1</code>). Every function is pure and returns a new tree; the tidy-up rules live in one place, <code>prune()</code> (<code>web/layout/model.ts:88</code>).</p>
+          <div class="docs"><a href="phase-2-split-tree-layout/plan.html">plan</a><a href="phase-2-split-tree-layout/eli5.html">eli5</a><a href="phase-2-split-tree-layout/recap.html">recap</a></div></div>
+      </div>
+      <div class="row">
+        <div class="lab">in review</div>
+        <div><span class="t">Phase 3, settings.</span> <span class="meta">web/settings/ · server/routes/config.ts · shared/config.ts</span>
+          <p>Folder names, the phase pattern, doc types and collections become settings instead of code. The schema and defaults live in <code>shared/config.ts:50</code>; the settings page previews what a draft would find before saving.</p>
+          <div class="docs"><a href="phase-3-settings/plan.html">plan</a></div></div>
+      </div>
+      <div class="row">
+        <div class="lab">in progress</div>
+        <div><span class="t">Phase 4, the landing page.</span> <span class="meta">site/ · six sections planned</span>
+          <p>A one-page site that explains the dashboard in ten seconds and gets people to a running copy in one minute, hosted on GitHub Pages from <code>site/</code>. Two questions are still open: the recording scale for the demo clips, and whether to add a light-mode screenshot.</p>
+          <div class="docs"><a href="phase-4-landing-page/plan.md">plan</a></div></div>
+      </div>
+    </div>
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <ol class="pic-ladder">
+          <li><span><span class="em">🧑‍💼</span>hire the clerk</span><span class="badge pass">DONE</span></li>
+          <li><span><span class="em">🗂️</span>build a desk with trays you can split</span><span class="badge pass">DONE</span></li>
+          <li><span><span class="em">📋</span>write the clerk's rule card</span><span class="badge review">REVIEW</span></li>
+          <li><span><span class="em">🪧</span>hang a sign outside</span><span class="badge writing">BUILDING</span></li>
+        </ol>
+        <figcaption>The clerk and the desk are working; the rule card is being checked, and the sign is still being painted.</figcaption>
+        <div class="chips"><span class="chip">phase-1-server-and-cli</span><span class="chip">phase-2-split-tree-layout</span><span class="chip">phase-3-settings</span><span class="chip">phase-4-landing-page</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <section class="sec" id="s-map">
+    <p class="kicker">The map</p>
+    <h2>Twelve parts, two sides, one watcher in the middle</h2>
+    <p class="lead"><b>server/docs.ts is the heart.</b> It keeps the latest scan, watches the folder, and tells every open tab what changed.</p>
+
+    <section class="diagram-shell">
+      <p class="diagram-shell__hint">Ctrl/Cmd + wheel to zoom · drag to pan when zoomed · double-click to fit</p>
+      <div class="mermaid-wrap">
+        <div class="zoom-controls">
+          <button type="button" data-action="zoom-in" title="Zoom in">+</button>
+          <button type="button" data-action="zoom-out" title="Zoom out">&minus;</button>
+          <button type="button" data-action="zoom-fit" title="Fit">&#8634;</button>
+          <button type="button" data-action="zoom-one" title="1:1">1:1</button>
+          <button type="button" data-action="zoom-expand" title="Open full size">&#x26F6;</button>
+          <span class="zoom-label">loading…</span>
+        </div>
+        <div class="mermaid-viewport"><div class="mermaid mermaid-canvas"></div></div>
+      </div>
+      <script type="text/plain" class="diagram-source">
+flowchart TD
+  folder[("docs folder<br/>active/ · done/")]
+  subgraph server["server/"]
+    cli["cli.ts<br/>start · open a link"]
+    app["app.ts<br/>one HTTP server"]
+    routes["routes/<br/>tree · files · events · config"]
+    config["config.ts<br/>config file + watch"]
+    docs["docs.ts<br/>latest scan + watcher"]
+    scan["scan.ts<br/>folder to tree"]
+    md["markdown.ts<br/>.md to a page"]
+  end
+  subgraph web["web/"]
+    state["state/<br/>one zustand store"]
+    layout["layout/model.ts<br/>pure split tree"]
+    side["sidebar/ · settings/"]
+    viewer["viewer/<br/>a doc in an iframe"]
+  end
+  cli --> app
+  app --> routes
+  config --> docs
+  routes --> docs
+  docs --> scan
+  scan -->|reads| folder
+  folder -.->|file events| docs
+  routes --> md
+  routes ==>|tree · events| state
+  state --> side
+  state --> layout
+  layout --> viewer
+  viewer -->|/docs/ files| routes
+  classDef hot stroke-width:2px
+  class docs hot
+      </script>
+    </section>
+
+    <h3>Where the lines are</h3>
+    <div class="hbars">
+      <div class="r"><div class="p">server/ core<small>8 files</small></div><div class="bar-wrap"><div class="bar" style="width:69.9%"></div></div><div class="v">807</div></div>
+      <div class="r"><div class="p">server/routes<small>5</small></div><div class="bar-wrap"><div class="bar" style="width:18.1%"></div></div><div class="v">209</div></div>
+      <div class="r"><div class="p">shared<small>2</small></div><div class="bar-wrap"><div class="bar" style="width:14.6%"></div></div><div class="v">169</div></div>
+      <div class="r web"><div class="p">web/styles<small>6</small></div><div class="bar-wrap"><div class="bar" style="width:100%"></div></div><div class="v">1,154</div></div>
+      <div class="r web"><div class="p">web/layout<small>8</small></div><div class="bar-wrap"><div class="bar" style="width:64.8%"></div></div><div class="v">748</div></div>
+      <div class="r web"><div class="p">web/settings<small>4</small></div><div class="bar-wrap"><div class="bar" style="width:43.7%"></div></div><div class="v">504</div></div>
+      <div class="r web"><div class="p">web/state<small>5</small></div><div class="bar-wrap"><div class="bar" style="width:36.6%"></div></div><div class="v">422</div></div>
+      <div class="r web"><div class="p">web/sidebar<small>4</small></div><div class="bar-wrap"><div class="bar" style="width:34.1%"></div></div><div class="v">394</div></div>
+      <div class="r web"><div class="p">web/ top level<small>11</small></div><div class="bar-wrap"><div class="bar" style="width:23.4%"></div></div><div class="v">270</div></div>
+      <div class="r web"><div class="p">web/viewer<small>3</small></div><div class="bar-wrap"><div class="bar" style="width:12.6%"></div></div><div class="v">145</div></div>
+      <div class="r web"><div class="p">web/toasts<small>2</small></div><div class="bar-wrap"><div class="bar" style="width:7.7%"></div></div><div class="v">89</div></div>
+    </div>
+    <p class="fineprint">Purple is the web app: 3,726 of 4,911 lines, and its stylesheets are the largest single area. Tests sit beside the code they cover: <code>server/scan.test.ts</code> (110 lines) and <code>web/layout/model.test.ts</code> (155 lines).</p>
+
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="nests">
+          <div class="pic-nest hot">
+            <div class="lbl">the clerk's room</div>
+            <div class="inner">
+              <div><span class="em">🚪</span>front door</div>
+              <div class="hot"><span class="em">👀</span>watcher</div>
+              <div><span class="em">📇</span>index cards</div>
+            </div>
+          </div>
+          <div class="arrow">🔔 →</div>
+          <div class="pic-nest">
+            <div class="lbl">your desk</div>
+            <div class="inner">
+              <div><span class="em">📒</span>notebook</div>
+              <div><span class="em">🗂️</span>trays</div>
+              <div><span class="em">🔍</span>reading glass</div>
+            </div>
+          </div>
+        </div>
+        <figcaption>The clerk's room does all the sorting; your desk only shows what it is handed, in trays you can split.</figcaption>
+        <div class="chips"><span class="chip">app.ts</span><span class="chip accent">docs.ts</span><span class="chip">scan.ts</span><span class="chip">state/</span><span class="chip">layout/</span><span class="chip">viewer/</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <section class="sec" id="s-flow">
+    <p class="kicker">How a request moves</p>
+    <h2>A new plan reaches your screen without a refresh</h2>
+    <p class="lead"><b>Write, settle, rescan, ring, show.</b> A 400&nbsp;ms wait lets an agent finish writing before anyone is told.</p>
+    <ol class="hops">
+      <li><div><span class="t">An agent writes <code>phase-2-…/plan.html</code> into the docs folder.</span><p>Nothing in the dashboard is called; the file simply appears.</p></div></li>
+      <li class="hot"><div><span class="t">The watcher collects the change and waits for writes to settle.</span><p>Adds and edits are gathered, and a 400 ms timer restarts on every event, so a page written in chunks is announced once.</p><span class="chip">server/docs.ts:104</span><span class="chip">server/docs.ts:109</span></div></li>
+      <li><div><span class="t">The folder is rescanned into a tree.</span><p>Each file is placed in its task and phase using the configured folder names and phase pattern.</p><span class="chip">server/docs.ts:86</span><span class="chip">server/scan.ts:53</span></div></li>
+      <li><div><span class="t">The server rings: <code>tree</code>, then <code>added</code>.</span><p>Events go out over a server-sent event stream to every listening tab.</p><span class="chip">server/docs.ts:93</span><span class="chip">server/routes/events.ts:5</span></div></li>
+      <li><div><span class="t">One browser tab holds the stream and relays it to the others.</span><p>A Web Lock picks the tab and a BroadcastChannel passes events on, so many tabs do not use up the browser's connections.</p><span class="chip">web/events.ts:9</span></div></li>
+      <li><div><span class="t">The app refreshes its tree and raises a "new plan" toast.</span><p>The toast names the task and phase, with a button that opens the phase as a workspace.</p><span class="chip">web/state/tree.ts:78</span><span class="chip">web/state/workspaces.ts:104</span></div></li>
+      <li><div><span class="t">A pane loads the file in an iframe from <code>/docs/</code>.</span><p>HTML is sent as written; Markdown is turned into a page in the dashboard's theme first.</p><span class="chip">server/routes/files.ts:46</span><span class="chip">server/markdown.ts:107</span></div></li>
+      <li><div><span class="t">The bridge wires up the page.</span><p>Links open as tabs, scroll is remembered, and the theme is handed in by <code>postMessage</code>.</p><span class="chip">web/viewer/frame.ts:35</span></div></li>
+    </ol>
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-flow">
+          <div class="box"><span class="em">✍️</span>writer files a page</div>
+          <span class="arrow">→</span>
+          <div class="box"><span class="em">🗄️</span>cabinet</div>
+          <span class="arrow">→</span>
+          <div class="box hot"><span class="em">🧑‍💼</span>clerk waits, then sorts</div>
+          <span class="arrow">→</span>
+          <div class="box"><span class="em">🔔</span>bell</div>
+          <span class="arrow">→</span>
+          <div class="box"><span class="em">🗂️</span>on your desk</div>
+        </div>
+        <figcaption>The clerk waits until the writer has stopped writing, then sorts the page and rings once.</figcaption>
+        <div class="chips"><span class="chip">chokidar</span><span class="chip">/api/events</span><span class="chip">/docs/</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <section class="sec" id="s-look">
+    <p class="kicker">Where to look</p>
+    <h2>Ten questions, ten places in the code</h2>
+    <div class="ledger q">
+      <div class="row"><div class="lab">Where does it start?</div><div><span class="t">server/cli.ts:98</span> <span class="meta">→ server/app.ts:47</span><p>Reads the flags and config, then either starts the server or sends a link.</p></div></div>
+      <div class="row"><div class="lab">How is an API call matched?</div><div><span class="t">server/app.ts:56</span><p>A plain lookup of <code>"METHOD /path"</code> in one object built from the route files.</p></div></div>
+      <div class="row"><div class="lab">How does a file get its task and phase?</div><div><span class="t">server/scan.ts:53</span><p>Walks the status folders and matches phase folders against the phase pattern.</p></div></div>
+      <div class="row"><div class="lab">What are the defaults?</div><div><span class="t">shared/config.ts:71</span> <span class="meta">schema at :50</span><p>Folder names, phase pattern, doc types and port, checked by one zod schema.</p></div></div>
+      <div class="row"><div class="lab">Where do live updates come from?</div><div><span class="t">server/docs.ts:76</span><p>The file watcher, its 400 ms settle timer, and the broadcast to every tab.</p></div></div>
+      <div class="row"><div class="lab">What are the pane rules?</div><div><span class="t">web/layout/model.ts:88</span> <span class="meta">first layout at :303</span><p><code>prune()</code> keeps the tree tidy; <code>seed()</code> lays out a workspace the first time.</p></div></div>
+      <div class="row"><div class="lab">What happens when I click a link in a plan?</div><div><span class="t">web/viewer/frame.ts:40</span> <span class="meta">→ web/state/links.ts:83</span><p>Other sites open in a browser tab; docs and dashboard links open as tabs.</p></div></div>
+      <div class="row"><div class="lab">How does <code>open &lt;link&gt;</code> find my tab?</div><div><span class="t">server/cli.ts:75</span> <span class="meta">→ server/routes/events.ts:14</span><p>Asks the running server to broadcast the link; opens a new tab only if nobody is listening.</p></div></div>
+      <div class="row"><div class="lab">How does settle / restore work?</div><div><span class="t">server/routes/tree.ts:21</span><p>Renames the task folder between the status folders, and mutes the "new plan" toasts the move would cause.</p></div></div>
+      <div class="row"><div class="lab">How is Markdown shown?</div><div><span class="t">server/markdown.ts:107</span><p>Rendered to a themed HTML page on the server, so a pane treats it like any other page.</p></div></div>
+    </div>
+  </section>
+
+  <section class="sec" id="s-words">
+    <p class="kicker">Words you will meet</p>
+    <h2>Eight words carry most of the code</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Term</th><th>Plain meaning</th><th>Where</th></tr></thead>
+      <tbody>
+        <tr><td><code>doc</code></td><td>any file the dashboard shows; its path is its id</td><td><code>shared/types.ts</code></td></tr>
+        <tr><td><code>task</code></td><td>one folder of work, holding its plans and phases</td><td><code>server/scan.ts</code></td></tr>
+        <tr><td><code>phase</code></td><td>a folder whose name matches the phase pattern, e.g. <code>phase-2-…</code></td><td><code>shared/config.ts</code></td></tr>
+        <tr><td><code>workspace</code></td><td>a folder whose docs open together; its pane arrangement is remembered</td><td><code>web/state/workspaces.ts</code></td></tr>
+        <tr><td><code>status folder</code></td><td><code>active/</code> or <code>done/</code>; settle and restore move a task between them</td><td><code>server/routes/tree.ts</code></td></tr>
+        <tr><td><code>doc type</code></td><td>a badge picked by file name (plan, eli5, recap …); also sets reading order</td><td><code>server/scan.ts</code></td></tr>
+        <tr><td><code>pane / split</code></td><td>a box of tabs / a row or column of boxes; together they form the layout tree</td><td><code>web/layout/model.ts</code></td></tr>
+        <tr><td><code>theme hand-off</code></td><td>the <code>plan-theme</code> message that keeps a doc and the dashboard in the same light or dark mode</td><td><code>web/viewer/frame.ts</code></td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <div class="foot">Rendered by the visualise skill · sources: README.md, CONTRIBUTING.md, server/, shared/, web/ · numbers: <code>git ls-files server shared web | grep -v test | xargs wc -l</code> and <code>npx vitest run</code></div>
+</div>
+
+<script>
+(function () {
+  // theme: the switch, the browser's memory, and the plan dashboard all agree.
+  // Dashboard -> page: {type:'plan-theme', theme} via postMessage. Page -> dashboard: the same message, sent on click.
+  const root = document.documentElement, btn = document.getElementById('themeToggle');
+  const setTheme = t => { root.dataset.theme = t; localStorage.setItem('visualise-theme', t); if (btn) btn.textContent = t === 'light' ? 'dark mode' : 'light mode'; };
+  setTheme(root.dataset.theme || 'dark');
+  if (btn) btn.addEventListener('click', () => {
+    const t = root.dataset.theme === 'light' ? 'dark' : 'light';
+    setTheme(t);
+    if (window.parent !== window) window.parent.postMessage({ type: 'plan-theme', theme: t }, '*');
+  });
+  window.addEventListener('message', e => {
+    const d = e.data; if (d && d.type === 'plan-theme' && (d.theme === 'light' || d.theme === 'dark')) setTheme(d.theme);
+  });
+  // dot matrices: data-count total dots, data-on highlighted (filled left to right)
+  document.querySelectorAll('.dotgrid').forEach(g => {
+    const n = +g.dataset.count || 0, on = +g.dataset.on || 0;
+    g.innerHTML = Array.from({ length: n }, (_, i) => `<i class="${i < on ? 'on' : ''}"></i>`).join('');
+  });
+  // charts: <figure class="chart" data-chart="bars|line"> with a JSON config inside
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fmt = v => Math.round(v).toLocaleString('en-US');
+  const niceStep = max => { const raw = max / 6, p = Math.pow(10, Math.floor(Math.log10(raw))); return [1, 2, 5, 10].map(m => m * p).find(s => s >= raw) || p * 10; };
+  function barsSVG(c, W) {
+    const v = c.values || [], n = v.length, hf = c.highlightFrom == null ? n : c.highlightFrom;
+    const H = c.height || 400, top = 64, bottom = 40, ref = c.reference;
+    const max = Math.max(...v, ref ? ref.value : 0) * 1.12 || 1;
+    const slot = W / n, bw = slot * 0.82, plot = H - top - bottom;
+    const y = val => top + plot * (1 - val / max), base = H - bottom;
+    let s = '';
+    v.forEach((val, i) => {
+      const x = i * slot + (slot - bw) / 2, hl = i >= hf, cx = i * slot + slot / 2;
+      s += `<rect x="${x.toFixed(1)}" y="${y(val).toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - y(val)).toFixed(1)}" style="fill:${hl ? 'var(--accent)' : 'var(--bar)'}"/>`;
+      s += `<text class="val${hl ? ' hl' : ''}" x="${cx.toFixed(1)}" y="${(y(val) - 8).toFixed(1)}" text-anchor="middle">${fmt(val)}</text>`;
+      s += `<text x="${cx.toFixed(1)}" y="${base + 24}" text-anchor="middle">${esc(c.labels?.[i] ?? '')}</text>`;
+    });
+    if (ref) {
+      const yy = y(ref.value).toFixed(1);
+      s += `<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" style="stroke:var(--text-dim)" stroke-dasharray="5 5"/>`;
+      if (ref.label) s += `<text x="${W - 4}" y="${(+yy - 7).toFixed(1)}" text-anchor="end" style="fill:var(--text)">${esc(ref.label)}</text>`;
+    }
+    if (hf < n) {
+      const x = (hf * slot).toFixed(1);
+      s += `<line x1="${x}" x2="${x}" y1="${top - 40}" y2="${base}" style="stroke:var(--accent)"/>`;
+      if (c.highlightLabel) s += `<text class="acc" x="${+x + 6}" y="${top - 24}">${esc(c.highlightLabel)}</text>`;
+    }
+    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${s}</svg>`;
+  }
+  function lineSVG(c, W) {
+    let v = c.values;
+    if (!v && c.daily) { v = [0]; c.daily.forEach(d => v.push(v[v.length - 1] + d)); }
+    v = v || []; const n = v.length, hf = c.highlightFrom == null ? n - 1 : c.highlightFrom;
+    const H = c.height || 440, left = 64, right = c.projection ? 190 : 80, top = 52, bottom = 40, plot = H - top - bottom;
+    let projEnd = null;
+    if (c.projection && hf > 0 && hf < n - 1) {
+      const slope = typeof c.projection === 'number' ? c.projection : (v[hf] - v[0]) / hf;
+      projEnd = v[hf] + slope * (n - 1 - hf);
+    }
+    const max = Math.max(...v, projEnd || 0) * 1.06 || 1, step = niceStep(max);
+    const x = i => left + (W - left - right) * (n > 1 ? i / (n - 1) : 0);
+    const y = val => top + plot * (1 - val / max);
+    let s = '';
+    for (let t = 0; t <= max; t += step) s += `<text x="${left - 12}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end">${fmt(t)}</text>`;
+    const labels = c.labels || []; const every = Math.max(1, Math.ceil(n / 8));
+    labels.forEach((l, i) => { if (l && i % every === 0) s += `<text x="${x(i).toFixed(1)}" y="${H - bottom + 26}" text-anchor="middle">${esc(l)}</text>`; });
+    const pts = (a, b) => v.slice(a, b + 1).map((val, k) => `${x(a + k).toFixed(1)},${y(val).toFixed(1)}`).join(' ');
+    if (projEnd != null) {
+      s += `<line x1="${x(hf).toFixed(1)}" y1="${y(v[hf]).toFixed(1)}" x2="${x(n - 1).toFixed(1)}" y2="${y(projEnd).toFixed(1)}" style="stroke:var(--text-dim)" stroke-dasharray="5 5"/>`;
+      const pl = (c.projectionLabel || 'at the old rate: {value}').replace('{value}', fmt(projEnd));
+      s += `<text x="${(x(n - 1) + 10).toFixed(1)}" y="${(y(projEnd) + 4).toFixed(1)}">${esc(pl)}</text>`;
+    }
+    s += `<polyline points="${pts(0, hf)}" fill="none" style="stroke:var(--text-dim)" stroke-width="2" stroke-linejoin="round"/>`;
+    if (hf < n - 1) s += `<polyline points="${pts(hf, n - 1)}" fill="none" style="stroke:var(--accent)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if (c.beforeLabel) { const m = Math.floor(hf / 2); s += `<text x="${x(m).toFixed(1)}" y="${(y(v[m]) - 16).toFixed(1)}" text-anchor="middle">${esc(c.beforeLabel)}</text>`; }
+    if (c.afterLabel && hf < n - 1) s += `<text class="acc" x="${x(hf).toFixed(1)}" y="${(y(v[hf]) - 16).toFixed(1)}" text-anchor="middle">${esc(c.afterLabel)}</text>`;
+    s += `<circle cx="${x(n - 1).toFixed(1)}" cy="${y(v[n - 1]).toFixed(1)}" r="6" style="fill:var(--accent)"/>`;
+    s += `<text class="acc big" x="${x(n - 1).toFixed(1)}" y="${(y(v[n - 1]) - 18).toFixed(1)}" text-anchor="middle">${fmt(v[n - 1])}</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${s}</svg>`;
+  }
+  function renderCharts() {
+    document.querySelectorAll('figure.chart[data-chart]').forEach(fig => {
+      const cfgEl = fig.querySelector('script[type="application/json"]'); if (!cfgEl) return;
+      let cfg; try { cfg = JSON.parse(cfgEl.textContent); } catch (e) { fig.insertAdjacentHTML('beforeend', '<figcaption>chart config is not valid JSON</figcaption>'); return; }
+      let host = fig.querySelector('.chart-svg');
+      if (!host) { host = document.createElement('div'); host.className = 'chart-svg'; cfgEl.after(host); }
+      const W = Math.max(320, Math.round(fig.clientWidth || 900));
+      host.innerHTML = fig.dataset.chart === 'bars' ? barsSVG(cfg, W) : lineSVG(cfg, W);
+    });
+  }
+  renderCharts();
+  if (window.ResizeObserver) { let raf = 0; new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(renderCharts); }).observe(document.body); }
+  // nav row scroll spy
+  const nav = document.getElementById('navrow');
+  if (nav) {
+    const links = [...nav.querySelectorAll('a')];
+    const secs = links.map(l => document.getElementById(l.getAttribute('href').slice(1))).filter(Boolean);
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return;
+      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
+    }), { rootMargin: '-10% 0px -80% 0px' });
+    secs.forEach(s => io.observe(s));
+  }
+})();
+</script>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+  import elkLayouts from 'https://cdn.jsdelivr.net/npm/@mermaid-js/layout-elk/dist/mermaid-layout-elk.esm.min.mjs';
+
+  const config = { fitPadding: 24, minHeight: 360, maxHeightPx: 900, maxHeightVh: 0.84, maxInitialZoom: 1.4, minZoom: 0.08, maxZoom: 6.5, zoomStep: 0.14, readabilityFloor: 0.58 };
+  const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+  let activeDrag = null;
+  addEventListener('mousemove', (e) => activeDrag?.onMove(e));
+  addEventListener('mouseup', () => { activeDrag?.onEnd(); activeDrag = null; });
+
+  // Colours here are only the starting point; the .mermaid-canvas CSS re-themes the SVG with the page tokens.
+  mermaid.registerLayoutLoaders(elkLayouts);
+  mermaid.initialize({
+    startOnLoad: false, theme: 'base', look: 'classic', layout: 'elk',
+    themeVariables: {
+      fontFamily: '"IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
+      fontSize: '14px',
+      primaryColor: '#2f343e', primaryBorderColor: '#4b5263', primaryTextColor: '#f2f2f2',
+      secondaryColor: '#2f343e', tertiaryColor: '#282c34',
+      lineColor: '#9da5b4', clusterBkg: 'transparent', clusterBorder: '#4b5263',
+      edgeLabelBackground: '#282c34', textColor: '#f2f2f2',
+    },
+  });
+
+  function initDiagram(shell) {
+    const wrap = shell.querySelector('.mermaid-wrap');
+    const viewport = shell.querySelector('.mermaid-viewport');
+    const canvas = shell.querySelector('.mermaid-canvas');
+    const source = shell.querySelector('.diagram-source');
+    const label = shell.querySelector('.zoom-label');
+    let zoom = 1, fitMode = 'contain', panX = 0, panY = 0, svgW = 0, svgH = 0, sx = 0, sy = 0, spx = 0, spy = 0;
+
+    function constrainPan() {
+      const vpW = viewport.clientWidth, vpH = viewport.clientHeight, rW = svgW * zoom, rH = svgH * zoom, pad = config.fitPadding;
+      panX = rW + pad * 2 <= vpW ? (vpW - rW) / 2 : clamp(panX, vpW - rW - pad, pad);
+      panY = rH + pad * 2 <= vpH ? (vpH - rH) / 2 : clamp(panY, vpH - rH - pad, pad);
+    }
+    function applyTransform() {
+      const svg = canvas.querySelector('svg');
+      if (!svg || !svgW) return;
+      constrainPan();
+      svg.style.width = svgW * zoom + 'px';
+      svg.style.height = svgH * zoom + 'px';
+      canvas.style.transform = `translate(${panX}px, ${panY}px)`;
+      label.textContent = Math.round(zoom * 100) + '%';
+    }
+    const canPan = () => svgW * zoom + config.fitPadding * 2 > viewport.clientWidth || svgH * zoom + config.fitPadding * 2 > viewport.clientHeight;
+    function fitDiagram() {
+      if (!svgW) return;
+      const aW = Math.max(80, viewport.clientWidth - config.fitPadding * 2), aH = Math.max(80, viewport.clientHeight - config.fitPadding * 2);
+      const contain = Math.min(aW / svgW, aH / svgH);
+      let z = contain; fitMode = 'contain';
+      if (contain < config.readabilityFloor) {
+        if (svgH / svgW >= viewport.clientHeight / Math.max(viewport.clientWidth, 1)) { z = aW / svgW; fitMode = 'width'; } else { z = aH / svgH; fitMode = 'height'; }
+      }
+      zoom = clamp(z, config.minZoom, config.maxInitialZoom);
+      panX = (viewport.clientWidth - svgW * zoom) / 2;
+      panY = (viewport.clientHeight - svgH * zoom) / 2;
+      applyTransform();
+    }
+    function setOneToOne() {
+      zoom = 1; fitMode = '1:1';
+      panX = (viewport.clientWidth - svgW) / 2;
+      panY = (viewport.clientHeight - svgH) / 2;
+      applyTransform();
+    }
+    function zoomAround(factor, cx, cy) {
+      const next = clamp(zoom * factor, config.minZoom, config.maxZoom), ratio = next / zoom;
+      panX = cx - ratio * (cx - panX); panY = cy - ratio * (cy - panY);
+      zoom = next; fitMode = 'custom';
+      applyTransform();
+    }
+    function setAdaptiveHeight() {
+      if (!svgW) return;
+      const usableW = Math.max(280, wrap.getBoundingClientRect().width - 2);
+      const idealH = (svgH / svgW) * usableW + config.fitPadding * 2;
+      const hardMax = Math.min(config.maxHeightPx, Math.max(config.minHeight + 40, Math.floor(innerHeight * config.maxHeightVh)));
+      wrap.style.height = Math.round(clamp(idealH, config.minHeight, hardMax)) + 'px';
+    }
+    // Full size in a new tab, with the page's current colours baked in.
+    function openInNewTab() {
+      const svg = canvas.querySelector('svg');
+      if (!svg) return;
+      const clone = svg.cloneNode(true);
+      clone.style.width = ''; clone.style.height = '';
+      const cs = getComputedStyle(document.documentElement);
+      const v = (n) => cs.getPropertyValue(n).trim();
+      const css = `body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:${v('--bg')};padding:40px;box-sizing:border-box}
+        svg{max-width:100%;max-height:90vh;height:auto;font-family:${v('--font-mono')}}
+        .node rect,.node polygon,.node path,.node circle{fill:${v('--bg-raised')}!important;stroke:${v('--border-strong')}!important}
+        .node.hot rect{stroke:${v('--accent')}!important;stroke-width:2px!important}
+        .cluster rect{fill:transparent!important;stroke:${v('--border-strong')}!important;stroke-dasharray:4 4}
+        .nodeLabel,.edgeLabel,text,span{color:${v('--text')}!important;fill:${v('--text')}!important}
+        .edgePath path,.flowchart-link{stroke:${v('--text-dim')}!important} marker path{fill:${v('--text-dim')}!important;stroke:${v('--text-dim')}!important}
+        .edgeLabel rect,.edgeLabel span,.labelBkg{background:${v('--bg')}!important;fill:${v('--bg')}!important}`;
+      const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>plan-dashboard v1 — map</title><style>${css}</style></head><body>${clone.outerHTML}</body></html>`;
+      open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
+    }
+    async function render() {
+      try {
+        const { svg } = await mermaid.render('diagram-' + Math.random().toString(36).slice(2, 8), source.textContent.trim());
+        const parsedSvg = new DOMParser().parseFromString(svg, 'text/html').body.querySelector('svg');
+        if (!parsedSvg) { label.textContent = 'no diagram'; return; }
+        canvas.replaceChildren(document.adoptNode(parsedSvg));
+        const node = canvas.querySelector('svg');
+        let w = node.viewBox?.baseVal?.width || parseFloat(node.getAttribute('width')) || 0;
+        let h = node.viewBox?.baseVal?.height || parseFloat(node.getAttribute('height')) || 0;
+        if (!w) { const b = node.getBBox(); w = b.width || 1000; h = b.height || 700; }
+        if (!node.getAttribute('viewBox')) node.setAttribute('viewBox', `0 0 ${w} ${h}`);
+        svgW = w; svgH = h;
+        node.removeAttribute('width'); node.removeAttribute('height');
+        node.style.maxWidth = 'none'; node.style.display = 'block';
+        setAdaptiveHeight();
+        fitDiagram();
+      } catch (err) {
+        console.error('Mermaid render failed:', err);
+        label.textContent = 'render failed';
+      }
+    }
+    const actions = {
+      'zoom-in': () => zoomAround(1 + config.zoomStep, viewport.clientWidth / 2, viewport.clientHeight / 2),
+      'zoom-out': () => zoomAround(1 / (1 + config.zoomStep), viewport.clientWidth / 2, viewport.clientHeight / 2),
+      'zoom-fit': fitDiagram, 'zoom-one': setOneToOne, 'zoom-expand': openInNewTab,
+    };
+    Object.entries(actions).forEach(([a, fn]) => wrap.querySelector(`[data-action="${a}"]`)?.addEventListener('click', fn));
+    viewport.addEventListener('dblclick', fitDiagram);
+    viewport.addEventListener('wheel', (e) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const r = viewport.getBoundingClientRect();
+        zoomAround(e.deltaY < 0 ? 1 + config.zoomStep : 1 / (1 + config.zoomStep), e.clientX - r.left, e.clientY - r.top);
+      }
+    }, { passive: false });
+    viewport.addEventListener('mousedown', (e) => {
+      if (!canPan()) return;
+      wrap.classList.add('is-panning');
+      sx = e.clientX; sy = e.clientY; spx = panX; spy = panY;
+      e.preventDefault();
+      activeDrag = {
+        onMove: (ev) => { panX = spx + (ev.clientX - sx); panY = spy + (ev.clientY - sy); applyTransform(); },
+        onEnd: () => wrap.classList.remove('is-panning'),
+      };
+    });
+    new ResizeObserver(() => { if (svgW) { setAdaptiveHeight(); fitDiagram(); } }).observe(wrap);
+    render();
+  }
+  document.querySelectorAll('.diagram-shell').forEach(initDiagram);
+</script>
+</body>
+</html>

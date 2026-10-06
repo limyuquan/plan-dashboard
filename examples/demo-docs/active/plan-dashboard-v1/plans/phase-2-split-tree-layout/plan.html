@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 2 — Split-tree pane layout (Plan)</title>
+<script>/* theme before first paint: ?theme= from the dashboard wins, then the browser's memory, then dark */
+(function () { var q = new URLSearchParams(location.search).get('theme'); document.documentElement.dataset.theme = (q === 'light' || q === 'dark') ? q : (localStorage.getItem('visualise-theme') || 'dark'); })();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ---------- tokens ---------- */
+:root {
+  --bg: #282c34;
+  --bg-raised: #2f343e;
+  --border: #3a3f4b;
+  --border-strong: #4b5263;
+  --text: #f2f2f2;
+  --text-dim: #9da5b4;
+  --text-faint: #5c6370;
+  /* the one accent: purple, matching the plan dashboard (light purple on dark, dark purple on light) */
+  --accent: #b49df0; --accent-l: #6741c4;
+  --del: #f87171; --del-bg: rgba(248,113,113,.10);
+  --add: #4ade80; --add-bg: rgba(74,222,128,.10);
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --measure: 72ch;
+}
+[data-theme="light"] {
+  --bg: #ffffff; --bg-raised: #f5f5f4; --border: #e6e6e6; --border-strong: #cfcfcf;
+  --text: #111111; --text-dim: #6b6b6b; --text-faint: #bdbdbd;
+  --accent: var(--accent-l);
+  --del: #b91c1c; --del-bg: rgba(185,28,28,.08);
+  --add: #15803d; --add-bg: rgba(21,128,61,.08);
+}
+/* theme toggle: top right of every page */
+.theme-toggle { position: fixed; top: 14px; right: 16px; z-index: 300; font: 11px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); background: var(--bg); border: 1px solid var(--border-strong); padding: 7px 10px; cursor: pointer; }
+.theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+/* Mermaid follows the theme through CSS, so diagrams never need re-rendering */
+.mermaid-canvas svg .node rect, .mermaid-canvas svg .node polygon, .mermaid-canvas svg .node circle, .mermaid-canvas svg .node path, .mermaid-canvas svg .cluster rect { fill: var(--bg-raised) !important; stroke: var(--border-strong) !important; }
+.mermaid-canvas svg .node.hot rect, .mermaid-canvas svg .node.hot polygon { stroke: var(--accent) !important; stroke-width: 2px !important; }
+.mermaid-canvas svg .nodeLabel, .mermaid-canvas svg .edgeLabel, .mermaid-canvas svg text, .mermaid-canvas svg .cluster-label span { color: var(--text) !important; fill: var(--text) !important; }
+.mermaid-canvas svg .edgePath path, .mermaid-canvas svg .flowchart-link, .mermaid-canvas svg .messageLine0, .mermaid-canvas svg .messageLine1 { stroke: var(--text-dim) !important; }
+.mermaid-canvas svg marker path { fill: var(--text-dim) !important; stroke: var(--text-dim) !important; }
+.mermaid-canvas svg .edgeLabel rect, .mermaid-canvas svg .edgeLabel span, .mermaid-canvas svg .labelBkg { background: var(--bg) !important; fill: var(--bg) !important; }
+.mermaid-canvas svg .actor { fill: var(--bg-raised) !important; stroke: var(--border-strong) !important; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---------- base ---------- */
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; color: var(--text); background: var(--bg);
+  font-family: var(--font-mono); font-size: 15px; line-height: 1.7;
+  overflow-wrap: break-word; -webkit-font-smoothing: antialiased;
+}
+a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--text-dim); }
+a:hover { text-decoration-color: var(--accent); }
+code, .chip { font-family: var(--font-mono); }
+code { font-size: .92em; color: var(--text); background: var(--bg-raised); padding: 1px 5px; border: 1px solid var(--border); border-radius: 3px; }
+pre { background: var(--bg-raised); border: 1px solid var(--border); padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; margin: 16px 0; }
+pre code { background: none; border: 0; padding: 0; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
+p { margin: 0 0 14px; max-width: var(--measure); }
+ul, ol { padding-left: 1.4em; max-width: var(--measure); }
+li { margin: 4px 0; }
+ul { list-style: none; padding-left: 1.2em; }
+ul li { position: relative; }
+ul li::before { content: "•"; position: absolute; left: -1.1em; color: var(--text-dim); }
+strong { font-weight: 700; color: var(--text); }
+em { font-style: italic; color: var(--text); }
+.grid > *, .flex > * { min-width: 0; }
+
+/* ---------- page frame ---------- */
+.page { max-width: 1120px; margin: 0 auto; padding: 40px 48px 120px; }
+.rule-top { border-top: 1px solid var(--text); margin-bottom: 28px; }
+.kicker { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-dim); margin: 0 0 14px; }
+.kicker .sep { margin: 0 .5em; color: var(--text-faint); }
+h1.hero { font-size: clamp(40px, 6vw, 68px); line-height: 1.02; letter-spacing: -.02em; font-weight: 700; margin: 0 0 22px; max-width: 18ch; }
+.deck { font-size: 18px; line-height: 1.55; max-width: 66ch; margin: 0 0 18px; }
+.fineprint { font-size: 12px; color: var(--text-dim); max-width: 80ch; margin: 0 0 28px; }
+.navrow { display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 0 0 56px; font-size: 13px; }
+.navrow a { color: var(--text-dim); }
+.navrow a.active, .navrow a:hover { color: var(--text); text-decoration-color: var(--accent); }
+
+/* ---------- sections ---------- */
+section.sec { padding: 8px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 40px; scroll-margin-top: 24px; }
+section.sec:last-of-type { border-bottom: 0; }
+h2 { font-size: clamp(24px, 3vw, 34px); line-height: 1.15; letter-spacing: -.015em; font-weight: 700; margin: 0 0 18px; max-width: 30ch; }
+h3 { font-size: 16px; font-weight: 700; margin: 28px 0 10px; }
+.lead { font-size: 22px; line-height: 1.4; font-weight: 400; max-width: 34ch; margin: 0 0 22px; }
+.lead b { color: var(--accent); font-weight: 700; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
+.two > * { min-width: 0; }
+@media (max-width: 860px) { .two { grid-template-columns: 1fr; } .page { padding: 28px 20px 80px; } }
+
+/* ---------- stat tiles ---------- */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; border-top: 1px solid var(--border); border-left: 1px solid var(--border); margin: 24px 0 28px; }
+.stat { padding: 18px 20px 16px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); min-width: 0; }
+.stat .n { font-size: 40px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.stat .n.accent { color: var(--accent); }
+.stat .n.dim { color: var(--text-dim); }
+.stat .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+
+/* ---------- big comparison ---------- */
+.compare { display: flex; align-items: flex-end; gap: 36px; flex-wrap: wrap; margin: 20px 0 8px; }
+.compare .big { font-size: clamp(64px, 9vw, 112px); font-weight: 700; line-height: .95; letter-spacing: -.03em; }
+.compare .big.accent { color: var(--accent); }
+.compare .big.dim { color: var(--text-faint); }
+.compare .vs { font-size: 22px; color: var(--text-dim); padding-bottom: 18px; }
+.compare .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+
+/* ---------- dot matrix (quantities) ---------- */
+.dots { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; margin: 14px 0 24px; }
+.dotgrid { display: grid; grid-template-columns: repeat(var(--cols, 20), 12px); gap: 4px; }
+.dotgrid i { width: 12px; height: 12px; border-radius: 50%; background: var(--text-faint); display: block; }
+.dotgrid i.on { background: var(--accent); }
+.dots .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+.dots .c b { color: var(--accent); }
+
+/* ---------- big numbers (no hairlines; the headline strip above a chart) ---------- */
+.bignums { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 24px 32px; margin: 26px 0 40px; }
+.bignums > * { min-width: 0; }
+.bignums .n { font-size: clamp(56px, 7vw, 104px); font-weight: 700; line-height: .95; letter-spacing: -.03em; color: var(--accent); }
+.bignums .n.dim { color: var(--text-dim); }
+.bignums .c { font-size: 14px; color: var(--text-dim); margin-top: 10px; }
+
+/* ---------- charts (data-driven: see the <script type="application/json"> inside each figure) ---------- */
+:root { --bar: #4b5263; }
+[data-theme="light"] { --bar: #d4d4d4; }
+figure.chart { margin: 26px 0 34px; }
+figure.chart .chart-title { font-size: 15px; font-weight: 700; margin: 0 0 8px; color: var(--text); }
+figure.chart .chart-svg { min-width: 0; }
+figure.chart svg { display: block; width: 100%; height: auto; font-family: var(--font-mono); }
+figure.chart svg text { font-size: 12px; fill: var(--text-dim); }
+figure.chart svg .val { font-size: 13px; }
+figure.chart svg .val.hl { fill: var(--text); font-weight: 700; }
+figure.chart svg .acc { fill: var(--accent); font-weight: 700; font-size: 14px; }
+figure.chart svg .big { font-size: 15px; }
+figure.chart figcaption { font-size: 13px; color: var(--text-dim); margin-top: 10px; max-width: 90ch; }
+
+/* ---------- ledger (entries with a label column) ---------- */
+.ledger { border-top: 1px solid var(--border); margin: 20px 0 24px; }
+.ledger .row { display: grid; grid-template-columns: 96px 1fr; gap: 0 24px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.ledger .row > * { min-width: 0; }
+.ledger .lab { color: var(--accent); font-size: 14px; padding-top: 2px; }
+.ledger .t { font-weight: 700; }
+.ledger .meta { color: var(--text-dim); }
+.ledger p { margin: 4px 0 0; max-width: none; }
+@media (max-width: 640px) { .ledger .row { grid-template-columns: 1fr; gap: 6px; } }
+
+/* ---------- callout ---------- */
+.callout { border-left: 2px solid var(--accent); padding: 12px 18px; margin: 22px 0; max-width: 80ch; background: var(--bg-raised); }
+.callout b:first-child { color: var(--accent); }
+.callout p { max-width: none; margin: 0; }
+
+/* ---------- timeline strip ---------- */
+.timeline { margin: 18px 0 28px; }
+.timeline svg { width: 100%; height: 72px; display: block; }
+.timeline .axis { font-size: 11px; color: var(--text-dim); display: flex; justify-content: space-between; margin-top: 6px; }
+
+/* ---------- tables ---------- */
+.tablewrap { overflow-x: auto; margin: 18px 0 26px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border-strong); }
+td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- chips / file map / diff ---------- */
+.chip { display: inline-block; font-size: 12px; padding: 1px 8px; border: 1px solid var(--border-strong); border-radius: 3px; color: var(--text); margin: 2px 4px 2px 0; }
+.chip.accent { border-color: var(--accent); color: var(--accent); }
+.tree { font-size: 13px; line-height: 1.6; white-space: pre; overflow-x: auto; }
+.tree .new { color: var(--add); } .tree .mod { color: var(--accent); } .tree .del { color: var(--del); }
+.diff { font-size: 13px; line-height: 1.55; }
+.diff .del { display: block; background: var(--del-bg); color: var(--del); }
+.diff .add { display: block; background: var(--add-bg); color: var(--add); }
+.diff .ctx { display: block; color: var(--text-dim); }
+
+/* ---------- collapsible ---------- */
+details { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 10px 0; margin: 16px 0; }
+details + details { border-top: 0; margin-top: -16px; }
+summary { cursor: pointer; list-style: none; display: flex; gap: 12px; align-items: baseline; color: var(--text); }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "+"; color: var(--accent); font-weight: 700; width: 1ch; }
+details[open] summary::before { content: "−"; }
+summary .meta { color: var(--text-dim); font-size: 12px; margin-left: auto; }
+details .body { padding: 12px 0 4px 2ch; }
+
+/* ---------- before / after ---------- */
+.ba { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); margin: 18px 0 26px; }
+.ba > * { min-width: 0; padding: 14px 18px; }
+.ba > :first-child { border-right: 1px solid var(--border); }
+.ba .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.ba .after .lbl { color: var(--accent); }
+@media (max-width: 720px) { .ba { grid-template-columns: 1fr; } .ba > :first-child { border-right: 0; border-bottom: 1px solid var(--border); } }
+
+/* ---------- ELI5 panel (picture-first) ---------- */
+.eli5 { margin: 30px 0 4px; border: 1px dashed var(--border-strong); padding: 18px 20px 16px; background: var(--bg-raised); }
+.eli5 .k { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.eli5 figure { margin: 0; }
+.eli5 figcaption { font-size: 14px; color: var(--text); margin-top: 12px; max-width: 60ch; }
+.eli5 .chips { margin-top: 8px; }
+/* recipe primitives used inside .eli5 — full gallery in eli5-recipes.html */
+.pic-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.pic-cards .card { border: 1px solid var(--border); padding: 14px 10px; text-align: center; min-width: 0; }
+.pic-cards .em { font-size: 40px; line-height: 1; display: block; margin-bottom: 8px; }
+.pic-cards .lbl { font-size: 12px; color: var(--text-dim); }
+.pic-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pic-flow .box { border: 1px solid var(--border-strong); padding: 10px 14px; text-align: center; min-width: 96px; }
+.pic-flow .box .em { font-size: 28px; display: block; }
+.pic-flow .box.hot { border-color: var(--accent); }
+.pic-flow .arrow { color: var(--text-dim); font-size: 20px; }
+.pic-ladder { list-style: none; padding: 0; margin: 0; counter-reset: rung; max-width: none; }
+.pic-ladder li { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.pic-ladder li::before { content: counter(rung); counter-increment: rung; position: static; color: var(--text-dim); text-align: right; }
+.pic-ladder .badge { font-size: 11px; letter-spacing: .1em; padding: 2px 8px; border: 1px solid; }
+.pic-ladder .pass { color: var(--add); border-color: var(--add); }
+.pic-ladder .deny { color: var(--del); border-color: var(--del); }
+.pic-split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pic-split > div { border: 1px solid var(--border); padding: 14px; text-align: center; min-width: 0; }
+.pic-split .em { font-size: 40px; display: block; margin-bottom: 6px; }
+.pic-split .hot { border-color: var(--accent); }
+
+/* ---------- footer ---------- */
+.foot { margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-dim); }
+
+/* ---------- page extras: ELI5 recipes (copied from eli5-recipes.html) ---------- */
+.pic-ba { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+.pic-ba > * { min-width: 0; }
+.pic-ba .scene { border: 1px solid var(--border); padding: 14px; text-align: center; font-size: 13px; }
+.pic-ba .scene.after { border-color: var(--accent); }
+.pic-ba .scene .em { font-size: 36px; display: block; }
+.pic-ba .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); }
+.pic-ba .arrow { color: var(--text-dim); font-size: 24px; }
+.pic-nest { border: 1px solid var(--border-strong); padding: 12px; }
+.pic-nest .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.pic-nest .inner { display: flex; gap: 10px; flex-wrap: wrap; }
+.pic-nest .inner > div { border: 1px solid var(--border); padding: 10px 12px; text-align: center; font-size: 12px; min-width: 0; }
+.pic-nest .inner .em { font-size: 28px; display: block; }
+.pic-nest .inner .hot { border-color: var(--accent); }
+.pic-nest .pic-nest { padding: 10px; }
+.pic-cards .card.hot { border-color: var(--accent); }
+.pic-flow .box { font-size: 13px; }
+@media (max-width: 560px) { .pic-ba { grid-template-columns: 1fr; } .pic-ba .arrow { transform: rotate(90deg); justify-self: center; } }
+
+/* ---------- page extras: layout drawings ---------- */
+.lay { display: block; width: 100%; height: auto; font-family: var(--font-mono); }
+.lay .p { fill: var(--bg); stroke: var(--border-strong); stroke-width: 1.5; }
+.lay .p.hot { stroke: var(--accent); stroke-width: 2; }
+.lay .p.new { fill: var(--accent); fill-opacity: .16; stroke: var(--accent); stroke-width: 2; }
+.lay .p.bad { fill: var(--del); fill-opacity: .12; stroke: var(--del); stroke-width: 2; }
+.lay .prev { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 6 4; }
+.lay text { fill: var(--text); font-size: 15px; font-weight: 700; }
+.lay text.s { fill: var(--text-dim); font-size: 12px; font-weight: 400; }
+.lay text.a { fill: var(--accent); font-size: 12px; font-weight: 700; }
+.lay text.r { fill: var(--del); font-size: 12px; font-weight: 700; }
+.lay .edge { stroke: var(--text-dim); stroke-width: 1.5; fill: none; }
+.lay .go { stroke: var(--accent); stroke-width: 2.5; fill: none; }
+.lay .nogo { stroke: var(--del); stroke-width: 2.5; fill: none; stroke-dasharray: 5 4; }
+.lay .tip { fill: var(--accent); } .lay .tip.r { fill: var(--del); }
+.case { margin: 26px 0 10px; }
+.case h3 { margin: 0 0 4px; }
+.case .sub { color: var(--text-dim); font-size: 13px; margin: 0 0 10px; max-width: none; }
+.ba .lay { max-width: 380px; }
+.ba .cap { font-size: 13px; margin: 10px 0 0; max-width: none; }
+.ba .after .cap b { color: var(--accent); }
+.ba .before .cap b { color: var(--del); }
+.ba .before .lbl { color: var(--del); }
+.diagram { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px 32px; margin: 22px 0 8px; align-items: start; }
+.diagram > * { min-width: 0; }
+.diagram figure { margin: 0; }
+.diagram figcaption { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+.ledger .chip { font-size: 11px; }
+.done td:first-child { color: var(--accent); width: 2.5em; }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" type="button">light mode</button>
+<div class="page">
+
+  <div class="rule-top"></div>
+  <p class="kicker">Phase plan<span class="sep">·</span>plan-dashboard v1, phase 2<span class="sep">·</span>web/layout</p>
+  <h1 class="hero">Split one pane, and only that pane moves</h1>
+  <p class="deck">The pane area stops being a grid of rows and becomes a tree of splits, like editor groups in VS Code. A split cuts one pane in two and leaves every other pane, and its size, alone. All layout rules move into one module of pure functions, the drop preview shows exactly what the drop will do, and the arrow keys move a tab to the pane that is really next to it on screen.</p>
+  <p class="fineprint">Written as the plan made before the build; file:line points at where each piece lands in <code>web/layout/</code> (9 files, 903 lines by <code>wc -l</code>; 28 exports in <code>model.ts</code> by <code>grep -c</code>; 20 cases in <code>model.test.ts</code>, all passing under <code>vitest run</code>). The old rows-of-panes design is described from the phase brief; its code is not in this repository's history.</p>
+
+  <nav class="navrow" id="navrow">
+    <a href="#short">Short version</a>
+    <a href="#ba">Before and after</a>
+    <a href="#changes">What changes</a>
+    <a href="#how">How it works</a>
+    <a href="#decisions">Decisions</a>
+    <a href="#checks">Risks and done-when</a>
+  </nav>
+
+  <!-- ============================================================ -->
+  <section class="sec" id="short">
+    <p class="kicker">The short version</p>
+    <h2>A layout becomes a tree, and one tidy-up rule keeps it honest</h2>
+    <p class="lead"><b>After this phase, every pane is a leaf in a split tree.</b> Splitting, closing, dragging and the arrow keys all become pure functions over that tree.</p>
+    <div class="stats">
+      <div class="stat"><div class="n">9</div><div class="c">files in <code>web/layout/</code>, one of them the pure model</div></div>
+      <div class="stat"><div class="n accent">25</div><div class="c">pure model functions, each returning a new tree</div></div>
+      <div class="stat"><div class="n">20</div><div class="c">unit tests planned, one per behaviour</div></div>
+      <div class="stat"><div class="n">1</div><div class="c">place for every tidy-up rule: <code>prune()</code></div></div>
+      <div class="stat"><div class="n dim">0</div><div class="c">user actions; old saved layouts re-lay themselves</div></div>
+    </div>
+    <p>The old grid had a hard cap. The new one has a floor instead: a pane can be split as long as both halves stay readable, so a wide screen simply fits more.</p>
+    <div class="compare">
+      <div><div class="big dim">3×2</div><div class="c">old cap: panes across × rows down</div></div>
+      <div class="vs">→</div>
+      <div><div class="big accent">280×180</div><div class="c">new floor: smallest half a split may leave, in px</div></div>
+    </div>
+    <p class="fineprint" style="margin-top:12px">Floor from <code>MIN_W</code>/<code>MIN_H</code> at <code>web/layout/model.ts:21</code>, checked by <code>roomFor</code> at <code>web/layout/model.ts:198</code>. A brand-new workspace still opens with at most <code>MAX_SEEDED = 6</code> panes (<code>web/layout/model.ts:24</code>).</p>
+
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-cards">
+          <div class="card"><span class="em">🏠</span><div class="lbl">the house: the whole pane area</div></div>
+          <div class="card"><span class="em">🚪</span><div class="lbl">a room: one pane</div></div>
+          <div class="card hot"><span class="em">🧱</span><div class="lbl">a wall: one split</div></div>
+          <div class="card"><span class="em">📐</span><div class="lbl">the floor plan: the tree</div></div>
+          <div class="card"><span class="em">🖍️</span><div class="lbl">chalk line: the drop preview</div></div>
+          <div class="card"><span class="em">🧭</span><div class="lbl">walking next door: arrow keys</div></div>
+        </div>
+        <figcaption>We stop rebuilding whole floors and start putting up one wall at a time.</figcaption>
+        <div class="chips"><span class="chip">Pane</span><span class="chip accent">Split</span><span class="chip">Layout</span><span class="chip">prune()</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="sec" id="ba">
+    <p class="kicker">Before and after</p>
+    <h2>Three things the grid got wrong, drawn on the same screen</h2>
+    <p class="lead"><b>Each fix is a rule in the model</b>, and each has a test that pins the new result.</p>
+
+    <div class="case">
+      <h3>1 · "Split below" on pane B</h3>
+      <p class="sub">Start: three panes A | B | C. Drag a doc onto B's bottom edge.</p>
+      <div class="ba">
+        <div class="before"><div class="lbl">Before · rows of panes</div>
+          <svg class="lay" viewBox="0 0 300 180" role="img" aria-label="old result: a new full-width row under all three panes">
+            <rect class="p" x="2" y="2" width="96" height="86"/><rect class="p" x="102" y="2" width="96" height="86"/><rect class="p" x="202" y="2" width="96" height="86"/>
+            <rect class="p bad" x="2" y="92" width="296" height="86"/>
+            <rect class="prev" x="104" y="46" width="92" height="40"/>
+            <text x="44" y="38">A</text><text x="144" y="30">B</text><text x="244" y="38">C</text>
+            <text class="a" x="114" y="70">preview</text>
+            <text x="144" y="134">n</text><text class="r" x="104" y="156">a whole new row</text>
+          </svg>
+          <p class="cap"><b>The preview showed half of B</b>; the drop added a full-width row under A, B and C, squashing all three.</p>
+        </div>
+        <div class="after"><div class="lbl">After · split tree</div>
+          <svg class="lay" viewBox="0 0 300 180" role="img" aria-label="new result: only B is split">
+            <rect class="p" x="2" y="2" width="96" height="176"/><rect class="p" x="102" y="2" width="96" height="86"/><rect class="p new" x="102" y="92" width="96" height="86"/><rect class="p" x="202" y="2" width="96" height="176"/>
+            <text x="44" y="96">A</text><text x="144" y="50">B</text><text x="144" y="140">n</text><text x="244" y="96">C</text>
+          </svg>
+          <p class="cap"><b>Only B is cut in two.</b> The preview paints the same half the drop fills.</p>
+        </div>
+      </div>
+      <div class="chips"><span class="chip">insertBeside · web/layout/model.ts:93</span><span class="chip">PREVIEW · web/layout/PaneView.tsx:64</span><span class="chip">test · web/layout/model.test.ts:60</span></div>
+    </div>
+
+    <div class="case">
+      <h3>2 · Adding a pane beside B</h3>
+      <p class="sub">Start: A | B, which you had dragged to 70 / 30. Drop a doc on B's right edge.</p>
+      <div class="ba">
+        <div class="before"><div class="lbl">Before</div>
+          <svg class="lay" viewBox="0 0 300 120" role="img" aria-label="old result: every pane reset to a third">
+            <rect class="p bad" x="2" y="2" width="96" height="96"/><rect class="p bad" x="102" y="2" width="96" height="96"/><rect class="p bad" x="202" y="2" width="96" height="96"/>
+            <text x="44" y="48">A</text><text x="144" y="48">B</text><text x="244" y="48">n</text>
+            <text class="r" x="36" y="116">33</text><text class="r" x="136" y="116">33</text><text class="r" x="236" y="116">33</text>
+          </svg>
+          <p class="cap"><b>Everyone reset to equal shares</b>; your 70 / 30 was thrown away.</p>
+        </div>
+        <div class="after"><div class="lbl">After</div>
+          <svg class="lay" viewBox="0 0 300 120" role="img" aria-label="new result: A keeps 70, B and n share 30">
+            <rect class="p" x="2" y="2" width="206" height="96"/><rect class="p" x="212" y="2" width="41" height="96"/><rect class="p new" x="257" y="2" width="41" height="96"/>
+            <text x="100" y="48">A</text><text x="227" y="48">B</text><text x="272" y="48">n</text>
+            <text class="s" x="96" y="116">70</text><text class="a" x="224" y="116">15</text><text class="a" x="268" y="116">15</text>
+          </svg>
+          <p class="cap"><b>A keeps its 70.</b> B gives up half of its own 30 and nobody else moves.</p>
+        </div>
+      </div>
+      <div class="chips"><span class="chip">half = sizes[i] / 2 · web/layout/model.ts:105</span><span class="chip">test · web/layout/model.test.ts:65</span></div>
+    </div>
+
+    <div class="case">
+      <h3>3 · Ctrl/Option + ↓ from pane B</h3>
+      <p class="sub">Start: top row A | B | C at 20 / 20 / 60, bottom row D | E at 50 / 50. B sits over D.</p>
+      <div class="ba">
+        <div class="before"><div class="lbl">Before · by index</div>
+          <svg class="lay" viewBox="0 0 300 180" role="img" aria-label="old: B moves to E because both are second in their row">
+            <rect class="p hot" x="62" y="2" width="56" height="86"/><rect class="p" x="2" y="2" width="56" height="86"/><rect class="p" x="122" y="2" width="176" height="86"/>
+            <rect class="p" x="2" y="92" width="146" height="86"/><rect class="p bad" x="152" y="92" width="146" height="86"/>
+            <text x="25" y="50">A</text><text x="85" y="40">B</text><text x="205" y="50">C</text><text x="70" y="140">D</text><text x="220" y="140">E</text>
+            <path class="nogo" d="M96 60 C 140 70, 190 100, 214 118"/><polygon class="tip r" points="210,112 222,124 206,124"/>
+          </svg>
+          <p class="cap"><b>B is second in its row, so it went to E</b>, second in the next row, on the far side of the screen.</p>
+        </div>
+        <div class="after"><div class="lbl">After · by position</div>
+          <svg class="lay" viewBox="0 0 300 180" role="img" aria-label="new: B moves to D, the pane that shares its bottom edge">
+            <rect class="p hot" x="62" y="2" width="56" height="86"/><rect class="p" x="2" y="2" width="56" height="86"/><rect class="p" x="122" y="2" width="176" height="86"/>
+            <rect class="p new" x="2" y="92" width="146" height="86"/><rect class="p" x="152" y="92" width="146" height="86"/>
+            <text x="25" y="50">A</text><text x="85" y="40">B</text><text x="205" y="50">C</text><text x="40" y="150">D</text><text x="220" y="140">E</text>
+            <path class="go" d="M90 56 L 90 116"/><polygon class="tip" points="84,112 96,112 90,124"/>
+          </svg>
+          <p class="cap"><b>B goes to D</b>, the pane that shares B's bottom edge; when several do, the longest shared edge wins.</p>
+        </div>
+      </div>
+      <div class="chips"><span class="chip">neighbour · web/layout/model.ts:270</span><span class="chip">rects · web/layout/model.ts:248</span><span class="chip">test · web/layout/model.test.ts:111</span></div>
+    </div>
+
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-ba">
+          <div class="scene"><div class="lbl">Before</div><span class="em">🏚️🏗️🏚️</span>a wall in one room built a whole new floor under every room</div>
+          <div class="arrow">→</div>
+          <div class="scene after"><div class="lbl">After</div><span class="em">🚪🧱🚪</span>the wall goes up in that one room, and the other rooms keep their size</div>
+        </div>
+        <figcaption>Asking for one more room no longer rebuilds the house.</figcaption>
+        <div class="chips"><span class="chip">dropDoc</span><span class="chip">moveToNewPane</span><span class="chip">neighbour</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="sec" id="changes">
+    <p class="kicker">What changes</p>
+    <h2>One pure model, thin views around it</h2>
+    <p class="lead"><b>The rules live in <code>model.ts</code>;</b> the components only ask it questions and draw the answer.</p>
+    <div class="ledger">
+      <div class="row"><div class="lab">model</div><div>
+        <span class="t">web/layout/model.ts</span> <span class="meta">· the split tree and every operation on it · 337 lines</span>
+        <p>A layout is a <code>Pane</code> (tabs plus the one shown) or a <code>Split</code> (a direction, children, and sizes in percent) — <code>web/layout/model.ts:10</code>. Every operation returns a new tree plus which pane gets focus (<code>Result</code>, <code>web/layout/model.ts:18</code>), and every one that removes something ends in <code>prune()</code> (<code>web/layout/model.ts:88</code>), so the tidy-up rules exist exactly once.</p>
+      </div></div>
+      <div class="row"><div class="lab">tests</div><div>
+        <span class="t">web/layout/model.test.ts</span> <span class="meta">· 20 cases over the pure functions · 155 lines</span>
+        <p>Each case builds a small tree, runs one operation, and compares the shape with sizes rounded (<code>shape</code>, <code>web/layout/model.test.ts:38</code>). No DOM and no React: the model is tested on its own.</p>
+      </div></div>
+      <div class="row"><div class="lab">view</div><div>
+        <span class="t">web/layout/NodeView.tsx</span>, <span class="t">SplitView.tsx</span> <span class="meta">· draw the tree recursively · 7 + 52 lines</span>
+        <p><code>NodeView</code> picks a pane or a split (<code>web/layout/NodeView.tsx:5</code>). A split is a flex box whose children use their size as a flex-grow weight (<code>web/layout/SplitView.tsx:45</code>), so sizes never need to add up exactly. Dragging a divider re-splits only the two children either side of it (<code>web/layout/SplitView.tsx:17</code>).</p>
+      </div></div>
+      <div class="row"><div class="lab">view</div><div>
+        <span class="t">web/layout/PaneView.tsx</span> <span class="meta">· one pane: tabs, actions, drop targets · 148 lines</span>
+        <p>Move and split buttons show only when they can do something (<code>web/layout/PaneView.tsx:22</code>). While dragging, edge bands appear only on sides with room (<code>web/layout/PaneView.tsx:75</code>), and the highlight is the exact half a new pane would take (<code>web/layout/PaneView.tsx:62</code>).</p>
+      </div></div>
+      <div class="row"><div class="lab">view</div><div>
+        <span class="t">web/layout/TabStrip.tsx</span> <span class="meta">· one pane's tabs · 108 lines</span>
+        <p>Tabs drag to reorder or into another pane. The insertion line is counted without the dragged tab, which is where it really lands (<code>web/layout/TabStrip.tsx:26</code>), so the marker and the result agree here too.</p>
+      </div></div>
+      <div class="row"><div class="lab">drag</div><div>
+        <span class="t">web/layout/dnd.ts</span>, <span class="t">area.ts</span> <span class="meta">· drop routing and the pane area's size · 35 + 8 lines</span>
+        <p><code>drop()</code> sends a doc or a tab to the right model call by zone (<code>web/layout/dnd.ts:24</code>); <code>zonesFor()</code> hides edges with no room and the no-op "only tab onto its own edge" (<code>web/layout/dnd.ts:14</code>). <code>area.ts</code> keeps the pixel size the room check needs (<code>web/layout/area.ts:5</code>).</p>
+      </div></div>
+      <div class="row"><div class="lab">keys</div><div>
+        <span class="t">web/layout/Panes.tsx</span> <span class="meta">· the root, resize tracking, arrow keys · 53 lines</span>
+        <p>Ctrl/Option + arrow calls <code>shift()</code> (<code>web/layout/Panes.tsx:12</code>), which moves the shown tab to the real neighbour or splits a new pane that way. A <code>ResizeObserver</code> feeds the area size so the split buttons re-check their room (<code>web/layout/Panes.tsx:36</code>).</p>
+      </div></div>
+      <div class="row"><div class="lab">state</div><div>
+        <span class="t">web/state/workspaces.ts</span>, <span class="t">store.ts</span> <span class="meta">· callers, not rewritten</span>
+        <p>They switch from the grid helpers to the model: <code>apply(Result)</code> (<code>web/state/workspaces.ts:29</code>), first-visit <code>seed()</code> (<code>web/state/workspaces.ts:47</code>), and a load filter that drops any saved layout that is not a pane tree (<code>web/state/store.ts:48</code>).</p>
+      </div></div>
+    </div>
+
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-cards">
+          <div class="card hot"><span class="em">📐</span><div class="lbl">architect: owns every rule</div></div>
+          <div class="card"><span class="em">👷</span><div class="lbl">builders: draw what the plan says</div></div>
+          <div class="card"><span class="em">🖍️</span><div class="lbl">chalk: shows the wall before it goes up</div></div>
+          <div class="card"><span class="em">🧭</span><div class="lbl">guide: walks you next door</div></div>
+        </div>
+        <figcaption>Only the architect decides where walls go; everyone else just asks and builds.</figcaption>
+        <div class="chips"><span class="chip accent">model.ts</span><span class="chip">SplitView / PaneView</span><span class="chip">dnd.ts</span><span class="chip">Panes.tsx</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="sec" id="how">
+    <p class="kicker">How it works</p>
+    <h2>What you see is a tree, read left to right and top to bottom</h2>
+    <p class="lead"><b>A split says which way to cut and how big each piece is.</b> Panes are the leaves.</p>
+
+    <div class="diagram">
+      <figure>
+        <svg class="lay" viewBox="0 0 320 210" role="img" aria-label="screen: pane A on the left at 70 percent, panes B over n on the right">
+          <rect class="p" x="2" y="2" width="220" height="206"/>
+          <rect class="p" x="226" y="2" width="92" height="101"/>
+          <rect class="p new" x="226" y="107" width="92" height="101"/>
+          <text x="104" y="110">A</text><text x="266" y="58">B</text><text x="266" y="162">n</text>
+          <text class="s" x="96" y="196">70%</text><text class="s" x="254" y="90">50%</text><text class="a" x="254" y="196">50%</text>
+        </svg>
+        <figcaption>On screen: case 1's result, after you had dragged A to 70%.</figcaption>
+      </figure>
+      <figure>
+        <svg class="lay" viewBox="0 0 320 210" role="img" aria-label="tree: a row split with A and a column split holding B and n">
+          <path class="edge" d="M160 44 L 70 104"/><path class="edge" d="M160 44 L 230 104"/>
+          <path class="edge" d="M230 138 L 185 176"/><path class="edge" d="M230 138 L 280 176"/>
+          <rect class="p hot" x="84" y="8" width="152" height="36"/><text x="100" y="31">row · 70 | 30</text>
+          <rect class="p" x="40" y="104" width="60" height="34"/><text x="64" y="126">A</text>
+          <rect class="p hot" x="160" y="104" width="140" height="34"/><text x="170" y="126">col · 50 | 50</text>
+          <rect class="p" x="160" y="176" width="50" height="30"/><text x="179" y="196">B</text>
+          <rect class="p new" x="255" y="176" width="50" height="30"/><text x="274" y="196">n</text>
+          <text class="s" x="18" y="160">pane</text><text class="a" x="250" y="96">split</text>
+        </svg>
+        <figcaption>In the model: a row split holds A and a column split; only that column split is new.</figcaption>
+      </figure>
+    </div>
+    <p class="fineprint">Same tree as the expectation at <code>web/layout/model.test.ts:63</code>. <code>rects()</code> walks it to get each pane's box as fractions of the area (<code>web/layout/model.ts:248</code>); <code>neighbour()</code> and <code>roomFor()</code> both read those boxes.</p>
+
+    <h3>Every action takes the same five steps</h3>
+    <div class="ledger">
+      <div class="row"><div class="lab">1 · input</div><div><span class="t">Something asks for a change.</span> <span class="meta">A drop (<code>web/layout/dnd.ts:24</code>), an arrow key (<code>web/layout/Panes.tsx:14</code>), a pane button (<code>web/layout/PaneView.tsx:36</code>), or a sidebar click (<code>web/state/workspaces.ts:97</code>).</span></div></div>
+      <div class="row"><div class="lab">2 · model</div><div><span class="t">One pure function builds the new tree.</span> <span class="meta"><code>dropDoc</code>, <code>moveTab</code>, <code>moveToNewPane</code>, <code>shift</code>, <code>openTab</code>, <code>closeTab</code>, <code>closePane</code> (<code>web/layout/model.ts:136–237</code>).</span></div></div>
+      <div class="row"><div class="lab">3 · tidy</div><div><span class="t"><code>prune()</code> cleans up.</span> <span class="meta">Empty panes go, their space goes to the child before (else after), a one-child split becomes its child, and a split inside a same-direction split merges into it (<code>web/layout/model.ts:55–90</code>).</span></div></div>
+      <div class="row"><div class="lab">4 · store</div><div><span class="t"><code>apply()</code> saves layout and focus together.</span> <span class="meta"><code>web/state/workspaces.ts:29</code>; layouts persist per workspace in the browser.</span></div></div>
+      <div class="row"><div class="lab">5 · draw</div><div><span class="t"><code>NodeView</code> renders the tree.</span> <span class="meta">Splits become flex boxes with dividers, panes become tab strips and viewers (<code>web/layout/NodeView.tsx:5</code>).</span></div></div>
+    </div>
+
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-flow">
+          <div class="box"><span class="em">🙋</span>ask for a room</div><span class="arrow">→</span>
+          <div class="box"><span class="em">📐</span>redraw the plan</div><span class="arrow">→</span>
+          <div class="box hot"><span class="em">🧹</span>knock down empty rooms</div><span class="arrow">→</span>
+          <div class="box"><span class="em">🏠</span>build the house</div>
+        </div>
+        <figcaption>Every change is drawn on paper first, tidied, and only then built.</figcaption>
+        <div class="chips"><span class="chip">Result</span><span class="chip accent">prune()</span><span class="chip">apply()</span><span class="chip">NodeView</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="sec" id="decisions">
+    <p class="kicker">Decisions</p>
+    <h2>Rules follow the screen, not the order panes were made in</h2>
+    <p class="lead"><b>Each decision removes a way for the picture and the result to disagree.</b></p>
+    <div class="ledger">
+      <div class="row"><div class="lab">decided</div><div>
+        <span class="t">A tree of splits, not a grid of rows.</span> <span class="meta"><code>web/layout/model.ts:1–13</code></span>
+        <p>A tree can cut any one pane without touching the rest, which is the whole bug in case 1. Not taken: keeping rows and raising the 3 × 2 cap, which leaves the full-width-row problem in place.</p>
+      </div></div>
+      <div class="row"><div class="lab">decided</div><div>
+        <span class="t">All tidy-up rules live in one <code>prune()</code>.</span> <span class="meta"><code>web/layout/model.ts:55–90</code></span>
+        <p>Close, move and drop each just mark what changed and call it, so a closed pane's space is always handed out the same way. Not taken: tidying inside each operation, where the copies would drift.</p>
+      </div></div>
+      <div class="row"><div class="lab">decided</div><div>
+        <span class="t">A new pane halves only the pane it splits.</span> <span class="meta"><code>web/layout/model.ts:92–114</code></span>
+        <p>Sizes you set by hand survive adding panes. Not taken: equal shares on every add, the old behaviour in case 2.</p>
+      </div></div>
+      <div class="row"><div class="lab">decided</div><div>
+        <span class="t">A minimum pane size instead of a pane count.</span> <span class="meta"><code>web/layout/model.ts:20–24</code>, <code>web/layout/model.ts:198–205</code></span>
+        <p>Both halves of a split must be at least 280 px wide or 180 px tall, so the limit grows with the screen. Split buttons and drop edges ask the same check, so they never offer a split the model would refuse. First-visit layouts still stop at six panes.</p>
+      </div></div>
+      <div class="row"><div class="lab">decided</div><div>
+        <span class="t">Neighbours by position on screen.</span> <span class="meta"><code>web/layout/model.ts:268–299</code></span>
+        <p>A neighbour must share the edge in that direction; the one sharing the longest stretch wins. Not taken: index order, the old behaviour in case 3.</p>
+      </div></div>
+      <div class="row"><div class="lab">decided</div><div>
+        <span class="t">The drop preview comes from the same zone as the drop.</span> <span class="meta"><code>web/layout/PaneView.tsx:62–70</code>, <code>web/layout/dnd.ts:24–35</code></span>
+        <p>Hovering an edge paints exactly the half <code>insertBeside</code> creates; the centre paints the whole pane for "open here".</p>
+      </div></div>
+      <div class="row"><div class="lab">decided</div><div>
+        <span class="t">Sizes are percentages drawn as flex weights.</span> <span class="meta"><code>web/layout/SplitView.tsx:11–12</code></span>
+        <p>Rounding never leaves a gap or an overflow, and the model can stay in fractions with no pixel maths.</p>
+      </div></div>
+      <div class="row"><div class="lab">assumed</div><div>
+        <span class="t">Old saved grids are dropped, not converted.</span> <span class="meta"><code>web/layout/model.ts:325</code>, <code>web/state/store.ts:48–51</code>, <code>web/state/workspaces.ts:56–61</code></span>
+        <p>Layouts are per-browser view state. A saved layout that is not a pane tree fails <code>isLayout</code> and is skipped, and the workspace lays itself out again from its docs. Reason for not writing a converter: not recorded.</p>
+      </div></div>
+    </div>
+
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-split">
+          <div><span class="em">🔢</span>number the rooms 1, 2, 3<br><small style="color:var(--text-dim)">"go to room 2 downstairs"</small></div>
+          <div class="hot"><span class="em">🧭</span>walk through the door that is there<br><small style="color:var(--text-dim)">the room you actually reach</small></div>
+        </div>
+        <figcaption>We pick the room behind the real door, not the one with the matching number.</figcaption>
+        <div class="chips"><span class="chip accent">neighbour()</span><span class="chip">rects()</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <!-- ============================================================ -->
+  <section class="sec" id="checks">
+    <p class="kicker">Risks, checks, and done-when</p>
+    <h2>Every risky rule gets a test, and the UI only offers what the model allows</h2>
+    <p class="lead"><b>The model is pure, so it is checked without a browser.</b> The views are checked by hand.</p>
+    <div class="two">
+      <div>
+        <h3>What could go wrong</h3>
+        <ul>
+          <li>Closing a pane leaves a split with one child, or nested splits in the same direction, so sizes drift and dividers double up.</li>
+          <li>A split leaves a pane too small to read on a small window.</li>
+          <li>Dropping a pane's only tab onto its own edge does nothing but looks like it should.</li>
+          <li>A malformed or old-format saved layout crashes the first render.</li>
+          <li>Closing the last tab leaves no pane at all, so nothing can be dropped back in.</li>
+          <li>Paths go stale when a task folder moves from <code>active/</code> to <code>done/</code>.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>How the plan proves it didn't</h3>
+        <ul>
+          <li><code>collapses a split left with one child and merges same-direction splits</code>; <code>gives a closed pane its space to the pane before it</code> (<code>web/layout/model.test.ts:81–88</code>).</li>
+          <li><code>refuses a split that would leave a half under the minimum size</code> (<code>web/layout/model.test.ts:73</code>).</li>
+          <li><code>will not split a pane off its own only tab</code> (<code>web/layout/model.test.ts:69</code>); <code>zonesFor</code> hides that edge (<code>web/layout/dnd.ts:17</code>).</li>
+          <li><code>rejects saved layouts that are not a pane tree</code>, using the old <code>{rows, heights}</code> shape (<code>web/layout/model.test.ts:152</code>).</li>
+          <li><code>keeps one empty pane when everything is closed</code> (<code>web/layout/model.test.ts:94</code>).</li>
+          <li><code>retargets tab paths after a task folder moves</code> (<code>web/layout/model.test.ts:147</code>).</li>
+          <li>By hand: drag a divider, drop on each edge and the centre, and walk Ctrl/Option + arrows across a 2 × 3 layout.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout"><b>One thing users will notice:</b> <p>Pane arrangements saved by the old grid are not carried over. Each workspace re-lays itself out from its docs the first time it is opened after the update. No action is needed.</p></div>
+
+    <h3>Done when</h3>
+    <div class="tablewrap"><table class="done">
+      <thead><tr><th></th><th>Observable result</th><th>Proved by</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Splitting one pane below leaves every other pane, and its size, as it was.</td><td><code>web/layout/model.test.ts:60</code></td></tr>
+        <tr><td>2</td><td>A new pane beside a 70 / 30 pair gives 70 / 15 / 15.</td><td><code>web/layout/model.test.ts:65</code></td></tr>
+        <tr><td>3</td><td>The drop highlight covers exactly the area the dropped pane ends up in.</td><td>manual drag on each edge</td></tr>
+        <tr><td>4</td><td>Ctrl/Option + ↓ from B reaches the pane under B, not the one at B's index.</td><td><code>web/layout/model.test.ts:114</code></td></tr>
+        <tr><td>5</td><td>With nothing that way, the shown tab splits into a new pane; a lone tab stays put.</td><td><code>web/layout/model.test.ts:127–133</code></td></tr>
+        <tr><td>6</td><td>Wide screens fit more than three panes across; small ones refuse splits under 280 × 180.</td><td><code>web/layout/model.test.ts:73</code></td></tr>
+        <tr><td>7</td><td>An old saved grid loads without error and the workspace re-lays itself out.</td><td><code>web/layout/model.test.ts:152</code></td></tr>
+        <tr><td>8</td><td>All 20 model tests pass.</td><td><code>vitest run</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-nest"><div class="lbl">🏠 the house, cut one wall at a time</div>
+          <div class="inner">
+            <div><span class="em">🚪</span>room A</div>
+            <div class="pic-nest"><div class="lbl">🧱 one new wall</div>
+              <div class="inner">
+                <div><span class="em">🚪</span>room B</div>
+                <div class="hot"><span class="em">🚪</span>new room</div>
+              </div>
+            </div>
+            <div><span class="em">🚪</span>room C</div>
+          </div>
+        </div>
+        <figcaption>When it is done, each new wall sits inside one room, and the rest of the house never notices.</figcaption>
+        <div class="chips"><span class="chip">Split</span><span class="chip accent">Pane</span><span class="chip">MIN_W × MIN_H</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <div class="foot">Rendered by the visualise skill · sources: web/layout/model.ts, model.test.ts, NodeView.tsx, SplitView.tsx, PaneView.tsx, TabStrip.tsx, dnd.ts, area.ts, Panes.tsx, web/state/workspaces.ts, web/state/store.ts · numbers from <code>wc -l web/layout/*</code>, <code>grep -cE '^export (function|const)' web/layout/model.ts</code>, and <code>vitest run layout</code> (20 passed).</div>
+</div>
+
+<script>
+(function () {
+  // theme: the switch, the browser's memory, and the plan dashboard all agree.
+  // Dashboard -> page: {type:'plan-theme', theme} via postMessage. Page -> dashboard: the same message, sent on click.
+  const root = document.documentElement, btn = document.getElementById('themeToggle');
+  const setTheme = t => { root.dataset.theme = t; localStorage.setItem('visualise-theme', t); if (btn) btn.textContent = t === 'light' ? 'dark mode' : 'light mode'; };
+  setTheme(root.dataset.theme || 'dark');
+  if (btn) btn.addEventListener('click', () => {
+    const t = root.dataset.theme === 'light' ? 'dark' : 'light';
+    setTheme(t);
+    if (window.parent !== window) window.parent.postMessage({ type: 'plan-theme', theme: t }, '*');
+  });
+  window.addEventListener('message', e => {
+    const d = e.data; if (d && d.type === 'plan-theme' && (d.theme === 'light' || d.theme === 'dark')) setTheme(d.theme);
+  });
+  // nav row scroll spy
+  const nav = document.getElementById('navrow');
+  if (nav) {
+    const links = [...nav.querySelectorAll('a')];
+    const secs = links.map(l => document.getElementById(l.getAttribute('href').slice(1))).filter(Boolean);
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return;
+      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
+    }), { rootMargin: '-10% 0px -80% 0px' });
+    secs.forEach(s => io.observe(s));
+  }
+})();
+</script>
+</body>
+</html>

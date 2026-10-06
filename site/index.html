@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>plan-dashboard — keep up with what your coding agents plan</title>
+    <meta
+      name="description"
+      content="A local, open-source dashboard for the HTML and Markdown plans your coding agents write. Every phase side by side, live as it lands."
+    />
+    <meta property="og:title" content="plan-dashboard" />
+    <meta
+      property="og:description"
+      content="Keep up with what your coding agents plan. Open source, runs on localhost."
+    />
+    <meta property="og:image" content="https://limyuquan.github.io/plan-dashboard/media/hero.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="rails" aria-hidden="true"></div>
+
+    <header class="nav">
+      <a class="brand" href="#">
+        <img src="favicon.svg" alt="" width="18" height="18" />
+        plan-dashboard
+      </a>
+      <nav>
+        <a href="#install">Install</a>
+        <a href="https://github.com/limyuquan/plan-dashboard#readme">Docs</a>
+        <a class="pill" href="https://github.com/limyuquan/plan-dashboard">
+          <svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M8 .2a8 8 0 0 0-2.5 15.6c.4 0 .5-.2.5-.4v-1.5c-2.2.5-2.7-1-2.7-1-.4-.9-.9-1.2-.9-1.2-.7-.5.1-.5.1-.5.8.1 1.2.8 1.2.8.7 1.3 1.9.9 2.4.7 0-.5.3-.9.5-1.1-1.8-.2-3.6-.9-3.6-4 0-.9.3-1.6.8-2.1-.1-.2-.4-1 .1-2.1 0 0 .7-.2 2.2.8a7.5 7.5 0 0 1 4 0c1.5-1 2.2-.8 2.2-.8.4 1.1.2 1.9.1 2.1.5.6.8 1.3.8 2.1 0 3.1-1.9 3.8-3.7 4 .3.3.6.8.6 1.5v2.2c0 .2.1.5.6.4A8 8 0 0 0 8 .2Z"
+            />
+          </svg>
+          Star on GitHub
+        </a>
+      </nav>
+    </header>
+
+    <main>
+      <!-- Hero -->
+      <section class="hero">
+        <div class="tiles" aria-hidden="true">
+          <span class="tile t1"><b class="badge violet">plan</b></span>
+          <span class="tile t2"><b class="badge teal">eli5</b></span>
+          <span class="tile t3"><b class="badge green">recap</b></span>
+          <span class="tile t4"><b class="badge grey">md</b></span>
+          <span class="tile t5"
+            ><svg viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="16" rx="2.5" />
+              <path d="M12 4v16M12 12h9" /></svg
+          ></span>
+          <span class="tile t6"
+            ><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" /></svg
+          ></span>
+        </div>
+        <h1>Keep up with what<br />your agents plan.</h1>
+        <p class="sub">
+          A local dashboard for the HTML and Markdown plans your coding agents write. Every phase side by side, live the
+          moment it lands. Works with any agent that writes files.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="#install">Get started</a>
+          <a class="btn ghost" href="https://github.com/limyuquan/plan-dashboard">View the code →</a>
+        </div>
+        <p class="tiny">Free and open source · MIT · runs on localhost</p>
+
+        <figure class="window hero-shot">
+          <video autoplay muted loop playsinline poster="media/hero.jpg">
+            <source src="media/hero.mp4" type="video/mp4" />
+          </video>
+        </figure>
+      </section>
+
+      <!-- Why -->
+      <section class="band why">
+        <div class="wrap narrow">
+          <p class="eyebrow">Why it exists</p>
+          <h2>Reviewing plans became the bottleneck.</h2>
+          <blockquote>
+            <p>
+              Once agents were writing most of the code, writing code stopped being the slow part of my day. Reading
+              their plans was. Every task left a plan, an explainer and a recap scattered across folders, and I was
+              skimming them in an editor tab, or not reading them at all.
+            </p>
+            <p>
+              I built this at work so reviewing would be fast enough that I'd actually do it, every time, and stay in
+              the loop on what my own codebase was becoming.
+            </p>
+            <cite>— <a href="https://github.com/limyuquan">@limyuquan</a>, author</cite>
+          </blockquote>
+        </div>
+      </section>
+
+      <!-- Any agent -->
+      <section class="band">
+        <div class="wrap">
+          <h2 class="left">Bring your own agent</h2>
+          <p class="lede">
+            plan-dashboard doesn't talk to any model. It reads the folder your agents already write plans into, so it
+            works with whichever one you use today.
+          </p>
+          <div class="agents">
+            <div class="agent"><b>Claude Code</b><code>writes plan.html</code></div>
+            <div class="agent"><b>Codex</b><code>writes recap.md</code></div>
+            <div class="agent"><b>Cursor</b><code>writes eli5.html</code></div>
+            <div class="agent"><b>OpenCode</b><code>writes plan.md</code></div>
+            <div class="agent"><b>Gemini CLI</b><code>writes notes.md</code></div>
+            <div class="agent"><b>Your scripts</b><code>write anything</code></div>
+          </div>
+          <ul class="checks inline">
+            <li>No accounts or API keys</li>
+            <li>Nothing leaves your machine</li>
+            <li>HTML and Markdown, PDFs and images too</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Split -->
+      <section class="band">
+        <div class="wrap feature">
+          <figure class="window">
+            <video autoplay muted loop playsinline poster="media/split.jpg">
+              <source src="media/split.mp4" type="video/mp4" />
+            </video>
+          </figure>
+          <div class="copy">
+            <h2 class="left">Read a whole phase at once.</h2>
+            <p>
+              Each phase of a task is a workspace. Open it and every plan lands in its own pane, then split, drag and
+              resize like your editor. Your arrangement is remembered per phase.
+            </p>
+            <ul class="checks">
+              <li>Split any pane right or down, drag tabs onto any edge</li>
+              <li>The highlight shows exactly where a tab will land</li>
+              <li>Move tabs with <kbd>⌥</kbd> + arrows, even from inside a plan</li>
+              <li>Scroll position kept per tab</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live -->
+      <section class="band">
+        <div class="wrap feature flip">
+          <figure class="window">
+            <video autoplay muted loop playsinline poster="media/live.jpg">
+              <source src="media/live.mp4" type="video/mp4" />
+            </video>
+          </figure>
+          <div class="copy">
+            <h2 class="left">Live as they land.</h2>
+            <p>
+              When an agent writes a new plan you get a notification naming the task and phase, with one button to open
+              it in place. Plans you have open reload when they change, and keep your place.
+            </p>
+            <ul class="checks">
+              <li>Notifications for new plans, even in a background tab</li>
+              <li>Edited plans reload in place</li>
+              <li>Settle finished tasks into a done folder, with Undo</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Open -->
+      <section class="band">
+        <div class="wrap feature">
+          <div class="terminal">
+            <div class="term-bar"><i></i><i></i><i></i><span>agent</span></div>
+            <pre><code><span class="dim"># the agent finished phase 2 and shows you the plan</span>
+<span class="prompt">$</span> plan-dashboard open \
+    '?ws=plan-dashboard-v1/phase-2-split-tree-layout&amp;plan=plan'
+<span class="ok">✓</span> showed it in your dashboard tab
+
+<span class="dim"># every view has a link that survives settling</span>
+<span class="link">http://localhost:4173/?ws=plan-dashboard-v1/phase-3-settings&amp;plan=plan.html</span></code></pre>
+          </div>
+          <div class="copy">
+            <h2 class="left">Let your agent show you.</h2>
+            <p>
+              Instead of pasting a file path, your agent runs one command and the plan appears in the tab you already
+              have open. The address bar always names what's on screen, so links can go in chats and other plans.
+            </p>
+            <ul class="checks">
+              <li><code>plan-dashboard open &lt;link&gt;</code> reuses your open tab</li>
+              <li>Links inside plans open as tabs, absolute paths included</li>
+              <li>A ready-made <code>link-plan</code> skill for your agent</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section class="band">
+        <div class="wrap feature flip">
+          <figure class="window">
+            <img src="media/settings.jpg" alt="The settings page with a live preview of what the folder rules find" />
+          </figure>
+          <div class="copy">
+            <h2 class="left">Your folder, your rules.</h2>
+            <p>
+              Folder names, phase naming, file types and badges are settings, not code. The settings page shows what a
+              change would find before you save it, including the files it would miss.
+            </p>
+            <ul class="checks">
+              <li>Status folders, plan folders and phase patterns</li>
+              <li>Doc types with their own badge and colour</li>
+              <li>A plain JSON file you can keep in your dotfiles</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Skills -->
+      <section class="band">
+        <div class="wrap">
+          <p class="eyebrow center">Agent skills</p>
+          <h2>Plans worth reading.</h2>
+          <p class="lede center">
+            The repo includes the <code>visualise</code> skill I use to have agents write plans as pages: a verdict up
+            top, the numbers that matter, a diagram, and a picture-book explanation at the end of every section.
+          </p>
+          <div class="pages">
+            <figure class="window page-shot">
+              <img src="media/page-plan.jpg" alt="A plan page: before and after drawings of a layout change" />
+              <figcaption>Plan — what changes, drawn before and after</figcaption>
+            </figure>
+            <figure class="window page-shot">
+              <img src="media/page-eli5.jpg" alt="An ELI5 page explaining panes as rooms in a house" />
+              <figcaption>ELI5 — the same idea as a picture book</figcaption>
+            </figure>
+            <figure class="window page-shot">
+              <img src="media/page-recap.jpg" alt="A recap page: headline numbers and the layout drawn as a tree" />
+              <figcaption>Recap — what actually landed</figcaption>
+            </figure>
+            <figure class="window page-shot">
+              <img src="media/page-recap-chart.jpg" alt="A recap page section with a bar chart of lines per file" />
+              <figcaption>Numbers come from commands the agent ran</figcaption>
+            </figure>
+          </div>
+          <div class="modes">
+            <span>plan</span><span>recap</span><span>codebase map</span><span>explainer</span><span>ELI5</span
+            ><span>review</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Install -->
+      <section class="final" id="install">
+        <h2>Your agents' plans deserve<br />better than an editor tab.</h2>
+        <p class="sub">Needs Node.js 20 or newer. Runs on macOS, Linux and Windows.</p>
+        <div class="install">
+          <pre><code><span class="prompt">$</span> git clone https://github.com/limyuquan/plan-dashboard
+<span class="prompt">$</span> cd plan-dashboard &amp;&amp; npm install &amp;&amp; npm run build
+<span class="prompt">$</span> npm link &amp;&amp; plan-dashboard</code></pre>
+          <button
+            class="copy-btn"
+            type="button"
+            data-copy="git clone https://github.com/limyuquan/plan-dashboard
+cd plan-dashboard && npm install && npm run build
+npm link && plan-dashboard"
+          >
+            Copy
+          </button>
+        </div>
+        <p class="tiny">Then pick your docs folder in the browser, or try <code>--root examples/demo-docs</code>.</p>
+      </section>
+    </main>
+
+    <footer class="foot">
+      <span>plan-dashboard · MIT licensed</span>
+      <nav>
+        <a href="https://github.com/limyuquan/plan-dashboard">GitHub</a>
+        <a href="https://github.com/limyuquan/plan-dashboard#readme">Docs</a>
+        <a href="https://github.com/limyuquan/plan-dashboard/tree/main/skills">Skills</a>
+        <a href="https://github.com/limyuquan/plan-dashboard/issues">Issues</a>
+      </nav>
+    </footer>
+
+    <script>
+      document.querySelectorAll('[data-copy]').forEach((btn) =>
+        btn.addEventListener('click', async () => {
+          await navigator.clipboard.writeText(btn.dataset.copy)
+          btn.textContent = 'Copied'
+          setTimeout(() => (btn.textContent = 'Copy'), 1400)
+        }),
+      )
+    </script>
+  </body>
+</html>

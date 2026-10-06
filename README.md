@@ -5,6 +5,8 @@ Read a folder of HTML and Markdown plans side by side, in split panes, and see n
 Built for working with coding agents that write plans, recaps and explainers as files: point it at the folder they
 write into and keep it open next to your editor.
 
+**[Website](https://limyuquan.github.io/plan-dashboard/)** · [Install](#quick-start) · [Agent skills](#agent-skills)
+
 ![plan-dashboard showing three plans of one phase side by side](docs/screenshot.png)
 
 - **Split panes** like an editor: split any pane right or down, drag tabs between panes and onto any edge, resize
@@ -74,7 +76,11 @@ By default the dashboard expects this layout, all of which can be changed in **S
 The settings page previews what a change would find before you save it, including folders the phase pattern misses and
 files left out.
 
+![The settings page with a live preview of what the folder rules find](site/media/settings.jpg)
+
 ## Using it
+
+<p align="center"><img src="docs/split.gif" alt="Dragging a tab onto a pane's lower edge splits only that pane; dividers resize; Option + arrow moves a tab between panes" width="880" /></p>
 
 - Click a doc to open it in the focused pane; shift-click (or `⇥`) opens it in the next pane, splitting one off if
   needed.
@@ -86,6 +92,8 @@ files left out.
   the pane (with Undo).
 - `settle` / `restore` move a task's folder between the status folders; open tabs follow it.
 - `⧉` copies the absolute path of a file or folder.
+
+<p align="center"><img src="docs/live.gif" alt="An agent writes a recap; a notification appears and opens it in place; a finished task is settled with Undo" width="880" /></p>
 
 ### Keyboard
 
@@ -133,6 +141,10 @@ for your own:
   it in a browser).
 - [`link-plan`](skills/link-plan) tells the agent to show you what it wrote with `plan-dashboard open`, instead of
   pasting a file path.
+
+<p><img src="site/media/page-plan.jpg" alt="A plan page written by the visualise skill" width="49%" /> <img src="site/media/page-eli5.jpg" alt="An ELI5 page written by the visualise skill" width="49%" /></p>
+
+The demo folder's `plan-dashboard-v1` task was written this way, about this project's own build.
 
 They use the `SKILL.md` format that Claude Code and Codex read: copy a folder into your agent's skills directory (for
 example `~/.claude/skills/`). Pages made with `visualise` follow the dashboard's light/dark switch through the theme

@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 2 — Split-tree pane layout (ELI5)</title>
+<script>/* theme before first paint: ?theme= from the dashboard wins, then the browser's memory, then dark */
+(function () { var q = new URLSearchParams(location.search).get('theme'); document.documentElement.dataset.theme = (q === 'light' || q === 'dark') ? q : (localStorage.getItem('visualise-theme') || 'dark'); })();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ---------- tokens ---------- */
+:root {
+  --bg: #282c34;
+  --bg-raised: #2f343e;
+  --border: #3a3f4b;
+  --border-strong: #4b5263;
+  --text: #f2f2f2;
+  --text-dim: #9da5b4;
+  --text-faint: #5c6370;
+  /* the one accent: purple, matching the plan dashboard (light purple on dark, dark purple on light) */
+  --accent: #b49df0; --accent-l: #6741c4;
+  --del: #f87171; --del-bg: rgba(248,113,113,.10);
+  --add: #4ade80; --add-bg: rgba(74,222,128,.10);
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --measure: 72ch;
+}
+[data-theme="light"] {
+  --bg: #ffffff; --bg-raised: #f5f5f4; --border: #e6e6e6; --border-strong: #cfcfcf;
+  --text: #111111; --text-dim: #6b6b6b; --text-faint: #bdbdbd;
+  --accent: var(--accent-l);
+  --del: #b91c1c; --del-bg: rgba(185,28,28,.08);
+  --add: #15803d; --add-bg: rgba(21,128,61,.08);
+}
+/* theme toggle: top right of every page */
+.theme-toggle { position: fixed; top: 14px; right: 16px; z-index: 300; font: 11px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); background: var(--bg); border: 1px solid var(--border-strong); padding: 7px 10px; cursor: pointer; }
+.theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+/* Mermaid follows the theme through CSS, so diagrams never need re-rendering */
+.mermaid-canvas svg .node rect, .mermaid-canvas svg .node polygon, .mermaid-canvas svg .node circle, .mermaid-canvas svg .node path, .mermaid-canvas svg .cluster rect { fill: var(--bg-raised) !important; stroke: var(--border-strong) !important; }
+.mermaid-canvas svg .node.hot rect, .mermaid-canvas svg .node.hot polygon { stroke: var(--accent) !important; stroke-width: 2px !important; }
+.mermaid-canvas svg .nodeLabel, .mermaid-canvas svg .edgeLabel, .mermaid-canvas svg text, .mermaid-canvas svg .cluster-label span { color: var(--text) !important; fill: var(--text) !important; }
+.mermaid-canvas svg .edgePath path, .mermaid-canvas svg .flowchart-link, .mermaid-canvas svg .messageLine0, .mermaid-canvas svg .messageLine1 { stroke: var(--text-dim) !important; }
+.mermaid-canvas svg marker path { fill: var(--text-dim) !important; stroke: var(--text-dim) !important; }
+.mermaid-canvas svg .edgeLabel rect, .mermaid-canvas svg .edgeLabel span, .mermaid-canvas svg .labelBkg { background: var(--bg) !important; fill: var(--bg) !important; }
+.mermaid-canvas svg .actor { fill: var(--bg-raised) !important; stroke: var(--border-strong) !important; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---------- base ---------- */
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; color: var(--text); background: var(--bg);
+  font-family: var(--font-mono); font-size: 15px; line-height: 1.7;
+  overflow-wrap: break-word; -webkit-font-smoothing: antialiased;
+}
+a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--text-dim); }
+a:hover { text-decoration-color: var(--accent); }
+code, .chip { font-family: var(--font-mono); }
+code { font-size: .92em; color: var(--text); background: var(--bg-raised); padding: 1px 5px; border: 1px solid var(--border); border-radius: 3px; }
+pre { background: var(--bg-raised); border: 1px solid var(--border); padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; margin: 16px 0; }
+pre code { background: none; border: 0; padding: 0; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
+p { margin: 0 0 14px; max-width: var(--measure); }
+ul, ol { padding-left: 1.4em; max-width: var(--measure); }
+li { margin: 4px 0; }
+ul { list-style: none; padding-left: 1.2em; }
+ul li { position: relative; }
+ul li::before { content: "•"; position: absolute; left: -1.1em; color: var(--text-dim); }
+strong { font-weight: 700; color: var(--text); }
+em { font-style: italic; color: var(--text); }
+.grid > *, .flex > * { min-width: 0; }
+
+/* ---------- page frame ---------- */
+.page { max-width: 1120px; margin: 0 auto; padding: 40px 48px 120px; }
+.rule-top { border-top: 1px solid var(--text); margin-bottom: 28px; }
+.kicker { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-dim); margin: 0 0 14px; }
+.kicker .sep { margin: 0 .5em; color: var(--text-faint); }
+h1.hero { font-size: clamp(40px, 6vw, 68px); line-height: 1.02; letter-spacing: -.02em; font-weight: 700; margin: 0 0 22px; max-width: 18ch; }
+.deck { font-size: 18px; line-height: 1.55; max-width: 66ch; margin: 0 0 18px; }
+.fineprint { font-size: 12px; color: var(--text-dim); max-width: 80ch; margin: 0 0 28px; }
+.navrow { display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 0 0 56px; font-size: 13px; }
+.navrow a { color: var(--text-dim); }
+.navrow a.active, .navrow a:hover { color: var(--text); text-decoration-color: var(--accent); }
+
+/* ---------- sections ---------- */
+section.sec { padding: 8px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 40px; scroll-margin-top: 24px; }
+section.sec:last-of-type { border-bottom: 0; }
+h2 { font-size: clamp(24px, 3vw, 34px); line-height: 1.15; letter-spacing: -.015em; font-weight: 700; margin: 0 0 18px; max-width: 30ch; }
+h3 { font-size: 16px; font-weight: 700; margin: 28px 0 10px; }
+.lead { font-size: 22px; line-height: 1.4; font-weight: 400; max-width: 34ch; margin: 0 0 22px; }
+.lead b { color: var(--accent); font-weight: 700; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
+.two > * { min-width: 0; }
+@media (max-width: 860px) { .two { grid-template-columns: 1fr; } .page { padding: 28px 20px 80px; } }
+
+/* ---------- stat tiles ---------- */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; border-top: 1px solid var(--border); border-left: 1px solid var(--border); margin: 24px 0 28px; }
+.stat { padding: 18px 20px 16px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); min-width: 0; }
+.stat .n { font-size: 40px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.stat .n.accent { color: var(--accent); }
+.stat .n.dim { color: var(--text-dim); }
+.stat .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+
+/* ---------- big comparison ---------- */
+.compare { display: flex; align-items: flex-end; gap: 36px; flex-wrap: wrap; margin: 20px 0 8px; }
+.compare .big { font-size: clamp(64px, 9vw, 112px); font-weight: 700; line-height: .95; letter-spacing: -.03em; }
+.compare .big.accent { color: var(--accent); }
+.compare .big.dim { color: var(--text-faint); }
+.compare .vs { font-size: 22px; color: var(--text-dim); padding-bottom: 18px; }
+.compare .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+
+/* ---------- dot matrix (quantities) ---------- */
+.dots { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; margin: 14px 0 24px; }
+.dotgrid { display: grid; grid-template-columns: repeat(var(--cols, 20), 12px); gap: 4px; }
+.dotgrid i { width: 12px; height: 12px; border-radius: 50%; background: var(--text-faint); display: block; }
+.dotgrid i.on { background: var(--accent); }
+.dots .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+.dots .c b { color: var(--accent); }
+
+/* ---------- big numbers (no hairlines; the headline strip above a chart) ---------- */
+.bignums { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 24px 32px; margin: 26px 0 40px; }
+.bignums > * { min-width: 0; }
+.bignums .n { font-size: clamp(56px, 7vw, 104px); font-weight: 700; line-height: .95; letter-spacing: -.03em; color: var(--accent); }
+.bignums .n.dim { color: var(--text-dim); }
+.bignums .c { font-size: 14px; color: var(--text-dim); margin-top: 10px; }
+
+/* ---------- charts (data-driven: see the <script type="application/json"> inside each figure) ---------- */
+:root { --bar: #4b5263; }
+[data-theme="light"] { --bar: #d4d4d4; }
+figure.chart { margin: 26px 0 34px; }
+figure.chart .chart-title { font-size: 15px; font-weight: 700; margin: 0 0 8px; color: var(--text); }
+figure.chart .chart-svg { min-width: 0; }
+figure.chart svg { display: block; width: 100%; height: auto; font-family: var(--font-mono); }
+figure.chart svg text { font-size: 12px; fill: var(--text-dim); }
+figure.chart svg .val { font-size: 13px; }
+figure.chart svg .val.hl { fill: var(--text); font-weight: 700; }
+figure.chart svg .acc { fill: var(--accent); font-weight: 700; font-size: 14px; }
+figure.chart svg .big { font-size: 15px; }
+figure.chart figcaption { font-size: 13px; color: var(--text-dim); margin-top: 10px; max-width: 90ch; }
+
+/* ---------- ledger (entries with a label column) ---------- */
+.ledger { border-top: 1px solid var(--border); margin: 20px 0 24px; }
+.ledger .row { display: grid; grid-template-columns: 96px 1fr; gap: 0 24px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.ledger .row > * { min-width: 0; }
+.ledger .lab { color: var(--accent); font-size: 14px; padding-top: 2px; }
+.ledger .t { font-weight: 700; }
+.ledger .meta { color: var(--text-dim); }
+.ledger p { margin: 4px 0 0; max-width: none; }
+@media (max-width: 640px) { .ledger .row { grid-template-columns: 1fr; gap: 6px; } }
+
+/* ---------- callout ---------- */
+.callout { border-left: 2px solid var(--accent); padding: 12px 18px; margin: 22px 0; max-width: 80ch; background: var(--bg-raised); }
+.callout b:first-child { color: var(--accent); }
+.callout p { max-width: none; margin: 0; }
+
+/* ---------- timeline strip ---------- */
+.timeline { margin: 18px 0 28px; }
+.timeline svg { width: 100%; height: 72px; display: block; }
+.timeline .axis { font-size: 11px; color: var(--text-dim); display: flex; justify-content: space-between; margin-top: 6px; }
+
+/* ---------- tables ---------- */
+.tablewrap { overflow-x: auto; margin: 18px 0 26px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border-strong); }
+td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- chips / file map / diff ---------- */
+.chip { display: inline-block; font-size: 12px; padding: 1px 8px; border: 1px solid var(--border-strong); border-radius: 3px; color: var(--text); margin: 2px 4px 2px 0; }
+.chip.accent { border-color: var(--accent); color: var(--accent); }
+.tree { font-size: 13px; line-height: 1.6; white-space: pre; overflow-x: auto; }
+.tree .new { color: var(--add); } .tree .mod { color: var(--accent); } .tree .del { color: var(--del); }
+.diff { font-size: 13px; line-height: 1.55; }
+.diff .del { display: block; background: var(--del-bg); color: var(--del); }
+.diff .add { display: block; background: var(--add-bg); color: var(--add); }
+.diff .ctx { display: block; color: var(--text-dim); }
+
+/* ---------- collapsible ---------- */
+details { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 10px 0; margin: 16px 0; }
+details + details { border-top: 0; margin-top: -16px; }
+summary { cursor: pointer; list-style: none; display: flex; gap: 12px; align-items: baseline; color: var(--text); }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "+"; color: var(--accent); font-weight: 700; width: 1ch; }
+details[open] summary::before { content: "−"; }
+summary .meta { color: var(--text-dim); font-size: 12px; margin-left: auto; }
+details .body { padding: 12px 0 4px 2ch; }
+
+/* ---------- before / after ---------- */
+.ba { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); margin: 18px 0 26px; }
+.ba > * { min-width: 0; padding: 14px 18px; }
+.ba > :first-child { border-right: 1px solid var(--border); }
+.ba .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.ba .after .lbl { color: var(--accent); }
+@media (max-width: 720px) { .ba { grid-template-columns: 1fr; } .ba > :first-child { border-right: 0; border-bottom: 1px solid var(--border); } }
+
+/* ---------- ELI5 panel (picture-first) ---------- */
+.eli5 { margin: 30px 0 4px; border: 1px dashed var(--border-strong); padding: 18px 20px 16px; background: var(--bg-raised); }
+.eli5 .k { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.eli5 figure { margin: 0; }
+.eli5 figcaption { font-size: 14px; color: var(--text); margin-top: 12px; max-width: 60ch; }
+.eli5 .chips { margin-top: 8px; }
+/* recipe primitives used inside .eli5 — full gallery in eli5-recipes.html */
+.pic-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.pic-cards .card { border: 1px solid var(--border); padding: 14px 10px; text-align: center; min-width: 0; }
+.pic-cards .em { font-size: 40px; line-height: 1; display: block; margin-bottom: 8px; }
+.pic-cards .lbl { font-size: 12px; color: var(--text-dim); }
+.pic-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pic-flow .box { border: 1px solid var(--border-strong); padding: 10px 14px; text-align: center; min-width: 96px; }
+.pic-flow .box .em { font-size: 28px; display: block; }
+.pic-flow .box.hot { border-color: var(--accent); }
+.pic-flow .arrow { color: var(--text-dim); font-size: 20px; }
+.pic-ladder { list-style: none; padding: 0; margin: 0; counter-reset: rung; max-width: none; }
+.pic-ladder li { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.pic-ladder li::before { content: counter(rung); counter-increment: rung; position: static; color: var(--text-dim); text-align: right; }
+.pic-ladder .badge { font-size: 11px; letter-spacing: .1em; padding: 2px 8px; border: 1px solid; }
+.pic-ladder .pass { color: var(--add); border-color: var(--add); }
+.pic-ladder .deny { color: var(--del); border-color: var(--del); }
+.pic-split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pic-split > div { border: 1px solid var(--border); padding: 14px; text-align: center; min-width: 0; }
+.pic-split .em { font-size: 40px; display: block; margin-bottom: 6px; }
+.pic-split .hot { border-color: var(--accent); }
+
+/* ---------- footer ---------- */
+.foot { margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-dim); }
+/* ---------- page extras: floor plans (a pane layout drawn as rooms) ---------- */
+.fp { display: flex; border: 2px solid var(--text); height: 150px; min-width: 0; }
+.fp.tall { height: 190px; }
+.fp .row, .fp .col { display: flex; min-width: 0; min-height: 0; }
+.fp .row { flex-direction: row; } .fp .col { flex-direction: column; }
+.fp .room { border: 1px solid var(--border-strong); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 12px; line-height: 1.3; color: var(--text-dim); min-width: 0; min-height: 0; overflow: hidden; padding: 4px; }
+.fp .room .em { font-size: 26px; line-height: 1; display: block; margin-bottom: 4px; }
+.fp .room b { color: var(--text); font-weight: 700; }
+.fp .room.hot { border: 2px solid var(--accent); color: var(--accent); }
+.fp .room.hot b { color: var(--accent); }
+.fp .room.new { border: 2px dashed var(--accent); color: var(--accent); }
+.fp .room.new b { color: var(--accent); }
+.fp-wrap { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.fp-wrap > .fp { flex: 1 1 320px; }
+.fp-wrap .ghost { border: 2px dashed var(--del); color: var(--del); padding: 14px 12px; text-align: center; font-size: 12px; }
+.fp-wrap .ghost .em { font-size: 26px; display: block; }
+.pic-ba { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: center; }
+.pic-ba > * { min-width: 0; }
+.pic-ba .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.pic-ba .after .lbl { color: var(--accent); }
+.pic-ba .lbl.bad { color: var(--del); }
+.pic-ba .arrow { color: var(--text-dim); font-size: 24px; }
+.pic-nest { border: 1px solid var(--border-strong); padding: 10px 12px 12px; min-width: 0; }
+.pic-nest .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.pic-nest .inner { display: flex; gap: 10px; flex-wrap: wrap; }
+.pic-nest .inner > * { flex: 1 1 90px; min-width: 0; }
+.pic-nest .leaf { border: 1px solid var(--border); padding: 8px 10px; text-align: center; font-size: 12px; color: var(--text-dim); }
+.pic-nest .leaf .em { font-size: 24px; display: block; }
+.pic-nest.hot { border-color: var(--accent); } .pic-nest.hot > .lbl { color: var(--accent); }
+.eli5 + .eli5 { margin-top: 16px; }
+@media (max-width: 640px) {
+  .pic-ba { grid-template-columns: 1fr; }
+  .pic-ba .arrow { transform: rotate(90deg); justify-self: center; }
+  .pic-split { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" type="button">light mode</button>
+<div class="page">
+
+  <div class="rule-top"></div>
+  <p class="kicker">ELI5<span class="sep">·</span>plan-dashboard v1<span class="sep">·</span>Phase 2: split-tree pane layout</p>
+  <h1 class="hero">New panes get a wall, not a whole new floor</h1>
+  <p class="deck">Think of the dashboard screen as a house and every pane as a room. The old house was built in rigid floors, so changing one room moved walls everywhere. The new house lets you put a wall through one room, knock one down, and walk to the room that really is next door.</p>
+  <p class="fineprint">Built from web/layout/model.ts and its tests in web/layout/model.test.ts. The old design is described from the phase brief; its code is not in this repository's history.</p>
+
+  <nav class="navrow">
+    <a href="#cast">The cast</a>
+    <a href="#old">The old house</a>
+    <a href="#divide">Adding a wall</a>
+    <a href="#remove">Taking one down</a>
+    <a href="#doors">Next door</a>
+    <a href="#whole">The whole house</a>
+  </nav>
+
+  <section class="sec" id="cast">
+    <p class="kicker">The cast</p>
+    <h2>Rooms, walls, and the papers on each desk</h2>
+    <aside class="eli5"><div class="k">ELI5</div><figure>
+      <div class="pic-cards">
+        <div class="card"><span class="em">🏠</span><div class="lbl">the house<br>= the whole screen</div></div>
+        <div class="card"><span class="em">🚪</span><div class="lbl">a room<br>= one pane</div></div>
+        <div class="card"><span class="em">📄</span><div class="lbl">papers on its desk<br>= the tabs, one on top</div></div>
+        <div class="card"><span class="em">🧱</span><div class="lbl">a wall<br>= a split, side by side or one above the other</div></div>
+        <div class="card"><span class="em">📏</span><div class="lbl">where the wall stands<br>= how big each room is</div></div>
+        <div class="card"><span class="em">🚶</span><div class="lbl">walking next door<br>= a keyboard move</div></div>
+      </div>
+      <figcaption>Every room is either one plain room or a room that a wall has divided into smaller rooms.</figcaption>
+      <div class="chips"><span class="chip">Pane</span><span class="chip">Split</span><span class="chip">tabs</span><span class="chip">dir: 'row' | 'col'</span><span class="chip">sizes</span><span class="chip">web/layout/model.ts:10</span></div>
+    </figure></aside>
+  </section>
+
+  <section class="sec" id="old">
+    <p class="kicker">The old house</p>
+    <h2>The old house came in floors, and floors move together</h2>
+    <aside class="eli5"><div class="k">ELI5 · full at six</div><figure>
+      <div class="fp-wrap">
+        <div class="fp col">
+          <div class="row" style="flex:1"><div class="room" style="flex:1"><span class="em">🚪</span>A</div><div class="room" style="flex:1"><span class="em">🚪</span>B</div><div class="room" style="flex:1"><span class="em">🚪</span>C</div></div>
+          <div class="row" style="flex:1"><div class="room" style="flex:1"><span class="em">🚪</span>D</div><div class="room" style="flex:1"><span class="em">🚪</span>E</div><div class="room" style="flex:1"><span class="em">🚪</span>F</div></div>
+        </div>
+        <div class="ghost"><span class="em">🚫</span>no fourth room<br>across, no third floor</div>
+      </div>
+      <figcaption>The old house was rows of rooms: at most three across and two floors high.</figcaption>
+    </figure></aside>
+
+    <aside class="eli5"><div class="k">ELI5 · "add a room below A"</div><figure>
+      <div class="pic-ba">
+        <div><div class="lbl">Start</div>
+          <div class="fp"><div class="room hot" style="flex:1"><span class="em">🚪</span><b>A</b></div><div class="room" style="flex:1"><span class="em">🚪</span>B</div></div>
+        </div>
+        <div class="arrow">→</div>
+        <div><div class="lbl bad">Old result</div>
+          <div class="fp col">
+            <div class="row" style="flex:1"><div class="room" style="flex:1"><span class="em">🚪</span>A</div><div class="room" style="flex:1"><span class="em">😕</span>B got shorter</div></div>
+            <div class="room new" style="flex:1"><span class="em">🏗️</span><b>new floor under every room</b></div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Asking for a room under A built a whole new floor under the entire house, squashing B too.</figcaption>
+    </figure></aside>
+
+    <aside class="eli5"><div class="k">ELI5 · "add one more room"</div><figure>
+      <div class="pic-ba">
+        <div><div class="lbl">Start</div>
+          <div class="fp"><div class="room" style="flex:70"><span class="em">🛋️</span>A, made big on purpose</div><div class="room" style="flex:30"><span class="em">🚪</span>B</div></div>
+        </div>
+        <div class="arrow">→</div>
+        <div><div class="lbl bad">Old result</div>
+          <div class="fp"><div class="room" style="flex:1"><span class="em">😕</span>A</div><div class="room" style="flex:1"><span class="em">🚪</span>B</div><div class="room new" style="flex:1"><span class="em">🏗️</span><b>C</b></div></div>
+        </div>
+      </div>
+      <figcaption>Every new room pushed all the walls back to equal spacing, undoing the sizes you had set.</figcaption>
+    </figure></aside>
+  </section>
+
+  <section class="sec" id="divide">
+    <p class="kicker">Adding a wall</p>
+    <h2>A new wall goes through one room and halves only that room</h2>
+    <div class="stats">
+      <div class="stat"><div class="n dim">3 × 2</div><div class="c">old limit: rooms across × floors</div></div>
+      <div class="stat"><div class="n accent">280 px</div><div class="c">new limit: narrowest a room may get when divided side by side</div></div>
+      <div class="stat"><div class="n accent">180 px</div><div class="c">new limit: shortest a room may get when divided top and bottom</div></div>
+    </div>
+    <p class="fineprint">Limits from web/layout/model.ts:21–22 (MIN_W, MIN_H), checked by roomFor() at model.ts:198. There is no fixed count of rooms; a room just has to be big enough to halve.</p>
+    <aside class="eli5"><div class="k">ELI5 · "add a room below A", new house</div><figure>
+      <div class="pic-ba">
+        <div><div class="lbl">Start</div>
+          <div class="fp"><div class="room hot" style="flex:1"><span class="em">🚪</span><b>A</b></div><div class="room" style="flex:1"><span class="em">🚪</span>B</div></div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="after"><div class="lbl">New result</div>
+          <div class="fp">
+            <div class="col" style="flex:1"><div class="room" style="flex:1"><span class="em">🚪</span>A</div><div class="room new" style="flex:1"><span class="em">🧱</span><b>new room</b></div></div>
+            <div class="room" style="flex:1"><span class="em">😌</span>B untouched</div>
+          </div>
+        </div>
+      </div>
+      <figcaption>The new wall cuts A in half; B keeps its full height and nobody else moves.</figcaption>
+      <div class="chips"><span class="chip">insertBeside()</span><span class="chip">web/layout/model.ts:93</span><span class="chip">moveToNewPane()</span><span class="chip">dropDoc()</span></div>
+    </figure></aside>
+
+    <aside class="eli5"><div class="k">ELI5 · "add one more room", new house</div><figure>
+      <div class="pic-ba">
+        <div><div class="lbl">Start</div>
+          <div class="fp"><div class="room" style="flex:70"><span class="em">🛋️</span>A, made big on purpose</div><div class="room hot" style="flex:30"><span class="em">🚪</span><b>B</b></div></div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="after"><div class="lbl">New result</div>
+          <div class="fp"><div class="room" style="flex:70"><span class="em">🛋️</span>A, still big</div><div class="room" style="flex:15"><b>B</b></div><div class="room new" style="flex:15"><b>C</b></div></div>
+        </div>
+      </div>
+      <figcaption>Adding C next to B splits B's space in two; A keeps the size you gave it.</figcaption>
+      <div class="chips"><span class="chip">sizes[i] / 2</span><span class="chip">web/layout/model.ts:105</span></div>
+    </figure></aside>
+  </section>
+
+  <section class="sec" id="remove">
+    <p class="kicker">Taking one down</p>
+    <h2>Knock a room out and its floor goes to the room beside it</h2>
+    <aside class="eli5"><div class="k">ELI5 · close room B</div><figure>
+      <div class="pic-ba">
+        <div><div class="lbl">Start</div>
+          <div class="fp"><div class="room" style="flex:25"><span class="em">🚪</span>A</div><div class="room hot" style="flex:25"><span class="em">🔨</span><b>B</b></div><div class="room" style="flex:50"><span class="em">🚪</span>C</div></div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="after"><div class="lbl">After</div>
+          <div class="fp"><div class="room hot" style="flex:50"><span class="em">🎁</span><b>A takes B's floor</b></div><div class="room" style="flex:50"><span class="em">🚪</span>C unchanged</div></div>
+        </div>
+      </div>
+      <figcaption>The room just before B inherits its space (or the one after, if B was first); C stays the size it was.</figcaption>
+      <div class="chips"><span class="chip">closePane()</span><span class="chip">prune()</span><span class="chip">web/layout/model.ts:59</span></div>
+    </figure></aside>
+
+    <aside class="eli5"><div class="k">ELI5 · a wall with one room left disappears</div><figure>
+      <div class="pic-ba">
+        <div><div class="lbl">Start</div>
+          <div class="fp">
+            <div class="room" style="flex:1"><span class="em">🚪</span>A</div>
+            <div class="col" style="flex:1"><div class="room" style="flex:1"><span class="em">🚪</span>B</div><div class="room hot" style="flex:1"><span class="em">🔨</span><b>C</b></div></div>
+          </div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="after"><div class="lbl">After</div>
+          <div class="fp"><div class="room" style="flex:1"><span class="em">🚪</span>A</div><div class="room hot" style="flex:1"><span class="em">🧹</span><b>no wall left: B is one tall room</b></div></div>
+        </div>
+      </div>
+      <figcaption>A wall that only separated B from C has nothing left to separate, so it is cleared away too.</figcaption>
+      <div class="chips"><span class="chip">prune()</span><span class="chip">children.length === 1</span><span class="chip">web/layout/model.ts:81</span></div>
+    </figure></aside>
+  </section>
+
+  <section class="sec" id="doors">
+    <p class="kicker">Next door</p>
+    <h2>Walking down goes to the room you can actually see below you</h2>
+    <aside class="eli5"><div class="k">ELI5 · standing in B, walk down</div><figure>
+      <div class="fp col tall">
+        <div class="row" style="flex:1"><div class="room" style="flex:1"><span class="em">🚪</span>A</div><div class="room hot" style="flex:1"><span class="em">🧍</span><b>B, you are here</b></div><div class="room" style="flex:1"><span class="em">🚪</span>C</div></div>
+        <div class="row" style="flex:1"><div class="room new" style="flex:60"><span class="em">✅</span><b>D shares most of B's floor</b></div><div class="room" style="flex:40"><span class="em">❌</span>E is "second room down", but barely touches B</div></div>
+      </div>
+      <figcaption>The move measures which room shares the most wall with yours, instead of counting rooms along a row.</figcaption>
+      <div class="chips"><span class="chip">neighbour()</span><span class="chip">rects()</span><span class="chip">web/layout/model.ts:270</span></div>
+    </figure></aside>
+
+    <aside class="eli5"><div class="k">ELI5 · how the next room is picked</div><figure>
+      <ol class="pic-ladder">
+        <li><span>🧱 Does that room touch my wall on that side?</span><span class="badge deny">NO: SKIP</span></li>
+        <li><span>📏 Of the rooms that touch, which shares the longest stretch?</span><span class="badge pass">GO THERE</span></li>
+        <li><span>🌫️ Nothing on that side at all?</span><span class="badge deny">STAY PUT</span></li>
+      </ol>
+      <figcaption>If nothing is that way, the papers stay put, unless the room has spare papers and space for a new wall.</figcaption>
+      <div class="chips"><span class="chip">shift()</span><span class="chip">web/layout/model.ts:228</span><span class="chip">Ctrl / Option + arrow</span></div>
+    </figure></aside>
+  </section>
+
+  <section class="sec" id="whole">
+    <p class="kicker">The whole house</p>
+    <h2>The house is written down as rooms inside rooms</h2>
+    <aside class="eli5"><div class="k">ELI5 · what you see, and how it is remembered</div><figure>
+      <div class="pic-ba">
+        <div><div class="lbl">What you see</div>
+          <div class="fp">
+            <div class="room" style="flex:40"><span class="em">📄</span><b>A</b>2 papers</div>
+            <div class="col" style="flex:60"><div class="room" style="flex:50"><span class="em">📄</span><b>B</b></div><div class="room hot" style="flex:50"><span class="em">📄</span><b>C</b></div></div>
+          </div>
+        </div>
+        <div class="arrow">=</div>
+        <div class="after"><div class="lbl">How it is remembered</div>
+          <div class="pic-nest"><div class="lbl">🧱 side-by-side wall · 40 / 60</div>
+            <div class="inner">
+              <div class="leaf"><span class="em">🚪</span>room A</div>
+              <div class="pic-nest hot"><div class="lbl">🧱 stacked wall · 50 / 50</div>
+                <div class="inner"><div class="leaf"><span class="em">🚪</span>B</div><div class="leaf"><span class="em">🚪</span>C</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>Each wall only knows about the rooms on its own two sides, so changing one room never disturbs the rest of the house.</figcaption>
+      <div class="chips"><span class="chip">Layout</span><span class="chip">Split</span><span class="chip">Pane</span><span class="chip">web/layout/model.ts:10–13</span><span class="chip">web/layout/model.test.ts</span></div>
+    </figure></aside>
+  </section>
+
+  <div class="foot">Rendered by the visualise skill · sources: web/layout/model.ts, web/layout/model.test.ts, the phase brief for the old layout</div>
+</div>
+<script>
+(function () {
+  // theme: the switch, the browser's memory, and the plan dashboard all agree.
+  // Dashboard -> page: {type:'plan-theme', theme} via postMessage. Page -> dashboard: the same message, sent on click.
+  const root = document.documentElement, btn = document.getElementById('themeToggle');
+  const setTheme = t => { root.dataset.theme = t; localStorage.setItem('visualise-theme', t); if (btn) btn.textContent = t === 'light' ? 'dark mode' : 'light mode'; };
+  setTheme(root.dataset.theme || 'dark');
+  if (btn) btn.addEventListener('click', () => {
+    const t = root.dataset.theme === 'light' ? 'dark' : 'light';
+    setTheme(t);
+    if (window.parent !== window) window.parent.postMessage({ type: 'plan-theme', theme: t }, '*');
+  });
+  window.addEventListener('message', e => {
+    const d = e.data; if (d && d.type === 'plan-theme' && (d.theme === 'light' || d.theme === 'dark')) setTheme(d.theme);
+  });
+})();
+</script>
+</body>
+</html>

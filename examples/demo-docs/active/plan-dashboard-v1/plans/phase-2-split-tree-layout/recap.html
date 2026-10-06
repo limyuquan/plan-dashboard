@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 2 — Split-tree pane layout (Recap)</title>
+<script>/* theme before first paint: ?theme= from the dashboard wins, then the browser's memory, then dark */
+(function () { var q = new URLSearchParams(location.search).get('theme'); document.documentElement.dataset.theme = (q === 'light' || q === 'dark') ? q : (localStorage.getItem('visualise-theme') || 'dark'); })();</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+/* ---------- tokens ---------- */
+:root {
+  --bg: #282c34;
+  --bg-raised: #2f343e;
+  --border: #3a3f4b;
+  --border-strong: #4b5263;
+  --text: #f2f2f2;
+  --text-dim: #9da5b4;
+  --text-faint: #5c6370;
+  /* the one accent: purple, matching the plan dashboard (light purple on dark, dark purple on light) */
+  --accent: #b49df0; --accent-l: #6741c4;
+  --del: #f87171; --del-bg: rgba(248,113,113,.10);
+  --add: #4ade80; --add-bg: rgba(74,222,128,.10);
+  --font-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --measure: 72ch;
+}
+[data-theme="light"] {
+  --bg: #ffffff; --bg-raised: #f5f5f4; --border: #e6e6e6; --border-strong: #cfcfcf;
+  --text: #111111; --text-dim: #6b6b6b; --text-faint: #bdbdbd;
+  --accent: var(--accent-l);
+  --del: #b91c1c; --del-bg: rgba(185,28,28,.08);
+  --add: #15803d; --add-bg: rgba(21,128,61,.08);
+}
+/* theme toggle: top right of every page */
+.theme-toggle { position: fixed; top: 14px; right: 16px; z-index: 300; font: 11px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); background: var(--bg); border: 1px solid var(--border-strong); padding: 7px 10px; cursor: pointer; }
+.theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+/* Mermaid follows the theme through CSS, so diagrams never need re-rendering */
+.mermaid-canvas svg .node rect, .mermaid-canvas svg .node polygon, .mermaid-canvas svg .node circle, .mermaid-canvas svg .node path, .mermaid-canvas svg .cluster rect { fill: var(--bg-raised) !important; stroke: var(--border-strong) !important; }
+.mermaid-canvas svg .node.hot rect, .mermaid-canvas svg .node.hot polygon { stroke: var(--accent) !important; stroke-width: 2px !important; }
+.mermaid-canvas svg .nodeLabel, .mermaid-canvas svg .edgeLabel, .mermaid-canvas svg text, .mermaid-canvas svg .cluster-label span { color: var(--text) !important; fill: var(--text) !important; }
+.mermaid-canvas svg .edgePath path, .mermaid-canvas svg .flowchart-link, .mermaid-canvas svg .messageLine0, .mermaid-canvas svg .messageLine1 { stroke: var(--text-dim) !important; }
+.mermaid-canvas svg marker path { fill: var(--text-dim) !important; stroke: var(--text-dim) !important; }
+.mermaid-canvas svg .edgeLabel rect, .mermaid-canvas svg .edgeLabel span, .mermaid-canvas svg .labelBkg { background: var(--bg) !important; fill: var(--bg) !important; }
+.mermaid-canvas svg .actor { fill: var(--bg-raised) !important; stroke: var(--border-strong) !important; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+/* ---------- base ---------- */
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; color: var(--text); background: var(--bg);
+  font-family: var(--font-mono); font-size: 15px; line-height: 1.7;
+  overflow-wrap: break-word; -webkit-font-smoothing: antialiased;
+}
+a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--text-dim); }
+a:hover { text-decoration-color: var(--accent); }
+code, .chip { font-family: var(--font-mono); }
+code { font-size: .92em; color: var(--text); background: var(--bg-raised); padding: 1px 5px; border: 1px solid var(--border); border-radius: 3px; }
+pre { background: var(--bg-raised); border: 1px solid var(--border); padding: 14px 16px; overflow-x: auto; font-size: 13px; line-height: 1.55; margin: 16px 0; }
+pre code { background: none; border: 0; padding: 0; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 40px 0; }
+p { margin: 0 0 14px; max-width: var(--measure); }
+ul, ol { padding-left: 1.4em; max-width: var(--measure); }
+li { margin: 4px 0; }
+ul { list-style: none; padding-left: 1.2em; }
+ul li { position: relative; }
+ul li::before { content: "•"; position: absolute; left: -1.1em; color: var(--text-dim); }
+strong { font-weight: 700; color: var(--text); }
+em { font-style: italic; color: var(--text); }
+.grid > *, .flex > * { min-width: 0; }
+
+/* ---------- page frame ---------- */
+.page { max-width: 1120px; margin: 0 auto; padding: 40px 48px 120px; }
+.rule-top { border-top: 1px solid var(--text); margin-bottom: 28px; }
+.kicker { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-dim); margin: 0 0 14px; }
+.kicker .sep { margin: 0 .5em; color: var(--text-faint); }
+h1.hero { font-size: clamp(40px, 6vw, 68px); line-height: 1.02; letter-spacing: -.02em; font-weight: 700; margin: 0 0 22px; max-width: 18ch; }
+.deck { font-size: 18px; line-height: 1.55; max-width: 66ch; margin: 0 0 18px; }
+.fineprint { font-size: 12px; color: var(--text-dim); max-width: 80ch; margin: 0 0 28px; }
+.navrow { display: flex; flex-wrap: wrap; gap: 6px 22px; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 0 0 56px; font-size: 13px; }
+.navrow a { color: var(--text-dim); }
+.navrow a.active, .navrow a:hover { color: var(--text); text-decoration-color: var(--accent); }
+
+/* ---------- sections ---------- */
+section.sec { padding: 8px 0 40px; border-bottom: 1px solid var(--border); margin-bottom: 40px; scroll-margin-top: 24px; }
+section.sec:last-of-type { border-bottom: 0; }
+h2 { font-size: clamp(24px, 3vw, 34px); line-height: 1.15; letter-spacing: -.015em; font-weight: 700; margin: 0 0 18px; max-width: 30ch; }
+h3 { font-size: 16px; font-weight: 700; margin: 28px 0 10px; }
+.lead { font-size: 22px; line-height: 1.4; font-weight: 400; max-width: 34ch; margin: 0 0 22px; }
+.lead b { color: var(--accent); font-weight: 700; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px; }
+.two > * { min-width: 0; }
+@media (max-width: 860px) { .two { grid-template-columns: 1fr; } .page { padding: 28px 20px 80px; } }
+
+/* ---------- stat tiles ---------- */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0; border-top: 1px solid var(--border); border-left: 1px solid var(--border); margin: 24px 0 28px; }
+.stat { padding: 18px 20px 16px; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); min-width: 0; }
+.stat .n { font-size: 40px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+.stat .n.accent { color: var(--accent); }
+.stat .n.dim { color: var(--text-dim); }
+.stat .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; line-height: 1.4; }
+
+/* ---------- big comparison ---------- */
+.compare { display: flex; align-items: flex-end; gap: 36px; flex-wrap: wrap; margin: 20px 0 8px; }
+.compare .big { font-size: clamp(64px, 9vw, 112px); font-weight: 700; line-height: .95; letter-spacing: -.03em; }
+.compare .big.accent { color: var(--accent); }
+.compare .big.dim { color: var(--text-faint); }
+.compare .vs { font-size: 22px; color: var(--text-dim); padding-bottom: 18px; }
+.compare .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+
+/* ---------- dot matrix (quantities) ---------- */
+.dots { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; margin: 14px 0 24px; }
+.dotgrid { display: grid; grid-template-columns: repeat(var(--cols, 20), 12px); gap: 4px; }
+.dotgrid i { width: 12px; height: 12px; border-radius: 50%; background: var(--text-faint); display: block; }
+.dotgrid i.on { background: var(--accent); }
+.dots .c { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+.dots .c b { color: var(--accent); }
+
+/* ---------- big numbers (no hairlines; the headline strip above a chart) ---------- */
+.bignums { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 24px 32px; margin: 26px 0 40px; }
+.bignums > * { min-width: 0; }
+.bignums .n { font-size: clamp(56px, 7vw, 104px); font-weight: 700; line-height: .95; letter-spacing: -.03em; color: var(--accent); }
+.bignums .n.dim { color: var(--text-dim); }
+.bignums .c { font-size: 14px; color: var(--text-dim); margin-top: 10px; }
+
+/* ---------- charts (data-driven: see the <script type="application/json"> inside each figure) ---------- */
+:root { --bar: #4b5263; }
+[data-theme="light"] { --bar: #d4d4d4; }
+figure.chart { margin: 26px 0 34px; }
+figure.chart .chart-title { font-size: 15px; font-weight: 700; margin: 0 0 8px; color: var(--text); }
+figure.chart .chart-svg { min-width: 0; }
+figure.chart svg { display: block; width: 100%; height: auto; font-family: var(--font-mono); }
+figure.chart svg text { font-size: 12px; fill: var(--text-dim); }
+figure.chart svg .val { font-size: 13px; }
+figure.chart svg .val.hl { fill: var(--text); font-weight: 700; }
+figure.chart svg .acc { fill: var(--accent); font-weight: 700; font-size: 14px; }
+figure.chart svg .big { font-size: 15px; }
+figure.chart figcaption { font-size: 13px; color: var(--text-dim); margin-top: 10px; max-width: 90ch; }
+
+/* ---------- ledger (entries with a label column) ---------- */
+.ledger { border-top: 1px solid var(--border); margin: 20px 0 24px; }
+.ledger .row { display: grid; grid-template-columns: 96px 1fr; gap: 0 24px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+.ledger .row > * { min-width: 0; }
+.ledger .lab { color: var(--accent); font-size: 14px; padding-top: 2px; }
+.ledger .t { font-weight: 700; }
+.ledger .meta { color: var(--text-dim); }
+.ledger p { margin: 4px 0 0; max-width: none; }
+@media (max-width: 640px) { .ledger .row { grid-template-columns: 1fr; gap: 6px; } }
+
+/* ---------- callout ---------- */
+.callout { border-left: 2px solid var(--accent); padding: 12px 18px; margin: 22px 0; max-width: 80ch; background: var(--bg-raised); }
+.callout b:first-child { color: var(--accent); }
+.callout p { max-width: none; margin: 0; }
+
+/* ---------- timeline strip ---------- */
+.timeline { margin: 18px 0 28px; }
+.timeline svg { width: 100%; height: 72px; display: block; }
+.timeline .axis { font-size: 11px; color: var(--text-dim); display: flex; justify-content: space-between; margin-top: 6px; }
+
+/* ---------- tables ---------- */
+.tablewrap { overflow-x: auto; margin: 18px 0 26px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th { text-align: left; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--border-strong); }
+td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--border); vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- chips / file map / diff ---------- */
+.chip { display: inline-block; font-size: 12px; padding: 1px 8px; border: 1px solid var(--border-strong); border-radius: 3px; color: var(--text); margin: 2px 4px 2px 0; }
+.chip.accent { border-color: var(--accent); color: var(--accent); }
+.tree { font-size: 13px; line-height: 1.6; white-space: pre; overflow-x: auto; }
+.tree .new { color: var(--add); } .tree .mod { color: var(--accent); } .tree .del { color: var(--del); }
+.diff { font-size: 13px; line-height: 1.55; }
+.diff .del { display: block; background: var(--del-bg); color: var(--del); }
+.diff .add { display: block; background: var(--add-bg); color: var(--add); }
+.diff .ctx { display: block; color: var(--text-dim); }
+
+/* ---------- collapsible ---------- */
+details { border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 10px 0; margin: 16px 0; }
+details + details { border-top: 0; margin-top: -16px; }
+summary { cursor: pointer; list-style: none; display: flex; gap: 12px; align-items: baseline; color: var(--text); }
+summary::-webkit-details-marker { display: none; }
+summary::before { content: "+"; color: var(--accent); font-weight: 700; width: 1ch; }
+details[open] summary::before { content: "−"; }
+summary .meta { color: var(--text-dim); font-size: 12px; margin-left: auto; }
+details .body { padding: 12px 0 4px 2ch; }
+
+/* ---------- before / after ---------- */
+.ba { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); margin: 18px 0 26px; }
+.ba > * { min-width: 0; padding: 14px 18px; }
+.ba > :first-child { border-right: 1px solid var(--border); }
+.ba .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+.ba .after .lbl { color: var(--accent); }
+@media (max-width: 720px) { .ba { grid-template-columns: 1fr; } .ba > :first-child { border-right: 0; border-bottom: 1px solid var(--border); } }
+
+/* ---------- ELI5 panel (picture-first) ---------- */
+.eli5 { margin: 30px 0 4px; border: 1px dashed var(--border-strong); padding: 18px 20px 16px; background: var(--bg-raised); }
+.eli5 .k { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.eli5 figure { margin: 0; }
+.eli5 figcaption { font-size: 14px; color: var(--text); margin-top: 12px; max-width: 60ch; }
+.eli5 .chips { margin-top: 8px; }
+/* recipe primitives used inside .eli5 — full gallery in eli5-recipes.html */
+.pic-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.pic-cards .card { border: 1px solid var(--border); padding: 14px 10px; text-align: center; min-width: 0; }
+.pic-cards .em { font-size: 40px; line-height: 1; display: block; margin-bottom: 8px; }
+.pic-cards .lbl { font-size: 12px; color: var(--text-dim); }
+.pic-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pic-flow .box { border: 1px solid var(--border-strong); padding: 10px 14px; text-align: center; min-width: 96px; }
+.pic-flow .box .em { font-size: 28px; display: block; }
+.pic-flow .box.hot { border-color: var(--accent); }
+.pic-flow .arrow { color: var(--text-dim); font-size: 20px; }
+.pic-ladder { list-style: none; padding: 0; margin: 0; counter-reset: rung; max-width: none; }
+.pic-ladder li { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.pic-ladder li::before { content: counter(rung); counter-increment: rung; position: static; color: var(--text-dim); text-align: right; }
+.pic-ladder .badge { font-size: 11px; letter-spacing: .1em; padding: 2px 8px; border: 1px solid; }
+.pic-ladder .pass { color: var(--add); border-color: var(--add); }
+.pic-ladder .deny { color: var(--del); border-color: var(--del); }
+.pic-split { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.pic-split > div { border: 1px solid var(--border); padding: 14px; text-align: center; min-width: 0; }
+.pic-split .em { font-size: 40px; display: block; margin-bottom: 6px; }
+.pic-split .hot { border-color: var(--accent); }
+
+/* ---------- footer ---------- */
+.foot { margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-dim); }
+
+/* ---------- page extras: drawn pane layouts ---------- */
+.figrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px 40px; margin: 26px 0 30px; }
+.figrow > * { min-width: 0; }
+.figrow .cap { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); margin-top: 10px; }
+.figrow .cap b { color: var(--accent); font-weight: 500; }
+svg.lay { display: block; width: 100%; height: auto; }
+.ba svg.lay { max-width: 340px; margin: 2px 0 12px; }
+.lay .r { fill: var(--bg); stroke: var(--border-strong); stroke-width: 1.5; }
+.lay .r.hot { stroke: var(--accent); stroke-width: 2; }
+.lay .r.bad { stroke: var(--del); stroke-width: 2; stroke-dasharray: 5 3; }
+.lay .r.hatch { fill: url(#hatch); stroke: var(--accent); stroke-width: 1.5; }
+.lay .r.ring { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.lay text { font-family: var(--font-mono); font-size: 11px; fill: var(--text-dim); }
+.lay text.t { font-size: 14px; font-weight: 700; fill: var(--text); }
+.lay text.hot { fill: var(--accent); }
+.lay text.bad { fill: var(--del); }
+.lay .ln { fill: none; stroke: var(--text-dim); stroke-width: 1.5; }
+.lay .ln.hot { stroke: var(--accent); stroke-width: 2; }
+.lay .ln.bad { stroke: var(--del); stroke-width: 2; }
+.hatchln { stroke: var(--accent); stroke-width: 2; opacity: .45; }
+.mk-hot { fill: var(--accent); } .mk-bad { fill: var(--del); }
+.ba p { max-width: none; margin: 0 0 8px; }
+.ba .chips { margin-top: 4px; }
+.change { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); margin: 30px 0 -8px; }
+.change b { color: var(--text); font-weight: 700; letter-spacing: .08em; }
+/* tab strip and toast mock-ups */
+.tabmock { display: flex; border: 1px solid var(--border); border-bottom-color: var(--border-strong); font-size: 12px; margin: 4px 0 12px; overflow: hidden; max-width: 340px; }
+.tabmock span { padding: 6px 12px; border-right: 1px solid var(--border); color: var(--text-dim); white-space: nowrap; }
+.tabmock span.on { color: var(--text); border-bottom: 2px solid var(--accent); }
+.tabmock span.mark { border-left: 2px solid var(--accent); }
+.tabmock span.gone { color: var(--text-faint); text-decoration: line-through; }
+.tabmock span.x { margin-left: auto; border-right: 0; border-left: 1px solid var(--border); }
+.toastmock { display: inline-flex; gap: 22px; border: 1px solid var(--border-strong); padding: 7px 14px; font-size: 12px; margin: 4px 0 12px; }
+.toastmock b { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.verdict { font-size: 11px; letter-spacing: .1em; padding: 1px 7px; border: 1px solid; white-space: nowrap; }
+.verdict.ok { color: var(--add); border-color: var(--add); }
+.verdict.gap { color: var(--text-dim); border-color: var(--border-strong); }
+/* picture recipes used by the ELI5 panels (from eli5-recipes.html) */
+.pic-ba { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; }
+.pic-ba .scene { border: 1px solid var(--border); padding: 14px; text-align: center; min-width: 0; }
+.pic-ba .scene.after { border-color: var(--accent); }
+.pic-ba .scene .em { font-size: 36px; display: block; }
+.pic-ba .lbl { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-dim); }
+.pic-ba .arrow { color: var(--text-dim); font-size: 24px; }
+.pic-gate { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.pic-gate .who { text-align: center; font-size: 12px; color: var(--text-dim); }
+.pic-gate .who .em { font-size: 36px; display: block; color: var(--text); }
+.pic-gate .door { border: 2px solid var(--accent); padding: 14px 16px; text-align: center; font-size: 12px; }
+.pic-gate .door .em { font-size: 36px; display: block; }
+.pic-gate .arrow { color: var(--text-dim); font-size: 20px; }
+.pic-gate .verdict.no { color: var(--del); border-color: var(--del); }
+.pic-cards .card.hot { border-color: var(--accent); }
+.pic-cards .card.hot .lbl { color: var(--accent); }
+.pic-split small { color: var(--text-dim); font-size: 12px; }
+@media (max-width: 560px) { .pic-ba { grid-template-columns: 1fr; } .pic-ba .arrow { transform: rotate(90deg); justify-self: center; } }
+</style>
+</head>
+<body>
+<button class="theme-toggle" id="themeToggle" type="button">light mode</button>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" class="hatchln"/></pattern>
+    <marker id="mk-hot" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="mk-hot"/></marker>
+    <marker id="mk-bad" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" class="mk-bad"/></marker>
+  </defs>
+</svg>
+<div class="page">
+
+  <div class="rule-top"></div>
+  <p class="kicker">Recap<span class="sep">·</span>Phase 2<span class="sep">·</span>Split-tree pane layout</p>
+  <h1 class="hero">Panes now split where you point</h1>
+  <p class="deck">The reading area used to be rows of panes, at most three by two. It is now a tree of splits, like a floor plan: put a wall up in one room and only that room is divided. Split, drop, resize and keyboard moves all follow the same rules, and closing a pane can be undone. The one cost: layouts saved by the old grid are thrown away and laid out fresh.</p>
+  <p class="fineprint">Built from <code>web/layout/</code>, <code>web/state/workspaces.ts</code>, <code>web/state/store.ts</code> and <code>web/styles/panes.css</code>. Numbers from <code>wc -l web/layout/* web/state/workspaces.ts</code> and <code>npx vitest run web/layout</code>. The old grid's behaviour is taken from the phase plan; its code is not in this repository.</p>
+
+  <nav class="navrow" id="navrow">
+    <a href="#landed">What landed</a>
+    <a href="#behaviour">Behaviour</a>
+    <a href="#diff">The diff, explained</a>
+    <a href="#verify">Verification</a>
+    <a href="#deviations">Deviations</a>
+  </nav>
+
+  <!-- ================= WHAT LANDED ================= -->
+  <section class="sec" id="landed">
+    <p class="kicker">What landed</p>
+    <h2>One tree replaces the grid, and every pane action edits it</h2>
+    <p class="lead"><b>A split tree, built as pure functions.</b> The views only draw it and report what your mouse and keyboard did.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="n">9</div><div class="c">files in <code>web/layout/</code>, all new</div></div>
+      <div class="stat"><div class="n">903</div><div class="c">lines across them, 337 in the model</div></div>
+      <div class="stat"><div class="n accent">20</div><div class="c">unit tests on the model, all passing</div></div>
+      <div class="stat"><div class="n">7</div><div class="c">behaviour changes you can see</div></div>
+    </div>
+
+    <p>A layout is either a <strong>pane</strong> (a list of open docs, one shown) or a <strong>split</strong> (children side by side or stacked, with sizes in percent). The same screen, drawn two ways:</p>
+
+    <div class="figrow">
+      <div>
+        <svg class="lay" viewBox="0 0 240 150" role="img" aria-label="A screen with plan on the left and recap above eli5 on the right">
+          <rect class="r" x="4" y="4" width="110" height="142"/>
+          <rect class="r" x="120" y="4" width="116" height="68"/>
+          <rect class="r" x="120" y="78" width="116" height="68"/>
+          <rect class="r ring" x="117" y="1" width="122" height="148"/>
+          <text class="t" x="59" y="80" text-anchor="middle">plan</text>
+          <text class="t" x="178" y="43" text-anchor="middle">recap</text>
+          <text class="t" x="178" y="117" text-anchor="middle">eli5</text>
+        </svg>
+        <div class="cap">What you see</div>
+      </div>
+      <div>
+        <svg class="lay" viewBox="0 0 260 154" role="img" aria-label="The tree: a row split holding the plan pane and a column split, which holds recap and eli5">
+          <path class="ln" d="M130 32 L52 66 M130 32 L198 66"/>
+          <path class="ln hot" d="M198 94 L159 122 M198 94 L227 122"/>
+          <rect class="r" x="70" y="4" width="120" height="28"/>
+          <text x="130" y="22" text-anchor="middle">row · 50/50</text>
+          <rect class="r" x="4" y="66" width="96" height="28"/>
+          <text class="t" x="52" y="85" text-anchor="middle">plan</text>
+          <rect class="r hot" x="140" y="66" width="116" height="28"/>
+          <text class="hot" x="198" y="84" text-anchor="middle">col · 50/50</text>
+          <rect class="r" x="128" y="122" width="62" height="28"/>
+          <text class="t" x="159" y="141" text-anchor="middle">recap</text>
+          <rect class="r" x="196" y="122" width="62" height="28"/>
+          <text class="t" x="227" y="141" text-anchor="middle">eli5</text>
+        </svg>
+        <div class="cap">What is stored, <b>the dashed box is one split</b></div>
+      </div>
+    </div>
+
+    <p>Every change goes through the same tidy-up, <code>prune()</code> at <span class="chip">model.ts:55–90</span>: empty panes disappear, their space goes to the neighbour before them, a split left with one child is replaced by that child, and a split inside another running the same way merges into it.</p>
+
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-split">
+          <div><span class="em">🗄️</span>a bookcase with fixed shelves<br><small>add a shelf and every row moves</small></div>
+          <div class="hot"><span class="em">🏠</span>a floor plan with walls<br><small>put a wall up inside one room</small></div>
+        </div>
+        <figcaption>The reading area stopped being a bookcase and became a house where you can divide any single room.</figcaption>
+        <div class="chips"><span class="chip">Pane</span><span class="chip">Split</span><span class="chip">prune()</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <!-- ================= BEHAVIOUR ================= -->
+  <section class="sec" id="behaviour">
+    <p class="kicker">Behaviour</p>
+    <h2>Seven things that now do what they look like they do</h2>
+    <p class="lead"><b>Four were layout bugs in the grid;</b> three are new ways to handle tabs and panes.</p>
+
+    <p class="change"><b>1</b> · Split below</p>
+    <div class="ba">
+      <div class="before"><div class="lbl">Before</div>
+        <svg class="lay" viewBox="0 0 200 124" role="img" aria-label="Before: the new pane spans the whole bottom row">
+          <rect class="r" x="4" y="4" width="94" height="54"/><rect class="r" x="102" y="4" width="94" height="54"/>
+          <rect class="r bad" x="4" y="66" width="192" height="54"/>
+          <text class="t" x="51" y="36" text-anchor="middle">A</text><text class="t" x="149" y="36" text-anchor="middle">B</text>
+          <text class="bad" x="100" y="97" text-anchor="middle">new row, full width</text>
+        </svg>
+        <p>Splitting B downwards added a whole new row, so A was cut in half too.</p></div>
+      <div class="after"><div class="lbl">After</div>
+        <svg class="lay" viewBox="0 0 200 124" role="img" aria-label="After: only B is split, A keeps full height">
+          <rect class="r" x="4" y="4" width="94" height="116"/>
+          <rect class="r" x="102" y="4" width="94" height="54"/><rect class="r hot" x="102" y="66" width="94" height="54"/>
+          <text class="t" x="51" y="66" text-anchor="middle">A</text><text class="t" x="149" y="36" text-anchor="middle">B</text>
+          <text class="hot" x="149" y="97" text-anchor="middle">new</text>
+        </svg>
+        <p>Only B is divided. A keeps its full height.</p>
+        <div class="chips"><span class="chip">model.ts:93–114</span><span class="chip">model.test.ts:60–64</span></div></div>
+    </div>
+
+    <p class="change"><b>2</b> · Drop preview</p>
+    <div class="ba">
+      <div class="before"><div class="lbl">Before</div>
+        <svg class="lay" viewBox="0 0 300 108" role="img" aria-label="Before: the preview shades half of B but the result is a full-width row">
+          <rect class="r" x="4" y="4" width="63" height="80"/><rect class="r" x="71" y="4" width="63" height="80"/>
+          <rect class="r hatch" x="71" y="44" width="63" height="40"/>
+          <text class="t" x="150" y="52" text-anchor="middle" style="fill:var(--del)">≠</text>
+          <rect class="r" x="166" y="4" width="63" height="38"/><rect class="r" x="233" y="4" width="63" height="38"/>
+          <rect class="r bad" x="166" y="46" width="130" height="38"/>
+          <text x="69" y="102" text-anchor="middle">preview</text><text x="231" y="102" text-anchor="middle">result</text>
+        </svg>
+        <p>The highlight promised half of B; the drop built something else.</p></div>
+      <div class="after"><div class="lbl">After</div>
+        <svg class="lay" viewBox="0 0 300 108" role="img" aria-label="After: the preview and the result are the same half of B">
+          <rect class="r" x="4" y="4" width="63" height="80"/><rect class="r" x="71" y="4" width="63" height="80"/>
+          <rect class="r hatch" x="71" y="44" width="63" height="40"/>
+          <text class="t hot" x="150" y="52" text-anchor="middle">=</text>
+          <rect class="r" x="166" y="4" width="63" height="80"/><rect class="r" x="233" y="4" width="63" height="38"/>
+          <rect class="r hot" x="233" y="46" width="63" height="38"/>
+          <text x="69" y="102" text-anchor="middle">preview</text><text x="231" y="102" text-anchor="middle">result</text>
+        </svg>
+        <p>The highlight is the half a new pane takes, which is exactly what the drop builds. Edges only appear where a split has room.</p>
+        <div class="chips"><span class="chip">PaneView.tsx:64–70</span><span class="chip">dnd.ts:14–20</span></div></div>
+    </div>
+
+    <p class="change"><b>3</b> · Sizes kept</p>
+    <div class="ba">
+      <div class="before"><div class="lbl">Before</div>
+        <svg class="lay" viewBox="0 0 200 84" role="img" aria-label="Before: three equal panes after adding one">
+          <rect class="r bad" x="4" y="4" width="61" height="60"/><rect class="r bad" x="69.5" y="4" width="61" height="60"/><rect class="r bad" x="135" y="4" width="61" height="60"/>
+          <text class="t" x="34.5" y="39" text-anchor="middle">A</text><text class="t" x="100" y="39" text-anchor="middle">B</text><text class="t" x="165.5" y="39" text-anchor="middle">new</text>
+          <text class="bad" x="34.5" y="80" text-anchor="middle">33%</text><text class="bad" x="100" y="80" text-anchor="middle">33%</text><text class="bad" x="165.5" y="80" text-anchor="middle">33%</text>
+        </svg>
+        <p>A at 70% and B at 30%; adding a pane reset all three to equal widths.</p></div>
+      <div class="after"><div class="lbl">After</div>
+        <svg class="lay" viewBox="0 0 200 84" role="img" aria-label="After: A keeps 70 percent, B and the new pane share B's 30 percent">
+          <rect class="r" x="4" y="4" width="128" height="60"/><rect class="r" x="136" y="4" width="28" height="60"/><rect class="r hot" x="168" y="4" width="28" height="60"/>
+          <text class="t" x="68" y="39" text-anchor="middle">A</text><text class="t" x="150" y="39" text-anchor="middle">B</text><text class="t hot" x="182" y="39" text-anchor="middle">n</text>
+          <text x="68" y="80" text-anchor="middle">70%</text><text x="150" y="80" text-anchor="middle">15%</text><text class="hot" x="182" y="80" text-anchor="middle">15%</text>
+        </svg>
+        <p>The new pane takes half of the pane it splits. Every other pane keeps its size.</p>
+        <div class="chips"><span class="chip">model.ts:102–110</span><span class="chip">model.test.ts:65–68</span></div></div>
+    </div>
+
+    <p class="change"><b>4</b> · Moving to the pane below</p>
+    <div class="ba">
+      <div class="before"><div class="lbl">Before</div>
+        <svg class="lay" viewBox="0 0 200 124" role="img" aria-label="Before: moving down from B goes to E, the pane with the same index">
+          <rect class="r" x="4" y="4" width="36" height="54"/><rect class="r" x="44" y="4" width="36" height="54"/><rect class="r" x="84" y="4" width="112" height="54"/>
+          <rect class="r" x="4" y="66" width="94" height="54"/><rect class="r bad" x="102" y="66" width="94" height="54"/>
+          <text class="t" x="22" y="26" text-anchor="middle">A</text><text class="t" x="62" y="26" text-anchor="middle">B</text><text class="t" x="140" y="26" text-anchor="middle">C</text>
+          <text class="t" x="51" y="108" text-anchor="middle">D</text><text class="t" x="149" y="108" text-anchor="middle">E</text>
+          <path class="ln bad" d="M62 34 C 62 58, 149 50, 149 84" marker-end="url(#mk-bad)"/>
+        </svg>
+        <p>Option + ↓ from B went to the second pane of the next row, E, wherever it sat.</p></div>
+      <div class="after"><div class="lbl">After</div>
+        <svg class="lay" viewBox="0 0 200 124" role="img" aria-label="After: moving down from B goes to D, the pane actually below it">
+          <rect class="r" x="4" y="4" width="36" height="54"/><rect class="r" x="44" y="4" width="36" height="54"/><rect class="r" x="84" y="4" width="112" height="54"/>
+          <rect class="r hot" x="4" y="66" width="94" height="54"/><rect class="r" x="102" y="66" width="94" height="54"/>
+          <text class="t" x="22" y="26" text-anchor="middle">A</text><text class="t" x="62" y="26" text-anchor="middle">B</text><text class="t" x="140" y="26" text-anchor="middle">C</text>
+          <text class="t hot" x="51" y="108" text-anchor="middle">D</text><text class="t" x="149" y="108" text-anchor="middle">E</text>
+          <path class="ln hot" d="M62 34 L62 84" marker-end="url(#mk-hot)"/>
+        </svg>
+        <p>It goes to the pane that touches B's bottom edge and shares most of it: D.</p>
+        <div class="chips"><span class="chip">model.ts:270–299</span><span class="chip">model.test.ts:111–120</span></div></div>
+    </div>
+
+    <p class="change"><b>5</b> · Reorder tabs by dragging</p>
+    <div class="ba">
+      <div class="before"><div class="lbl">Before</div>
+        <div class="tabmock"><span class="on">plan</span><span>recap</span><span>eli5</span></div>
+        <p>Tabs stayed in the order they were opened.</p></div>
+      <div class="after"><div class="lbl">After</div>
+        <div class="tabmock"><span class="mark on">eli5</span><span>plan</span><span>recap</span></div>
+        <p>Drag a tab along the strip; a purple line shows where it lands. Dragging it onto another pane moves it there.</p>
+        <div class="chips"><span class="chip">TabStrip.tsx:25–37</span><span class="chip">model.ts:154–163</span></div></div>
+    </div>
+
+    <p class="change"><b>6</b> · Middle-click closes a tab</p>
+    <div class="ba">
+      <div class="before"><div class="lbl">Before</div>
+        <div class="tabmock"><span class="on">plan</span><span>recap</span><span>eli5 ×</span></div>
+        <p>A tab closed only from its × button.</p></div>
+      <div class="after"><div class="lbl">After</div>
+        <div class="tabmock"><span class="on">plan</span><span class="gone">recap</span><span>eli5</span></div>
+        <p>Middle-click anywhere on a tab closes it, as in a browser.</p>
+        <div class="chips"><span class="chip">TabStrip.tsx:87</span></div></div>
+    </div>
+
+    <p class="change"><b>7</b> · Closing a pane can be undone</p>
+    <div class="ba">
+      <div class="before"><div class="lbl">Before</div>
+        <div class="toastmock"><span>Pane closed</span></div>
+        <p>Closing a pane threw away all its tabs for good.</p></div>
+      <div class="after"><div class="lbl">After</div>
+        <div class="toastmock"><span>Pane closed</span><b>Undo</b></div>
+        <p>A toast offers the whole layout back. Closing a pane that had no tabs shows no toast.</p>
+        <div class="chips"><span class="chip">workspaces.ts:76–83</span></div></div>
+    </div>
+
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-ba">
+          <div class="scene"><div class="lbl">Before</div><span class="em">🧱🧱🧱</span>a new wall ran across the whole floor</div>
+          <div class="arrow">→</div>
+          <div class="scene after"><div class="lbl">After</div><span class="em">🧱</span>a new wall goes up inside one room</div>
+        </div>
+        <figcaption>Dividing a room now only touches that room, and the room next door is the one you can actually walk into.</figcaption>
+        <div class="chips"><span class="chip">insertBeside</span><span class="chip">neighbour</span><span class="chip">closePaneWithUndo</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <!-- ================= THE DIFF ================= -->
+  <section class="sec" id="diff">
+    <p class="kicker">The diff, explained</p>
+    <h2>Half the code is the model and its tests</h2>
+    <p class="lead"><b>492 of 903 lines</b> are pure tree functions and the tests that pin them. The views are thin.</p>
+
+    <figure class="chart" data-chart="bars">
+      <div class="chart-title">Lines per file in web/layout/</div>
+      <script type="application/json">{
+        "labels": ["Node","area","dnd","Split","Panes","Tab","Pane","test","model"],
+        "values": [7, 8, 35, 52, 53, 108, 148, 155, 337],
+        "highlightFrom": 7, "highlightLabel": "model + tests",
+        "height": 300
+      }</script>
+      <figcaption>From <code>wc -l</code>. <code>model.ts</code> 337 and <code>model.test.ts</code> 155; the seven view and glue files add up to 411, the largest being <code>PaneView.tsx</code> at 148.</figcaption>
+    </figure>
+
+    <div class="ledger">
+      <div class="row">
+        <div class="lab">A · 337</div>
+        <div><span class="t">web/layout/model.ts</span> <span class="meta">— the tree and every rule.</span>
+          <p>Types at <span class="chip">model.ts:10–13</span>. All functions are pure and return a new tree. Splitting is <code>insertBeside</code>: next to a pane in a split running the same way it halves only that pane, otherwise it wraps the pane in a new split. <code>neighbour</code> works from on-screen rectangles, not list positions. <code>seed</code> lays out a first visit, at most six panes.</p>
+          <details><summary>Splitting halves only the pane you pointed at <span class="meta">model.ts:101–110</span></summary>
+            <div class="body"><pre class="diff"><code><span class="add">    const i = node.children.findIndex((c) =&gt; c.type === 'pane' &amp;&amp; c.id === refId)</span><span class="add">    if (i &gt;= 0 &amp;&amp; node.dir === dir) {</span><span class="add">      const children = [...node.children]</span><span class="add">      const sizes = [...node.sizes]</span><span class="add">      const half = sizes[i] / 2</span><span class="add">      sizes[i] = half</span><span class="add">      children.splice(after ? i + 1 : i, 0, pane)</span><span class="add">      sizes.splice(after ? i + 1 : i, 0, half)</span><span class="add">      return { ...node, children, sizes }</span><span class="add">    }</span></code></pre></div>
+          </details>
+          <details><summary>The neighbour shares the most edge <span class="meta">model.ts:289–296</span></summary>
+            <div class="body"><pre class="diff"><code><span class="add">    const shared =</span><span class="add">      dir === 'left' || dir === 'right'</span><span class="add">        ? overlap(me.y, me.y + me.h, r.y, r.y + r.h)</span><span class="add">        : overlap(me.x, me.x + me.w, r.x, r.x + r.w)</span><span class="add">    if (shared &gt; bestOverlap) {</span><span class="add">      best = id</span><span class="add">      bestOverlap = shared</span><span class="add">    }</span></code></pre></div>
+          </details>
+        </div>
+      </div>
+      <div class="row">
+        <div class="lab">A · 155</div>
+        <div><span class="t">web/layout/model.test.ts</span> <span class="meta">— 20 tests, one per behaviour.</span>
+          <p>A small <code>shape()</code> helper at <span class="chip">model.test.ts:38–39</span> prints a tree as nested rows and columns with rounded sizes, so each expectation reads like the layout it describes.</p></div>
+      </div>
+      <div class="row">
+        <div class="lab">A · 148</div>
+        <div><span class="t">web/layout/PaneView.tsx</span> <span class="meta">— one pane: tab bar, actions, drop zones.</span>
+          <p>Move and split buttons only show when they can do something <span class="chip">PaneView.tsx:24–60</span>. While something is dragged, edge bands appear for each side with room, and the highlight is drawn from one table that matches what the drop builds.</p>
+          <details><summary>The preview is the half the new pane takes <span class="meta">PaneView.tsx:64–70</span></summary>
+            <div class="body"><pre class="diff"><code><span class="add">const PREVIEW: Record&lt;Zone, React.CSSProperties&gt; = {</span><span class="add">  center: { inset: 0 },</span><span class="add">  left: { top: 0, bottom: 0, left: 0, width: '50%' },</span><span class="add">  right: { top: 0, bottom: 0, right: 0, width: '50%' },</span><span class="add">  top: { left: 0, right: 0, top: 0, height: '50%' },</span><span class="add">  bottom: { left: 0, right: 0, bottom: 0, height: '50%' },</span><span class="add">}</span></code></pre></div>
+          </details>
+        </div>
+      </div>
+      <div class="row">
+        <div class="lab">A · 108</div>
+        <div><span class="t">web/layout/TabStrip.tsx</span> <span class="meta">— tabs that scroll, drag and middle-click.</span>
+          <p>Drop positions are counted without the dragged tab, which is where it ends up <span class="chip">TabStrip.tsx:25–37</span>. Middle-click closes <span class="chip">TabStrip.tsx:87</span>.</p>
+          <details><summary>Middle-click closes <span class="meta">TabStrip.tsx:87</span></summary>
+            <div class="body"><pre class="diff"><code><span class="add">            onAuxClick={(e) =&gt; e.button === 1 &amp;&amp; close(path)}</span></code></pre></div>
+          </details>
+        </div>
+      </div>
+      <div class="row">
+        <div class="lab">A · 53</div>
+        <div><span class="t">web/layout/Panes.tsx</span> <span class="meta">— the root, its size, and the move keys.</span>
+          <p>Measures the pane area so splits know their room <span class="chip">Panes.tsx:36–46</span>. Ctrl or Option + arrow sends the shown tab one pane that way, splitting a new pane off when there is none <span class="chip">Panes.tsx:12–27</span>.</p></div>
+      </div>
+      <div class="row">
+        <div class="lab">A · 52</div>
+        <div><span class="t">web/layout/SplitView.tsx</span> <span class="meta">— children with dividers between.</span>
+          <p>Dragging a divider re-splits only the two children either side of it; nobody else moves.</p>
+          <details><summary>Only the pair beside the divider changes <span class="meta">SplitView.tsx:26–36</span></summary>
+            <div class="body"><pre class="diff"><code><span class="add">      const pairPct = sizes[i] + sizes[i + 1]</span><span class="add">      const pairPx = (pairPct / 100) * avail</span><span class="add">      if (avail &lt;= 0 || pairPx &lt;= 0) return</span><span class="add">      // A pair too small for two minimums splits into thirds instead.</span><span class="add">      const min = Math.min(MIN_PX, pairPx / 3)</span><span class="add">      const pos = (row ? ev.clientX - box.left : ev.clientY - box.top) - start</span><span class="add">      const local = Math.max(min, Math.min(pairPx - min, pos))</span><span class="add">      const next = [...sizes]</span><span class="add">      next[i] = (local / pairPx) * pairPct</span><span class="add">      next[i + 1] = pairPct - next[i]</span><span class="add">      setLayout(resize(currentLayout(), split.id, next), getState().focus)</span></code></pre></div>
+          </details>
+        </div>
+      </div>
+      <div class="row">
+        <div class="lab">A · 35</div>
+        <div><span class="t">web/layout/dnd.ts</span> <span class="meta">— what a drop means.</span>
+          <p>Offers an edge only where a split has room, and never where the drop would change nothing <span class="chip">dnd.ts:14–20</span>. A drop on the centre, an edge or a tab position becomes one model call <span class="chip">dnd.ts:24–35</span>.</p></div>
+      </div>
+      <div class="row">
+        <div class="lab">A · 8 + 7</div>
+        <div><span class="t">web/layout/area.ts</span>, <span class="t">web/layout/NodeView.tsx</span> <span class="meta">— glue.</span>
+          <p><code>area.ts</code> holds the pane area's size in pixels for room checks. <code>NodeView.tsx</code> draws a pane or a split.</p></div>
+      </div>
+      <div class="row">
+        <div class="lab">state</div>
+        <div><span class="t">web/state/workspaces.ts</span> <span class="meta">— the undo toast.</span>
+          <p>Keeps the layout from before the close and offers it back in a toast <span class="chip">workspaces.ts:76–83</span>. Reset layout works the same way <span class="chip">workspaces.ts:65–74</span>.</p>
+          <details><summary>Close with Undo <span class="meta">workspaces.ts:77–83</span></summary>
+            <div class="body"><pre class="diff"><code><span class="add">export function closePaneWithUndo(paneId: string) {</span><span class="add">  const key = getState().current</span><span class="add">  const before = layoutOf(key)</span><span class="add">  apply(closePane(before, paneId))</span><span class="add">  if (!findPane(before, paneId)?.tabs.length) return</span><span class="add">  pushToast({ text: 'Pane closed', action: { label: 'Undo', run: () =&gt; setLayout(before, paneId, key) } })</span><span class="add">}</span></code></pre></div>
+          </details>
+        </div>
+      </div>
+    </div>
+
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-cards">
+          <div class="card hot"><span class="em">📐</span><div class="lbl">the floor plan</div></div>
+          <div class="card"><span class="em">🚪</span><div class="lbl">the rooms</div></div>
+          <div class="card"><span class="em">🧱</span><div class="lbl">walls you can slide</div></div>
+          <div class="card"><span class="em">🏷️</span><div class="lbl">name tags on the door</div></div>
+          <div class="card"><span class="em">📦</span><div class="lbl">the movers</div></div>
+        </div>
+        <figcaption>One floor plan decides everything; the rooms, walls, tags and movers just show it and report what your hands did.</figcaption>
+        <div class="chips"><span class="chip accent">model.ts</span><span class="chip">PaneView.tsx</span><span class="chip">SplitView.tsx</span><span class="chip">TabStrip.tsx</span><span class="chip">dnd.ts</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <!-- ================= VERIFICATION ================= -->
+  <section class="sec" id="verify">
+    <p class="kicker">Verification</p>
+    <h2>Every model rule has one test, and all 20 pass</h2>
+    <p class="lead"><b>The rules are proven; the hands-on parts are not.</b> Drag, preview, middle-click and the toast have no automated tests.</p>
+
+    <div class="bignums">
+      <div><div class="n">20</div><div class="c">tests passed</div></div>
+      <div><div class="n dim">0</div><div class="c">failed</div></div>
+      <div><div class="n dim">156ms</div><div class="c">whole run</div></div>
+    </div>
+
+    <div class="tablewrap"><table>
+      <thead><tr><th>Command</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><td><code>npx vitest run web/layout</code></td><td>1 file, 20 tests passed, 0 failed, 156ms (vitest 5.0.3)</td></tr>
+        <tr><td><code>wc -l web/layout/* web/state/workspaces.ts</code></td><td>903 lines in <code>web/layout/</code>; 113 in <code>workspaces.ts</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>What the 20 tests cover</h3>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Group</th><th>Behaviour it pins</th><th class="num">Tests</th><th>Where</th></tr></thead>
+      <tbody>
+        <tr><td>seed</td><td>three docs in a row; more over two rows, capped at six</td><td class="num">2</td><td><span class="chip">model.test.ts:44–57</span></td></tr>
+        <tr><td>splitting</td><td>split below leaves neighbours alone; split along halves one pane; no split of a pane's only tab; no split under minimum size</td><td class="num">4</td><td><span class="chip">model.test.ts:59–78</span></td></tr>
+        <tr><td>closing</td><td>space goes to the pane before; one-child splits collapse and same-direction splits merge; right-hand tab shown next; one empty pane kept</td><td class="num">4</td><td><span class="chip">model.test.ts:80–98</span></td></tr>
+        <tr><td>moving tabs</td><td>reorder within a pane; source pane removed when emptied</td><td class="num">2</td><td><span class="chip">model.test.ts:100–109</span></td></tr>
+        <tr><td>neighbour</td><td>the pane actually below, not the same index; none past the edge</td><td class="num">2</td><td><span class="chip">model.test.ts:111–120</span></td></tr>
+        <tr><td>keyboard shift</td><td>moves to a neighbour; splits when none; nothing for a lone tab</td><td class="num">3</td><td><span class="chip">model.test.ts:122–134</span></td></tr>
+        <tr><td>openTab next</td><td>splits right when there is room, else uses the first pane</td><td class="num">1</td><td><span class="chip">model.test.ts:136–145</span></td></tr>
+        <tr><td>retarget</td><td>tab paths follow a task folder that moved</td><td class="num">1</td><td><span class="chip">model.test.ts:147–150</span></td></tr>
+        <tr><td>isLayout</td><td>old grid shape rejected</td><td class="num">1</td><td><span class="chip">model.test.ts:152–155</span></td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="two">
+      <div><h3>Proven by tests</h3><ul>
+        <li>Split below, split along, and sizes kept (changes 1 and 3).</li>
+        <li>Neighbour by position (change 4).</li>
+        <li>Reorder inside a pane, at the model level (change 5).</li>
+        <li>Old layouts are rejected (the deviation below).</li>
+      </ul></div>
+      <div><h3>Not covered by automated tests</h3><ul>
+        <li>Drop preview matching the result (change 2): rests on the <code>PREVIEW</code> table and <code>insertBeside</code> both using halves.</li>
+        <li>Middle-click (change 6) and the Undo toast (change 7).</li>
+        <li>Divider dragging and the move-key wiring.</li>
+      </ul></div>
+    </div>
+
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <ol class="pic-ladder">
+          <li><span>📐 A new wall only divides one room</span><span class="verdict ok">CHECKED</span></li>
+          <li><span>🚪 "Next door" is the room you can see</span><span class="verdict ok">CHECKED</span></li>
+          <li><span>🧹 An empty room is removed, its space goes next door</span><span class="verdict ok">CHECKED</span></li>
+          <li><span>🗂️ An old-style plan is refused</span><span class="verdict ok">CHECKED</span></li>
+          <li><span>🖐️ Moving furniture by hand</span><span class="verdict gap">BY EYE ONLY</span></li>
+        </ol>
+        <figcaption>The rules on paper were each checked once; what your hands do with the mouse was only looked at.</figcaption>
+        <div class="chips"><span class="chip">vitest</span><span class="chip">model.test.ts</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <!-- ================= DEVIATIONS ================= -->
+  <section class="sec" id="deviations">
+    <p class="kicker">Deviations and follow-ups</p>
+    <h2>Old saved layouts are dropped, not converted</h2>
+    <p class="lead"><b>The first visit after upgrading starts fresh.</b> Every workspace is laid out again from its docs, once.</p>
+
+    <div class="callout"><b>Deviation:</b> <p>Saved layouts are checked when they load. Anything that is not a pane tree, including the old grid's <code>{ rows, heights }</code> shape, is thrown away, and the workspace is seeded from its docs as if it were new. The reason for not converting is not recorded.</p></div>
+
+    <details>
+      <summary>The check that drops them <span class="meta">model.ts:325–336</span></summary>
+      <div class="body"><pre class="diff"><code><span class="add">export function isLayout(value: unknown): value is Layout {</span><span class="add">  const v = value as Node | null</span><span class="add">  if (!v || typeof v !== 'object' || typeof v.id !== 'string') return false</span><span class="add">  if (v.type === 'pane') return Array.isArray(v.tabs) &amp;&amp; v.tabs.every((t) =&gt; typeof t === 'string')</span><span class="add">  return (</span><span class="add">    v.type === 'split' &amp;&amp;</span><span class="add">    (v.dir === 'row' || v.dir === 'col') &amp;&amp;</span><span class="add">    Array.isArray(v.children) &amp;&amp;</span><span class="add">    v.children.length === v.sizes?.length &amp;&amp;</span><span class="add">    v.sizes.every((s) =&gt; Number.isFinite(s) &amp;&amp; s &gt; 0) &amp;&amp;</span><span class="add">    v.children.every(isLayout)</span><span class="add">  )</span></code></pre></div>
+    </details>
+
+    <div class="ledger">
+      <div class="row">
+        <div class="lab">deviated</div>
+        <div><span class="t">Old layouts are dropped and re-seeded.</span> <span class="meta">store.ts:48–51 · workspaces.ts:56–61</span>
+          <p>The store filters saved layouts through <code>isLayout</code> on load; entering a workspace with nothing saved calls <code>seed</code>. Cost: one lost arrangement per workspace per browser.</p></div>
+      </div>
+      <div class="row">
+        <div class="lab">kept</div>
+        <div><span class="t">Six panes is now a starting point, not a limit.</span> <span class="meta">model.ts:21–24 · model.ts:198–205</span>
+          <p><code>seed</code> still lays out at most six panes on a first visit. After that, a split is allowed whenever both halves stay at least 280px wide or 180px tall.</p></div>
+      </div>
+      <div class="row">
+        <div class="lab">follow-up</div>
+        <div><span class="t">The hands-on parts have no tests.</span> <span class="meta">PaneView.tsx · TabStrip.tsx · SplitView.tsx</span>
+          <p>Drop preview, middle-click, the Undo toast and divider dragging were not covered by automated tests in this phase. Seen in the code, not listed in the plan.</p></div>
+      </div>
+    </div>
+
+    <aside class="eli5">
+      <div class="k">ELI5</div>
+      <figure>
+        <div class="pic-gate">
+          <div class="who"><span class="em">📜</span>an old shelf plan</div>
+          <span class="arrow">→</span>
+          <div class="door"><span class="em">🔍</span>is this a floor plan?</div>
+          <span class="verdict no">NO</span>
+          <span class="arrow">→</span>
+          <div class="who"><span class="em">🏠</span>a fresh house from the docs</div>
+        </div>
+        <figcaption>An old shelf plan is not redrawn as a floor plan; the house is simply laid out fresh.</figcaption>
+        <div class="chips"><span class="chip">isLayout</span><span class="chip">seed</span></div>
+      </figure>
+    </aside>
+  </section>
+
+  <div class="foot">Rendered by the visualise skill · sources: <code>web/layout/</code> (9 files), <code>web/state/workspaces.ts</code>, <code>web/state/store.ts</code>, <code>web/styles/panes.css</code>, the phase plan · commands: <code>wc -l web/layout/* web/state/workspaces.ts</code>, <code>npx vitest run web/layout</code></div>
+</div>
+
+<script>
+(function () {
+  // theme: the switch, the browser's memory, and the plan dashboard all agree.
+  // Dashboard -> page: {type:'plan-theme', theme} via postMessage. Page -> dashboard: the same message, sent on click.
+  const root = document.documentElement, btn = document.getElementById('themeToggle');
+  const setTheme = t => { root.dataset.theme = t; localStorage.setItem('visualise-theme', t); if (btn) btn.textContent = t === 'light' ? 'dark mode' : 'light mode'; };
+  setTheme(root.dataset.theme || 'dark');
+  if (btn) btn.addEventListener('click', () => {
+    const t = root.dataset.theme === 'light' ? 'dark' : 'light';
+    setTheme(t);
+    if (window.parent !== window) window.parent.postMessage({ type: 'plan-theme', theme: t }, '*');
+  });
+  window.addEventListener('message', e => {
+    const d = e.data; if (d && d.type === 'plan-theme' && (d.theme === 'light' || d.theme === 'dark')) setTheme(d.theme);
+  });
+  // dot matrices: data-count total dots, data-on highlighted (filled left to right)
+  document.querySelectorAll('.dotgrid').forEach(g => {
+    const n = +g.dataset.count || 0, on = +g.dataset.on || 0;
+    g.innerHTML = Array.from({ length: n }, (_, i) => `<i class="${i < on ? 'on' : ''}"></i>`).join('');
+  });
+  // charts: <figure class="chart" data-chart="bars|line"> with a JSON config inside
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const fmt = v => Math.round(v).toLocaleString('en-US');
+  const niceStep = max => { const raw = max / 6, p = Math.pow(10, Math.floor(Math.log10(raw))); return [1, 2, 5, 10].map(m => m * p).find(s => s >= raw) || p * 10; };
+  function barsSVG(c, W) {
+    const v = c.values || [], n = v.length, hf = c.highlightFrom == null ? n : c.highlightFrom;
+    const H = c.height || 400, top = 64, bottom = 40, ref = c.reference;
+    const max = Math.max(...v, ref ? ref.value : 0) * 1.12 || 1;
+    const slot = W / n, bw = slot * 0.82, plot = H - top - bottom;
+    const y = val => top + plot * (1 - val / max), base = H - bottom;
+    let s = '';
+    v.forEach((val, i) => {
+      const x = i * slot + (slot - bw) / 2, hl = i >= hf, cx = i * slot + slot / 2;
+      s += `<rect x="${x.toFixed(1)}" y="${y(val).toFixed(1)}" width="${bw.toFixed(1)}" height="${(base - y(val)).toFixed(1)}" style="fill:${hl ? 'var(--accent)' : 'var(--bar)'}"/>`;
+      s += `<text class="val${hl ? ' hl' : ''}" x="${cx.toFixed(1)}" y="${(y(val) - 8).toFixed(1)}" text-anchor="middle">${fmt(val)}</text>`;
+      s += `<text x="${cx.toFixed(1)}" y="${base + 24}" text-anchor="middle">${esc(c.labels?.[i] ?? '')}</text>`;
+    });
+    if (ref) {
+      const yy = y(ref.value).toFixed(1);
+      s += `<line x1="0" x2="${W}" y1="${yy}" y2="${yy}" style="stroke:var(--text-dim)" stroke-dasharray="5 5"/>`;
+      if (ref.label) s += `<text x="${W - 4}" y="${(+yy - 7).toFixed(1)}" text-anchor="end" style="fill:var(--text)">${esc(ref.label)}</text>`;
+    }
+    if (hf < n) {
+      const x = (hf * slot).toFixed(1);
+      s += `<line x1="${x}" x2="${x}" y1="${top - 40}" y2="${base}" style="stroke:var(--accent)"/>`;
+      if (c.highlightLabel) s += `<text class="acc" x="${+x + 6}" y="${top - 24}">${esc(c.highlightLabel)}</text>`;
+    }
+    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${s}</svg>`;
+  }
+  function lineSVG(c, W) {
+    let v = c.values;
+    if (!v && c.daily) { v = [0]; c.daily.forEach(d => v.push(v[v.length - 1] + d)); }
+    v = v || []; const n = v.length, hf = c.highlightFrom == null ? n - 1 : c.highlightFrom;
+    const H = c.height || 440, left = 64, right = c.projection ? 190 : 80, top = 52, bottom = 40, plot = H - top - bottom;
+    let projEnd = null;
+    if (c.projection && hf > 0 && hf < n - 1) {
+      const slope = typeof c.projection === 'number' ? c.projection : (v[hf] - v[0]) / hf;
+      projEnd = v[hf] + slope * (n - 1 - hf);
+    }
+    const max = Math.max(...v, projEnd || 0) * 1.06 || 1, step = niceStep(max);
+    const x = i => left + (W - left - right) * (n > 1 ? i / (n - 1) : 0);
+    const y = val => top + plot * (1 - val / max);
+    let s = '';
+    for (let t = 0; t <= max; t += step) s += `<text x="${left - 12}" y="${(y(t) + 4).toFixed(1)}" text-anchor="end">${fmt(t)}</text>`;
+    const labels = c.labels || []; const every = Math.max(1, Math.ceil(n / 8));
+    labels.forEach((l, i) => { if (l && i % every === 0) s += `<text x="${x(i).toFixed(1)}" y="${H - bottom + 26}" text-anchor="middle">${esc(l)}</text>`; });
+    const pts = (a, b) => v.slice(a, b + 1).map((val, k) => `${x(a + k).toFixed(1)},${y(val).toFixed(1)}`).join(' ');
+    if (projEnd != null) {
+      s += `<line x1="${x(hf).toFixed(1)}" y1="${y(v[hf]).toFixed(1)}" x2="${x(n - 1).toFixed(1)}" y2="${y(projEnd).toFixed(1)}" style="stroke:var(--text-dim)" stroke-dasharray="5 5"/>`;
+      const pl = (c.projectionLabel || 'at the old rate: {value}').replace('{value}', fmt(projEnd));
+      s += `<text x="${(x(n - 1) + 10).toFixed(1)}" y="${(y(projEnd) + 4).toFixed(1)}">${esc(pl)}</text>`;
+    }
+    s += `<polyline points="${pts(0, hf)}" fill="none" style="stroke:var(--text-dim)" stroke-width="2" stroke-linejoin="round"/>`;
+    if (hf < n - 1) s += `<polyline points="${pts(hf, n - 1)}" fill="none" style="stroke:var(--accent)" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>`;
+    if (c.beforeLabel) { const m = Math.floor(hf / 2); s += `<text x="${x(m).toFixed(1)}" y="${(y(v[m]) - 16).toFixed(1)}" text-anchor="middle">${esc(c.beforeLabel)}</text>`; }
+    if (c.afterLabel && hf < n - 1) s += `<text class="acc" x="${x(hf).toFixed(1)}" y="${(y(v[hf]) - 16).toFixed(1)}" text-anchor="middle">${esc(c.afterLabel)}</text>`;
+    s += `<circle cx="${x(n - 1).toFixed(1)}" cy="${y(v[n - 1]).toFixed(1)}" r="6" style="fill:var(--accent)"/>`;
+    s += `<text class="acc big" x="${x(n - 1).toFixed(1)}" y="${(y(v[n - 1]) - 18).toFixed(1)}" text-anchor="middle">${fmt(v[n - 1])}</text>`;
+    return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${s}</svg>`;
+  }
+  function renderCharts() {
+    document.querySelectorAll('figure.chart[data-chart]').forEach(fig => {
+      const cfgEl = fig.querySelector('script[type="application/json"]'); if (!cfgEl) return;
+      let cfg; try { cfg = JSON.parse(cfgEl.textContent); } catch (e) { fig.insertAdjacentHTML('beforeend', '<figcaption>chart config is not valid JSON</figcaption>'); return; }
+      let host = fig.querySelector('.chart-svg');
+      if (!host) { host = document.createElement('div'); host.className = 'chart-svg'; cfgEl.after(host); }
+      const W = Math.max(320, Math.round(fig.clientWidth || 900));
+      host.innerHTML = fig.dataset.chart === 'bars' ? barsSVG(cfg, W) : lineSVG(cfg, W);
+    });
+  }
+  renderCharts();
+  if (window.ResizeObserver) { let raf = 0; new ResizeObserver(() => { cancelAnimationFrame(raf); raf = requestAnimationFrame(renderCharts); }).observe(document.body); }
+  // nav row scroll spy
+  const nav = document.getElementById('navrow');
+  if (nav) {
+    const links = [...nav.querySelectorAll('a')];
+    const secs = links.map(l => document.getElementById(l.getAttribute('href').slice(1))).filter(Boolean);
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (!e.isIntersecting) return;
+      links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + e.target.id));
+    }), { rootMargin: '-10% 0px -80% 0px' });
+    secs.forEach(s => io.observe(s));
+  }
+})();
+</script>
+</body>
+</html>
