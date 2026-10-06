@@ -131,7 +131,7 @@ export const DEFAULT_CONFIG: Config = {
 export const FALLBACK_KIND: Pick<DocType, 'id' | 'label' | 'color'> = { id: 'doc', label: 'doc', color: 'grey' }
 
 // Where the published schema lives, for the $schema key of a config file.
-export const SCHEMA_URL = 'https://raw.githubusercontent.com/limyuquan/plan-dashboard/main/schema/config.schema.json'
+export const SCHEMA_URL = 'https://raw.githubusercontent.com/limyuquan/planner/main/schema/config.schema.json'
 
 // A folder name made from its path: ~/work/app-a/docs -> "docs".
 export function nameForPath(p: string): string {

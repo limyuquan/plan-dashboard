@@ -5,7 +5,7 @@ Read a folder of HTML and Markdown plans side by side, in split panes, and see n
 Built for working with coding agents that write plans, recaps and explainers as files: point it at the folder they
 write into and keep it open next to your editor.
 
-**[Website](https://limyuquan.github.io/plan-dashboard/)** · [Install](#quick-start) · [Agent skills](#agent-skills)
+**[Website](https://limyuquan.github.io/planner/)** · [Install](#quick-start) · [Agent skills](#agent-skills)
 
 ![Planner showing three plans of one phase side by side](docs/screenshot.png)
 
@@ -35,8 +35,8 @@ the agents down.
 Needs Node.js 20.19 or newer.
 
 ```sh
-git clone https://github.com/limyuquan/plan-dashboard
-cd plan-dashboard
+git clone https://github.com/limyuquan/planner
+cd planner
 npm install
 npm run build
 node dist/cli.js --root examples/demo-docs    # try it on the demo folder

@@ -16,7 +16,7 @@ planner config check           # validate, then print what each folder holds
 planner config schema          # the JSON schema, with a description of every key
 ```
 
-If `planner` is not installed: `git clone https://github.com/limyuquan/plan-dashboard && cd plan-dashboard && npm install && npm run build && npm link`.
+If `planner` is not installed: `git clone https://github.com/limyuquan/planner && cd planner && npm install && npm run build && npm link`.
 
 ## Steps
 
