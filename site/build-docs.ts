@@ -3,7 +3,7 @@
 //   - docs/<slug>.md         one page; its first "# " line is the title and
 //                            the paragraph after it the description
 // Each page becomes site/docs/<slug>/index.html, plus site/docs/<slug>.md for
-// "Copy page" and "View as Markdown", and site/docs/search.json feeds search.
+// "Copy Markdown" and "View as Markdown", and site/docs/search.json feeds search.
 // Links between pages are written as "other-page.md" so they also work on
 // GitHub; they become site links here.
 import fs from 'node:fs'
@@ -145,10 +145,10 @@ function pageHtml(page: Page, pages: Page[], html: string, headings: Heading[]) 
       <div class="page-head">
         <p class="crumb">${page.group}</p>
         <div class="copy-page">
-          <button class="copy-md" type="button" data-md="../${page.slug}.md">Copy page</button>
+          <button class="copy-md" type="button" data-md="../${page.slug}.md">Copy Markdown</button>
           <button class="copy-more" type="button" aria-label="More ways to use this page">▾</button>
           <div class="copy-menu" hidden>
-            <button type="button" class="copy-md" data-md="../${page.slug}.md">Copy page as Markdown<small>For pasting into an agent</small></button>
+            <button type="button" class="copy-md" data-md="../${page.slug}.md">Copy Markdown<small>For pasting into an agent</small></button>
             <a href="../${page.slug}.md" target="_blank">View as Markdown<small>The raw page</small></a>
             <a href="https://chatgpt.com/?q=${ask}" target="_blank" rel="noopener">Open in ChatGPT<small>Ask about this page</small></a>
             <a href="https://claude.ai/new?q=${ask}" target="_blank" rel="noopener">Open in Claude<small>Ask about this page</small></a>

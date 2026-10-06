@@ -50,7 +50,7 @@ for more.
 ## Documentation
 
 The full docs are at **[limyuquan.github.io/planner/docs](https://limyuquan.github.io/planner/docs/)**, and in
-[`docs/`](docs) as Markdown. Every page has a **Copy page** button for handing it to an agent.
+[`docs/`](docs) as Markdown. Every page has a **Copy Markdown** button for handing it to an agent.
 
 | Getting started                                                        | Using Planner                                                                      | Reference                                                                    |
 | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
