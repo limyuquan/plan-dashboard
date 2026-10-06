@@ -675,7 +675,7 @@ cite a:hover {
 .hero-toast {
   position: absolute;
   left: 52px;
-  top: 470px;
+  top: 380px;
   z-index: 2;
   display: flex;
   align-items: center;
@@ -769,15 +769,6 @@ cite a:hover {
   position: relative;
   margin-top: 64px;
 }
-.demo-hint {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  margin: 0 0 16px;
-  color: var(--dim);
-  font-size: 13.5px;
-}
 .live-dot {
   width: 7px;
   height: 7px;
@@ -805,7 +796,7 @@ cite a:hover {
   border-radius: 50%;
   background: #2a2a2f;
 }
-.demo-chrome span {
+.demo-url {
   margin: 0 auto;
   padding: 3px 40px;
   border-radius: 6px;
@@ -847,9 +838,6 @@ cite a:hover {
   .demo-fallback {
     display: block;
   }
-  .demo-hint {
-    display: none;
-  }
 }
 @media (prefers-reduced-motion: reduce) {
   .hf-split,
@@ -885,4 +873,42 @@ cite a:hover {
 }
 :not(pre) > code {
   overflow-wrap: anywhere;
+}
+
+/* The demo's title bar says it is live, in place of a caption above it. */
+.demo {
+  margin-top: 56px;
+}
+.demo-chrome {
+  position: relative;
+}
+.demo-url {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0 !important;
+}
+.try-it {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 3px 10px;
+  border: 1px solid rgba(111, 207, 151, 0.35);
+  border-radius: 999px;
+  color: #a6e3bf;
+  font: 500 11.5px var(--mono);
+}
+.try-it .live-dot {
+  animation: live 1.8s ease-in-out infinite;
+}
+@keyframes live {
+  50% {
+    box-shadow: 0 0 0 5px rgba(111, 207, 151, 0.08);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .try-it .live-dot {
+    animation: none;
+  }
 }
