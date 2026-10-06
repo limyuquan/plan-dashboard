@@ -63,7 +63,7 @@ video {
   inset: 0;
   pointer-events: none;
   margin: 0 auto;
-  max-width: calc(var(--max) + 120px);
+  max-width: 1340px;
   border-left: 1px solid var(--line);
   border-right: 1px solid var(--line);
   z-index: 0;
@@ -83,7 +83,7 @@ main,
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: calc(var(--max) + 120px);
+  max-width: 1340px;
   margin: 0 auto;
   padding: 14px 32px;
   background: color-mix(in oklab, var(--bg) 82%, transparent);
@@ -471,7 +471,7 @@ cite a:hover {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  max-width: calc(var(--max) + 120px);
+  max-width: 1340px;
   margin: 0 auto;
   padding: 24px 32px 40px;
   border-top: 1px solid var(--line);
@@ -554,8 +554,8 @@ cite a:hover {
   border: 1px solid var(--line-strong);
   border-radius: 16px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 70%);
-  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 18%, transparent 62%);
+  mask-image: linear-gradient(180deg, #000 18%, transparent 62%);
 }
 .hf-tabs {
   display: grid;
@@ -617,7 +617,7 @@ cite a:hover {
   position: absolute;
   left: 66.66%;
   right: 0;
-  top: 55%;
+  top: 21%;
   height: 1px;
   background: var(--accent);
   box-shadow: 0 0 12px rgba(180, 157, 240, 0.6);
@@ -628,7 +628,7 @@ cite a:hover {
   position: absolute;
   left: calc(66.66% + 1px);
   right: 0;
-  top: 55%;
+  top: 21%;
   bottom: 0;
   display: grid;
   place-items: center;
