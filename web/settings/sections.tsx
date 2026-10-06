@@ -76,6 +76,15 @@ export function FoldersSection({ draft, set, runFolders }: Props & { runFolders?
             <Field label="Name">
               <Text value={folder.name} onChange={(name) => update(i, { ...folder, name })} placeholder="my-app" mono />
             </Field>
+            <Field label="Icon">
+              <input
+                className="input icon-input"
+                value={folder.icon ?? ''}
+                placeholder="—"
+                maxLength={8}
+                onChange={(e) => update(i, { ...folder, icon: e.target.value || undefined })}
+              />
+            </Field>
             <Field label="Path" hint="~ is your home folder.">
               <Text
                 value={folder.path}
@@ -147,8 +156,16 @@ export function DocTypesSection({ draft, set }: Props) {
         row={(t, update) => (
           <>
             <span className="badge" data-color={t.color}>
+              {t.icon && <span className="badge-icon">{t.icon}</span>}
               {t.label || '?'}
             </span>
+            <input
+              className="input icon-input"
+              value={t.icon ?? ''}
+              placeholder="icon"
+              maxLength={8}
+              onChange={(e) => update({ ...t, icon: e.target.value || undefined })}
+            />
             <input
               className="input"
               value={t.label}

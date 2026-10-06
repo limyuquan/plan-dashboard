@@ -18,6 +18,7 @@ export type Task = {
   folder: string
   name: string
   label: string
+  icon?: string
   status: Status | null
   dir: string
   docs: Doc[]
@@ -28,11 +29,12 @@ export type Task = {
 
 export type Collection = { folder: string; label: string; docs: Doc[] }
 
-export type Kind = { id: string; label: string; color: Color }
+export type Kind = { id: string; label: string; color: Color; icon?: string }
 
 // One configured docs folder, as the browser sees it.
 export type DocsFolderInfo = {
   name: string
+  icon?: string
   // The real path, and the same as shown to people (~ for the home folder).
   root: string
   label: string

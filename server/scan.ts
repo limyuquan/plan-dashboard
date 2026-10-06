@@ -64,7 +64,7 @@ export const kindOf = (docTypes: DocType[], file: string) =>
   docTypes.find((t) => wildcard(t.match).test(file))?.id ?? FALLBACK_KIND.id
 
 const kindsOf = (docTypes: DocType[]): Kind[] => [
-  ...docTypes.map(({ id, label, color }) => ({ id, label, color })),
+  ...docTypes.map(({ id, label, color, icon }) => ({ id, label, color, icon })),
   FALLBACK_KIND,
 ]
 
@@ -226,7 +226,7 @@ export async function scanAll(config: Config): Promise<Scan> {
     const label = root ? homeRelative(root) : folder.path
     if (!root) {
       const problem = `${folder.path} does not exist`
-      folders.push({ name: folder.name, root: folder.path, label, settle: false, problem })
+      folders.push({ name: folder.name, icon: folder.icon, root: folder.path, label, settle: false, problem })
       previews.push({
         name: folder.name,
         label,
@@ -241,9 +241,9 @@ export async function scanAll(config: Config): Promise<Scan> {
       continue
     }
     const scanned = await scanFolder(folder.name, root, layout, config.docTypes)
-    folders.push({ name: folder.name, root, label, settle: !!layout.statusFolders })
+    folders.push({ name: folder.name, icon: folder.icon, root, label, settle: !!layout.statusFolders })
     previews.push(scanned.preview)
-    tasks.push(...scanned.tasks)
+    tasks.push(...scanned.tasks.map((t) => (config.taskIcons[t.key] ? { ...t, icon: config.taskIcons[t.key] } : t)))
     collections.push(...scanned.collections)
     for (const [k, v] of scanned.index) index.set(k, v)
   }

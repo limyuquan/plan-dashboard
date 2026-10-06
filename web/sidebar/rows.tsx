@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { Doc, Folder, Task } from '../../shared/types'
 import { endDrag, startDrag } from '../layout/dnd'
 import { allPaths } from '../layout/model'
@@ -5,7 +6,9 @@ import { useStore } from '../state/store'
 import { moveTask } from '../state/tree'
 import { enter, landingKey, openDoc, resetLayout } from '../state/workspaces'
 import { Chevron } from '../icons'
+import { setTaskIcon } from '../state/icons'
 import { KindBadge } from './badges'
+import { IconPicker } from './IconPicker'
 import { CopyPath } from './CopyPath'
 
 // Beside a task or folder: "ws" makes it your workspace. On the one you are
@@ -105,8 +108,19 @@ export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping
   const unseen = useStore((s) => s.unseen.has(task.key))
   const settle = useStore((s) => s.tree?.folders.find((f) => f.name === task.folder)?.settle)
   const empty = !task.docs.length && !task.phases.length && !task.groups.length
+  const [picking, setPicking] = useState(false)
   return (
     <div className="task">
+      {picking && (
+        <IconPicker
+          current={task.icon}
+          onPick={(icon) => {
+            setPicking(false)
+            void setTaskIcon(task.key, icon)
+          }}
+          onClose={() => setPicking(false)}
+        />
+      )}
       <div
         className="task-row"
         data-cur={here || undefined}
@@ -126,6 +140,7 @@ export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping
         onClick={onToggle}
       >
         <Chevron dir={open ? 'down' : 'right'} className="chev" />
+        {task.icon && <span className="task-icon">{task.icon}</span>}
         <span className="task-name">{task.label}</span>
         {unseen && <span className="dot" title="New plan since you last looked" />}
         {settle && task.status && (
@@ -141,6 +156,16 @@ export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping
           </span>
         )}
         <span className="row-acts">
+          <span
+            className="ws-btn copy-btn"
+            title="Set an icon for this task"
+            onClick={(e) => {
+              e.stopPropagation()
+              setPicking(true)
+            }}
+          >
+            ☺
+          </span>
           <CopyPath path={task.dir} className="ws-btn copy-btn" title="Copy the task folder path" />
           <WsButton wsKey={landingKey(task)} />
         </span>

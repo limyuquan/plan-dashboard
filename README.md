@@ -103,6 +103,7 @@ files left out. `planner config check` prints the same from a terminal.
   the pane (with Undo).
 - `settle` / `restore` move a task's folder between the status folders; open tabs follow it.
 - `⧉` copies the absolute path of a file or folder.
+- `☺` on a task gives it an icon; doc types and docs folders can have one too, in Settings.
 
 <p align="center"><img src="docs/live.gif" alt="An agent writes a recap; a notification appears and opens it in place; a finished task is settled with Undo" width="880" /></p>
 
@@ -224,18 +225,19 @@ keeps the last good settings and says so in the sidebar until it is fixed. The f
 
 Only the keys you change are needed; the rest are the defaults.
 
-| Key             | Default                                 | Meaning                                                                                                |
-| --------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `folders`       | `[]`                                    | Docs folders: `name` (shown in the sidebar and links), `path`, and any layout key below to override it |
-| `statusFolders` | `{"active":"active","done":"done"}`     | Folders holding active and finished tasks; `null` if tasks sit directly in the docs folder             |
-| `plansFolder`   | `"plans"`                               | Folder inside each task holding its plans; `""` for the task folder itself                             |
-| `phasePattern`  | `^phase-(?<num>\d+[a-z]*)-(?<slug>.+)$` | Phase folder names; `(?<num>…)` is the phase number, `(?<slug>…)` its name                             |
-| `fileTypes`     | `["html","md"]`                         | Extensions to show                                                                                     |
-| `groups`        | Research → `research/`, HTML only       | Extra folders in each task with their own section                                                      |
-| `collections`   | `[]`                                    | Docs outside any task, by path pattern, e.g. `{"label":"Weekly","path":"weekly/*/*.html"}`             |
-| `docTypes`      | plan, eli5, recap, md, …                | Badges by file name; the first match wins, and the order is the reading order                          |
-| `port`          | `4173`                                  | Port to listen on                                                                                      |
-| `hotkeys`       | see Keyboard                            | Shortcuts by action, e.g. `{"closeTab": ["Alt+Q"], "splitRight": ["Alt+\\"]}`; `[]` turns one off      |
+| Key             | Default                                 | Meaning                                                                                                                    |
+| --------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `folders`       | `[]`                                    | Docs folders: `name` (shown in the sidebar and links), `path`, an optional `icon`, and any layout key below to override it |
+| `statusFolders` | `{"active":"active","done":"done"}`     | Folders holding active and finished tasks; `null` if tasks sit directly in the docs folder                                 |
+| `plansFolder`   | `"plans"`                               | Folder inside each task holding its plans; `""` for the task folder itself                                                 |
+| `phasePattern`  | `^phase-(?<num>\d+[a-z]*)-(?<slug>.+)$` | Phase folder names; `(?<num>…)` is the phase number, `(?<slug>…)` its name                                                 |
+| `fileTypes`     | `["html","md"]`                         | Extensions to show                                                                                                         |
+| `groups`        | Research → `research/`, HTML only       | Extra folders in each task with their own section                                                                          |
+| `collections`   | `[]`                                    | Docs outside any task, by path pattern, e.g. `{"label":"Weekly","path":"weekly/*/*.html"}`                                 |
+| `docTypes`      | plan, eli5, recap, md, …                | Badges by file name, each with an optional `icon`; the first match wins, and the order is the reading order                |
+| `port`          | `4173`                                  | Port to listen on                                                                                                          |
+| `hotkeys`       | see Keyboard                            | Shortcuts by action, e.g. `{"closeTab": ["Alt+Q"], "splitRight": ["Alt+\\"]}`; `[]` turns one off                          |
+| `taskIcons`     | `{}`                                    | Icons for tasks by `"<folder>:<task>"`, e.g. `{"work:search-rewrite": "🔎"}`; also set from the ☺ on a task row            |
 
 Links name a workspace as `?ws=<task>/<phase>` in the first folder and `?ws=<folder>:<task>/<phase>` in the others, so a
 single-folder setup's links never change.

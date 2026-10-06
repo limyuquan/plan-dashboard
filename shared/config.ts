@@ -22,6 +22,9 @@ const extension = z
   .regex(/^[a-z0-9]+$/i, 'an extension without the dot, like "md"')
   .transform((s) => s.toLowerCase())
 
+// An emoji or a short symbol, shown next to a name.
+const icon = z.string().min(1).max(8).describe('An emoji or short symbol shown with it, e.g. "📐".')
+
 const folderName = z.string().regex(/^[^/\\]+$/, 'a single folder name, no slashes')
 
 // What a file is, decided by its name. The first type whose pattern matches
@@ -34,6 +37,7 @@ const docType = z.object({
   label: z.string().min(1).max(12).describe('The badge text, e.g. "plan".'),
   match: z.string().min(1).describe('File name pattern; * matches anything, e.g. "eli5*.html".'),
   color: z.enum(COLORS).describe('Badge colour.'),
+  icon: icon.optional(),
 })
 
 // Extra folders inside a task that get their own section, like research/.
@@ -82,6 +86,7 @@ const docsFolder = z
       .regex(/^[a-z0-9][a-z0-9-]*$/, 'lowercase letters, digits and dashes, like "my-app"')
       .describe('Short name shown in the sidebar and in links, e.g. "my-app".'),
     path: z.string().min(1).describe('Absolute path to the docs folder; ~ means the home folder.'),
+    icon: icon.optional(),
     ...z.object(layoutShape).partial().shape,
   })
   .strict()
@@ -104,6 +109,9 @@ export const configSchema = z
       .describe('The docs folders to read. Each may override any layout key below for itself.'),
     port: z.number().int().min(1).max(65535).describe('Port Planner listens on (default 4173).'),
     ...layoutShape,
+    taskIcons: z
+      .record(z.string(), icon)
+      .describe('Icons for tasks, by "<folder name>:<task folder>", e.g. {"work:search-rewrite": "🔎"}.'),
     hotkeys: z
       .object(hotkeysShape)
       .strict()
@@ -125,6 +133,7 @@ export type Color = (typeof COLORS)[number]
 export const DEFAULT_CONFIG: Config = {
   folders: [],
   port: 4173,
+  taskIcons: {},
   hotkeys: {},
   statusFolders: { active: 'active', done: 'done' },
   plansFolder: 'plans',

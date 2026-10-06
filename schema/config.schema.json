@@ -20,6 +20,12 @@
             "minLength": 1,
             "description": "Absolute path to the docs folder; ~ means the home folder."
           },
+          "icon": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8,
+            "description": "An emoji or short symbol shown with it, e.g. \"📐\"."
+          },
           "statusFolders": {
             "anyOf": [
               {
@@ -265,6 +271,19 @@
       },
       "description": "Docs outside any task, listed by a path pattern."
     },
+    "taskIcons": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 8,
+        "description": "An emoji or short symbol shown with it, e.g. \"📐\"."
+      },
+      "description": "Icons for tasks, by \"<folder name>:<task folder>\", e.g. {\"work:search-rewrite\": \"🔎\"}."
+    },
     "hotkeys": {
       "type": "object",
       "properties": {
@@ -403,6 +422,12 @@
               "red"
             ],
             "description": "Badge colour."
+          },
+          "icon": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8,
+            "description": "An emoji or short symbol shown with it, e.g. \"📐\"."
           }
         },
         "required": [

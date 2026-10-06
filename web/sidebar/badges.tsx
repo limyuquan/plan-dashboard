@@ -1,11 +1,13 @@
 import { FALLBACK_KIND } from '../../shared/config'
+import type { Kind } from '../../shared/types'
 import { useStore } from '../state/store'
 
 // What a doc is ("plan", "md", ...), in the colour its doc type is given.
 export function KindBadge({ kind }: { kind: string }) {
-  const k = useStore((s) => s.kinds.get(kind)) ?? FALLBACK_KIND
+  const k: Kind = useStore((s) => s.kinds.get(kind)) ?? FALLBACK_KIND
   return (
     <span className="badge" data-color={k.color}>
+      {k.icon && <span className="badge-icon">{k.icon}</span>}
       {k.label}
     </span>
   )

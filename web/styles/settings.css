@@ -336,3 +336,9 @@
 .link-btn.dim {
   color: var(--dimmer);
 }
+
+.input.icon-input {
+  flex: none !important;
+  width: 64px;
+  text-align: center;
+}

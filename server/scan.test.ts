@@ -133,6 +133,17 @@ describe('several folders', () => {
   })
 })
 
+it('hands out the icons the config gives tasks, folders and doc types', async () => {
+  const root = folder({ 'active/x/plans/plan.html': html('X') })
+  const c = config({
+    folders: [{ name: 'a', path: root, icon: '📦' }],
+    taskIcons: { 'a:x': '🚀' },
+    docTypes: [{ id: 'plan', label: 'plan', match: 'plan.html', color: 'violet', icon: '📐' }],
+  })
+  const { tree } = await scanAll(c)
+  expect([tree.folders[0].icon, tree.tasks[0].icon, tree.kinds[0].icon]).toEqual(['📦', '🚀', '📐'])
+})
+
 describe('config', () => {
   it('fills keys a config file leaves out from the defaults', () => {
     const parsed = withDefaults({ folders: [{ name: 'p', path: '~/plans' }] })

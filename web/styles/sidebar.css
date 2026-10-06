@@ -365,3 +365,57 @@
   flex: none;
   white-space: nowrap;
 }
+
+/* Icons: on a task, a docs folder, and inside a doc type's badge. */
+.task-icon {
+  flex: none;
+  margin-top: 1px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.badge-icon {
+  margin-right: 3px;
+  font-size: 1.15em;
+}
+.task {
+  position: relative;
+}
+.icon-picker {
+  position: absolute;
+  top: 46px;
+  right: 6px;
+  z-index: 30;
+  width: 236px;
+  padding: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: var(--card);
+  box-shadow: 0 12px 34px var(--shadow);
+}
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 2px;
+}
+.icon-choice {
+  padding: 4px 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font-size: 17px;
+  cursor: pointer;
+}
+.icon-choice:hover,
+.icon-choice[data-cur] {
+  background: var(--sel);
+}
+.icon-own {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.icon-own .input {
+  flex: 1;
+  padding: 5px 8px;
+}

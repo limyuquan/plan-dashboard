@@ -231,6 +231,7 @@ export function Sidebar() {
                     onClick={() => setClosedFolders((l) => toggled(l, folder.name))}
                   >
                     <Chevron dir={shut && !q ? 'right' : 'down'} className="chev" />
+                    {folder.icon && <span className="task-icon">{folder.icon}</span>}
                     <span className="docs-folder-name">{folder.name}</span>
                     <span className="docs-folder-path">{folder.label}</span>
                   </div>
