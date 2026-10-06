@@ -57,17 +57,6 @@ video {
   height: auto;
 }
 
-/* The two faint vertical rails that frame the page, as on an editor ruler. */
-.rails {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  margin: 0 auto;
-  max-width: 1340px;
-  border-left: 1px solid var(--line);
-  border-right: 1px solid var(--line);
-  z-index: 0;
-}
 main,
 .nav,
 .foot {
@@ -88,7 +77,6 @@ main,
   padding: 14px 32px;
   background: color-mix(in oklab, var(--bg) 82%, transparent);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--line);
   font-size: 13px;
 }
 .brand {
