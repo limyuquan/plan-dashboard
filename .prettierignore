@@ -4,3 +4,5 @@ package-lock.json
 skills
 site/demo
 schema
+test-results
+playwright-report

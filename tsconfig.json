@@ -14,5 +14,5 @@
     "resolveJsonModule": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["web", "server", "shared", "site/app", "site/build-llms.ts", "*.config.ts"]
+  "include": ["web", "server", "shared", "site/app", "site/build-llms.ts", "e2e", "*.config.ts"]
 }
