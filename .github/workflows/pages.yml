@@ -3,7 +3,19 @@ name: Landing page
 on:
   push:
     branches: [main]
-    paths: [site/**, web/**, shared/**, server/**, examples/**, skills/**, schema/**, README.md, CONTRIBUTING.md, .github/workflows/pages.yml]
+    paths:
+      [
+        site/**,
+        web/**,
+        shared/**,
+        server/**,
+        examples/**,
+        skills/**,
+        schema/**,
+        README.md,
+        CONTRIBUTING.md,
+        .github/workflows/pages.yml,
+      ]
   workflow_dispatch:
 
 permissions:
