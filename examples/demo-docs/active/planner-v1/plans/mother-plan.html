@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>plan-dashboard v1 — overview</title>
+<title>Planner v1 — overview</title>
 <script>/* theme before first paint: ?theme= from the dashboard wins, then the browser's memory, then dark */
 (function () { var q = new URLSearchParams(location.search).get('theme'); document.documentElement.dataset.theme = (q === 'light' || q === 'dark') ? q : (localStorage.getItem('visualise-theme') || 'dark'); })();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -302,9 +302,9 @@ details .body { padding: 12px 0 4px 2ch; }
 <div class="page">
 
   <div class="rule-top"></div>
-  <p class="kicker">Task overview<span class="sep">·</span>6 Oct 2026<span class="sep">·</span>plan-dashboard v1</p>
+  <p class="kicker">Task overview<span class="sep">·</span>6 Oct 2026<span class="sep">·</span>Planner v1</p>
   <h1 class="hero">Plans open side by side the moment an agent writes them</h1>
-  <p class="deck">plan-dashboard v1 turns a folder of agent-written plans into a live, split-pane reader. Two of four phases have shipped: a real server and command line, and the split-tree pane layout. Settings is in review, and the landing page is being built.</p>
+  <p class="deck">Planner v1 turns a folder of agent-written plans into a live, split-pane reader. Two of four phases have shipped: a real server and command line, and the split-tree pane layout. Settings is in review, and the landing page is being built.</p>
   <p class="fineprint">Built from README.md, CONTRIBUTING.md and the source in server/, shared/ and web/. Line and file counts: <code>wc -l</code> over tracked non-test files. Tests: <code>npx vitest run</code>, 28 passed in 2 files.</p>
 
   <nav class="navrow" id="navrow">
@@ -765,7 +765,7 @@ flowchart TD
         .nodeLabel,.edgeLabel,text,span{color:${v('--text')}!important;fill:${v('--text')}!important}
         .edgePath path,.flowchart-link{stroke:${v('--text-dim')}!important} marker path{fill:${v('--text-dim')}!important;stroke:${v('--text-dim')}!important}
         .edgeLabel rect,.edgeLabel span,.labelBkg{background:${v('--bg')}!important;fill:${v('--bg')}!important}`;
-      const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>plan-dashboard v1 — map</title><style>${css}</style></head><body>${clone.outerHTML}</body></html>`;
+      const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>Planner v1 — map</title><style>${css}</style></head><body>${clone.outerHTML}</body></html>`;
       open(URL.createObjectURL(new Blob([html], { type: 'text/html' })), '_blank');
     }
     async function render() {

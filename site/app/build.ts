@@ -6,25 +6,37 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'vite'
-import { DEFAULT_CONFIG } from '../../shared/config'
+import { DEFAULT_CONFIG, FALLBACK_KIND, layoutFor } from '../../shared/config'
+import { docPath, taskKey } from '../../shared/keys'
 import type { Doc } from '../../shared/types'
 import { renderMarkdown } from '../../server/markdown'
-import { scan } from '../../server/scan'
+import { scanFolder } from '../../server/scan'
 import { titleIn } from '../../server/titles'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const docsRoot = fs.realpathSync(path.resolve(here, '../../examples/demo-docs'))
 const out = path.resolve(here, '../demo')
 
+// The demo's one docs folder, as a visitor's config would name it.
+const FOLDER = 'plans'
+
 // The scripted "new plan" the demo announces a few seconds after it loads.
-const INCOMING_FOLDER = 'plan-dashboard-v1/phase-3-settings'
-const INCOMING_PATH = 'active/plan-dashboard-v1/plans/phase-3-settings/recap.md'
+const INCOMING_FOLDER = `${taskKey(FOLDER, 'planner-v1')}/phase-3-settings`
+const INCOMING_REL = 'active/planner-v1/plans/phase-3-settings/recap.md'
 const incomingSource = fs.readFileSync(path.join(here, 'incoming-recap.md'), 'utf8')
 
-const { tree, preview } = await scan(docsRoot, { ...DEFAULT_CONFIG, root: docsRoot })
-tree.root = tree.rootLabel = '~/plans'
+const folder = { name: FOLDER, path: '~/plans' }
+const layout = layoutFor(DEFAULT_CONFIG, folder)
+const scanned = await scanFolder(FOLDER, docsRoot, layout, DEFAULT_CONFIG.docTypes)
+const tree = {
+  folders: [{ name: FOLDER, root: '~/plans', label: '~/plans', settle: true }],
+  tasks: scanned.tasks,
+  collections: scanned.collections,
+  kinds: [...DEFAULT_CONFIG.docTypes.map(({ id, label, color }) => ({ id, label, color })), FALLBACK_KIND],
+}
+const preview = { ok: true, folders: [{ ...scanned.preview, label: '~/plans' }] }
 const incoming: Doc = {
-  path: INCOMING_PATH,
+  path: docPath(FOLDER, INCOMING_REL),
   file: 'recap.md',
   kind: 'md',
   title: titleIn(incomingSource, 'recap.md') ?? 'recap.md',
@@ -47,6 +59,6 @@ for (const rel of fs.readdirSync(docsRoot, { recursive: true }) as string[]) {
   if (rel.endsWith('.md')) fs.writeFileSync(`${dest}.html`, md(fs.readFileSync(src, 'utf8')))
   else fs.copyFileSync(src, dest)
 }
-const incomingDest = path.join(out, 'docs', `${INCOMING_PATH}.html`)
+const incomingDest = path.join(out, 'docs', `${INCOMING_REL}.html`)
 fs.writeFileSync(incomingDest, md(incomingSource))
 console.log(`demo built in ${path.relative(process.cwd(), out)}`)

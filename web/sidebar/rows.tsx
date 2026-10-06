@@ -103,7 +103,7 @@ type TaskRowProps = {
 export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping, drag }: TaskRowProps) {
   const here = useStore((s) => s.current === task.key || s.current.startsWith(`${task.key}/`))
   const unseen = useStore((s) => s.unseen.has(task.key))
-  const settle = useStore((s) => s.tree?.settle)
+  const settle = useStore((s) => s.tree?.folders.find((f) => f.name === task.folder)?.settle)
   const empty = !task.docs.length && !task.phases.length && !task.groups.length
   return (
     <div className="task">
@@ -134,7 +134,7 @@ export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping
             title={task.status === 'active' ? 'Move to the done folder' : 'Move back to the active folder'}
             onClick={(e) => {
               e.stopPropagation()
-              void moveTask(task.name, task.status === 'active' ? 'done' : 'active')
+              void moveTask(task.key, task.status === 'active' ? 'done' : 'active')
             }}
           >
             {task.status === 'active' ? 'settle' : 'restore'}

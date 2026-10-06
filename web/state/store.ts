@@ -25,8 +25,8 @@ export type Workspace = { key: string; task: string; num: string; docs: Doc[] }
 
 export type State = {
   tree: Tree | null
-  // Why there is no tree, when there is none and we know why.
-  problem?: string
+  // The config file's error, while the last good settings are in use.
+  configProblem?: string
   loaded: boolean
   // Every doc we can name: the tree's, plus loose ones opened by link.
   docs: Map<string, Doc>
@@ -67,6 +67,9 @@ export const useStore = create<State>(() => ({
 }))
 
 export const getState = useStore.getState
+
+// The first docs folder, whose name links leave out (see shared/keys.ts).
+export const firstFolder = () => getState().tree?.folders[0]?.name ?? ''
 export const setState = useStore.setState
 
 useStore.subscribe((now, before) => {

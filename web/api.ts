@@ -20,7 +20,7 @@ export const api = {
   move: (task: string, to: 'active' | 'done') =>
     call<{ from: string; to: string }>('/api/move', send('POST', { task, to })),
   config: () =>
-    call<{ config: Config; overrides: Partial<Pick<Config, 'root' | 'port'>>; file: string }>('/api/config'),
+    call<{ config: Config; overrides: Partial<Pick<Config, 'folders' | 'port'>>; file: string }>('/api/config'),
   saveConfig: (config: Config) => call<{ ok: true }>('/api/config', send('PUT', config)),
   preview: (config: Config) => call<Preview>('/api/config/preview', send('POST', config)),
 }

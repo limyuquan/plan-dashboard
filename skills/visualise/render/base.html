@@ -23,7 +23,7 @@
   --text: #f2f2f2;
   --text-dim: #9da5b4;
   --text-faint: #5c6370;
-  /* the one accent: purple, matching the plan dashboard (light purple on dark, dark purple on light) */
+  /* the one accent: purple, matching Planner (light purple on dark, dark purple on light) */
   --accent: #b49df0; --accent-l: #6741c4;
   --del: #f87171; --del-bg: rgba(248,113,113,.10);
   --add: #4ade80; --add-bg: rgba(74,222,128,.10);
@@ -236,7 +236,7 @@ details .body { padding: 12px 0 4px 2ch; }
   <div class="rule-top"></div>
   <p class="kicker">Component reference<span class="sep">·</span>visualise skill<span class="sep">·</span>copy what you need</p>
   <h1 class="hero">Every component, once, in the house style</h1>
-  <p class="deck">Dark canvas by default with a light mode switch that follows the plan dashboard, purple as the only accent, monospace throughout, hierarchy by size and hairlines. No shadows, gradients, icons, or rounded panels. Emoji only inside ELI5 pictures.</p>
+  <p class="deck">Dark canvas by default with a light mode switch that follows Planner, purple as the only accent, monospace throughout, hierarchy by size and hairlines. No shadows, gradients, icons, or rounded panels. Emoji only inside ELI5 pictures.</p>
   <p class="fineprint">The hero block above is: .rule-top, .kicker, h1.hero, .deck, .fineprint. Every page starts this way, with the .theme-toggle button fixed top right.</p>
 
   <nav class="navrow" id="navrow">
@@ -405,7 +405,7 @@ details .body { padding: 12px 0 4px 2ch; }
 
 <script>
 (function () {
-  // theme: the switch, the browser's memory, and the plan dashboard all agree.
+  // theme: the switch, the browser's memory, and Planner all agree.
   // Dashboard -> page: {type:'plan-theme', theme} via postMessage. Page -> dashboard: the same message, sent on click.
   const root = document.documentElement, btn = document.getElementById('themeToggle');
   const setTheme = t => { root.dataset.theme = t; localStorage.setItem('visualise-theme', t); if (btn) btn.textContent = t === 'light' ? 'dark mode' : 'light mode'; };

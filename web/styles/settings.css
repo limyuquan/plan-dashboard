@@ -255,3 +255,35 @@
 .setup-card .btn {
   align-self: flex-start;
 }
+
+/* One docs folder in the settings page. */
+.folder-card {
+  margin-bottom: 12px;
+  padding: 12px 14px 2px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.folder-card .field-row {
+  align-items: flex-start;
+}
+.folder-remove {
+  margin-top: 24px;
+}
+.folder-layout {
+  margin: 0 0 10px;
+  padding: 10px 0 0 14px;
+  border-left: 2px solid var(--line-strong);
+}
+.preview-folder + .preview-folder {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.preview-folder-name {
+  margin: 0 0 8px !important;
+  font-size: 13px !important;
+}
+.preview-folder-name span {
+  color: var(--dimmer);
+  font-weight: 400;
+}

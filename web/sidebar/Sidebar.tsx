@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Doc, Task } from '../../shared/types'
+import type { Doc, DocsFolderInfo, Task } from '../../shared/types'
 import { trackMouse } from '../drag'
 import { useStore, setState } from '../state/store'
 import { toggleTheme, useTheme } from '../theme'
@@ -49,6 +49,9 @@ export function Sidebar() {
   const [openFolders, setOpenFolders] = usePersisted<string[]>('sidebar.openFolders', [])
   const [openSections, setOpenSections] = usePersisted<string[]>('sidebar.openSections', [])
   const [order, setOrder] = usePersisted<string[]>('sidebar.taskOrder', [])
+  // Docs folder sections start open; this holds the ones you shut.
+  const [closedFolders, setClosedFolders] = usePersisted<string[]>('sidebar.closedFolders', [])
+  const configProblem = useStore((s) => s.configProblem)
   const [dragTask, setDragTask] = useState<string | null>(null)
   const [overTask, setOverTask] = useState<string | null>(null)
 
@@ -71,12 +74,12 @@ export function Sidebar() {
   }
 
   const q = query.trim().toLowerCase()
+  const folders = tree?.folders ?? []
+  const many = folders.length > 1
   const tasks = (tree?.tasks ?? []).map((t) => filterTask(t, q)).filter((t): t is Task => !!t)
   // Tasks you dragged into place keep that place; the rest follow, newest first.
   const rank = (key: string) => order.indexOf(key)
   const sorted = (list: Task[]) => [...list].sort((a, b) => rank(a.key) - rank(b.key))
-  const active = sorted(tasks.filter((t) => t.status !== 'done'))
-  const done = sorted(tasks.filter((t) => t.status === 'done'))
 
   // Dropping task A on task B puts A where B was, within its own section.
   const reorder = (target: string, list: Task[]) => {
@@ -126,6 +129,44 @@ export function Sidebar() {
     onToggle: () => setOpenSections((l) => toggled(l, id)),
   })
 
+  // One docs folder: its active tasks, its settled ones, its collections.
+  const folderBody = (folder: DocsFolderInfo) => {
+    const own = tasks.filter((t) => t.folder === folder.name)
+    const active = sorted(own.filter((t) => t.status !== 'done'))
+    const done = sorted(own.filter((t) => t.status === 'done'))
+    const settled = section(`settled:${folder.name}`)
+    return (
+      <>
+        {folder.problem && <div className="side-problem">{folder.problem}</div>}
+        <div className="side-label">{folder.settle ? 'Active' : 'Tasks'}</div>
+        {taskRows(active)}
+        {!active.length && !folder.problem && (
+          <div className="empty-note">{q ? 'nothing matches' : 'no tasks yet'}</div>
+        )}
+        {folder.settle && (
+          <>
+            <Fold label="Settled" {...settled} />
+            {(settled.open || q) && taskRows(done)}
+          </>
+        )}
+        {tree?.collections
+          .filter((c) => c.folder === folder.name)
+          .map((c) => {
+            const docs = c.docs.filter((d) => !q || docHit(q)(d))
+            const s = section(`collection:${folder.name}:${c.label}`)
+            return (
+              docs.length > 0 && (
+                <div key={c.label}>
+                  <Fold label={c.label} {...s} />
+                  {(s.open || q) && docs.map((d) => <DocRow key={d.path} doc={d} />)}
+                </div>
+              )
+            )
+          })}
+      </>
+    )
+  }
+
   return (
     <aside className="sidebar" style={{ width }}>
       <div className="side-head">
@@ -145,32 +186,34 @@ export function Sidebar() {
         </button>
       </div>
       <div className="side-scroll">
-        <div className="side-label">{tree?.settle ? 'Active' : 'Tasks'}</div>
-        {taskRows(active)}
-        {!active.length && <div className="empty-note">{q ? 'nothing matches' : 'no tasks yet'}</div>}
-
-        {tree?.settle && (
-          <>
-            <Fold label="Settled" {...section('settled')} />
-            {(section('settled').open || q) && taskRows(done)}
-          </>
+        {configProblem && (
+          <div className="side-problem" title={configProblem}>
+            The config file has an error, so the last good settings are in use. Open settings, or run{' '}
+            <code>planner config check</code>.
+          </div>
         )}
-
-        {tree?.collections.map((c) => {
-          const docs = c.docs.filter((d) => !q || docHit(q)(d))
-          const s = section(`collection:${c.label}`)
-          return (
-            docs.length > 0 && (
-              <div key={c.label}>
-                <Fold label={c.label} {...s} />
-                {(s.open || q) && docs.map((d) => <DocRow key={d.path} doc={d} />)}
-              </div>
-            )
-          )
-        })}
+        {many
+          ? folders.map((folder) => {
+              const shut = closedFolders.includes(folder.name)
+              return (
+                <div className="docs-folder" key={folder.name}>
+                  <div
+                    className="docs-folder-head"
+                    title={folder.root}
+                    onClick={() => setClosedFolders((l) => toggled(l, folder.name))}
+                  >
+                    <Chevron dir={shut && !q ? 'right' : 'down'} className="chev" />
+                    <span className="docs-folder-name">{folder.name}</span>
+                    <span className="docs-folder-path">{folder.label}</span>
+                  </div>
+                  {(!shut || q) && folderBody(folder)}
+                </div>
+              )
+            })
+          : folders[0] && folderBody(folders[0])}
       </div>
-      <div className="side-foot" title={tree?.root}>
-        {tree?.rootLabel}
+      <div className="side-foot" title={folders.map((f) => f.root).join('\n')}>
+        {many ? `${folders.length} docs folders` : folders[0]?.label}
       </div>
       <div
         className="side-resize"

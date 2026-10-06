@@ -1,0 +1,318 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "folders": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$",
+            "description": "Short name shown in the sidebar and in links, e.g. \"my-app\"."
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Absolute path to the docs folder; ~ means the home folder."
+          },
+          "statusFolders": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "active": {
+                    "type": "string",
+                    "pattern": "^[^/\\\\]+$"
+                  },
+                  "done": {
+                    "type": "string",
+                    "pattern": "^[^/\\\\]+$"
+                  }
+                },
+                "required": [
+                  "active",
+                  "done"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Folders that hold active and finished tasks, e.g. {\"active\":\"active\",\"done\":\"done\"}; null if tasks sit directly in the docs folder."
+          },
+          "plansFolder": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[^/\\\\]+$"
+              },
+              {
+                "type": "string",
+                "const": ""
+              }
+            ],
+            "description": "Folder inside each task that holds its plans, e.g. \"plans\"; \"\" if plans sit in the task folder."
+          },
+          "phasePattern": {
+            "type": "string",
+            "description": "Regular expression for phase folder names; (?<num>...) captures the number, (?<slug>...) the name."
+          },
+          "fileTypes": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+$"
+            },
+            "description": "Extensions to show, without the dot, e.g. [\"html\",\"md\"]."
+          },
+          "groups": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Section name in the sidebar, e.g. \"Research\"."
+                },
+                "folder": {
+                  "type": "string",
+                  "pattern": "^[^/\\\\]+$",
+                  "description": "Folder name inside each task, e.g. \"research\"."
+                },
+                "fileTypes": {
+                  "description": "Extensions to list here; defaults to fileTypes.",
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9]+$"
+                  }
+                }
+              },
+              "required": [
+                "label",
+                "folder"
+              ]
+            },
+            "description": "Extra folders inside each task that get their own sidebar section."
+          },
+          "collections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Section name in the sidebar, e.g. \"Weekly\"."
+                },
+                "path": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "Path pattern inside the docs folder; * matches one name, e.g. \"weekly/*/*.html\"."
+                },
+                "newestFirst": {
+                  "default": true,
+                  "description": "Newest first; otherwise sorted by path.",
+                  "type": "boolean"
+                },
+                "notify": {
+                  "default": false,
+                  "description": "Show a notification when a new one appears.",
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "label",
+                "path"
+              ]
+            },
+            "description": "Docs outside any task, listed by a path pattern."
+          }
+        },
+        "required": [
+          "name",
+          "path"
+        ],
+        "additionalProperties": false
+      },
+      "description": "The docs folders to read. Each may override any layout key below for itself."
+    },
+    "port": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "description": "Port Planner listens on (default 4173)."
+    },
+    "statusFolders": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "active": {
+              "type": "string",
+              "pattern": "^[^/\\\\]+$"
+            },
+            "done": {
+              "type": "string",
+              "pattern": "^[^/\\\\]+$"
+            }
+          },
+          "required": [
+            "active",
+            "done"
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Folders that hold active and finished tasks, e.g. {\"active\":\"active\",\"done\":\"done\"}; null if tasks sit directly in the docs folder."
+    },
+    "plansFolder": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^[^/\\\\]+$"
+        },
+        {
+          "type": "string",
+          "const": ""
+        }
+      ],
+      "description": "Folder inside each task that holds its plans, e.g. \"plans\"; \"\" if plans sit in the task folder."
+    },
+    "phasePattern": {
+      "type": "string",
+      "description": "Regular expression for phase folder names; (?<num>...) captures the number, (?<slug>...) the name."
+    },
+    "fileTypes": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+$"
+      },
+      "description": "Extensions to show, without the dot, e.g. [\"html\",\"md\"]."
+    },
+    "groups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Section name in the sidebar, e.g. \"Research\"."
+          },
+          "folder": {
+            "type": "string",
+            "pattern": "^[^/\\\\]+$",
+            "description": "Folder name inside each task, e.g. \"research\"."
+          },
+          "fileTypes": {
+            "description": "Extensions to list here; defaults to fileTypes.",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9]+$"
+            }
+          }
+        },
+        "required": [
+          "label",
+          "folder"
+        ]
+      },
+      "description": "Extra folders inside each task that get their own sidebar section."
+    },
+    "collections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Section name in the sidebar, e.g. \"Weekly\"."
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Path pattern inside the docs folder; * matches one name, e.g. \"weekly/*/*.html\"."
+          },
+          "newestFirst": {
+            "default": true,
+            "description": "Newest first; otherwise sorted by path.",
+            "type": "boolean"
+          },
+          "notify": {
+            "default": false,
+            "description": "Show a notification when a new one appears.",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "label",
+          "path"
+        ]
+      },
+      "description": "Docs outside any task, listed by a path pattern."
+    },
+    "docTypes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$",
+            "description": "Stable id, never shown."
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 12,
+            "description": "The badge text, e.g. \"plan\"."
+          },
+          "match": {
+            "type": "string",
+            "minLength": 1,
+            "description": "File name pattern; * matches anything, e.g. \"eli5*.html\"."
+          },
+          "color": {
+            "type": "string",
+            "enum": [
+              "grey",
+              "violet",
+              "blue",
+              "teal",
+              "green",
+              "amber",
+              "orange",
+              "pink",
+              "red"
+            ],
+            "description": "Badge colour."
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "match",
+          "color"
+        ]
+      },
+      "description": "Badges by file name. A file takes the first match; the order is also the reading order."
+    }
+  },
+  "additionalProperties": false,
+  "title": "Planner config",
+  "description": "Settings for Planner: which docs folders to read, and how they are organised."
+}

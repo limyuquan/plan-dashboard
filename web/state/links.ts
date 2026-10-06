@@ -1,7 +1,8 @@
 import type { Doc } from '../../shared/types'
 import { api } from '../api'
 import { findPane } from '../layout/model'
-import { getState, setState, useStore } from './store'
+import { docParam, docPathFromParam, wsKey, wsParam } from '../../shared/keys'
+import { firstFolder, getState, setState, useStore } from './store'
 import { pushToast } from './toasts'
 import { currentLayout, enter, firstLanding, openDoc, openInWorkspace } from './workspaces'
 
@@ -57,8 +58,11 @@ export async function describe(path: string): Promise<Doc | null> {
   }
 }
 
-export async function followLink({ ws, plan, doc }: Link) {
+export async function followLink(link: Link) {
   const { tree, workspaces, current } = getState()
+  const { plan } = link
+  const doc = link.doc && docPathFromParam(link.doc, firstFolder())
+  const ws = link.ws && wsKey(link.ws, firstFolder())
   if (doc) {
     const found = await describe(doc)
     if (!found) return
@@ -68,12 +72,12 @@ export async function followLink({ ws, plan, doc }: Link) {
   }
   const space = workspaces.get(ws)
   if (!space) {
-    pushToast({ text: 'No workspace by that name', detail: ws })
+    pushToast({ text: 'No workspace by that name', detail: link.ws })
     if (!workspaces.has(current)) enter(firstLanding(tree))
     return
   }
   const found = plan ? resolvePlan(space.docs, plan) : null
-  if (plan && !found) pushToast({ text: 'No plan by that name', detail: `${plan} in ${ws}` })
+  if (plan && !found) pushToast({ text: 'No plan by that name', detail: `${plan} in ${link.ws}` })
   if (found) openInWorkspace(found.path)
   else enter(ws)
 }
@@ -103,15 +107,16 @@ export async function followHref(href: string) {
 function writeUrl() {
   const { current, focus, docs } = getState()
   if (!current) return
-  const params = new URLSearchParams({ ws: current })
+  const first = firstFolder()
+  const params = new URLSearchParams({ ws: wsParam(current, first) })
   const active = findPane(currentLayout(), focus)?.active
   if (active) {
     const doc = docs.get(active)
     if (doc?.ws === current) params.set('plan', doc.file)
-    else params.set('doc', active)
+    else params.set('doc', docParam(active, first))
   }
-  // Slashes stay readable, so the link can be read and typed as well as pasted.
-  const next = `${location.pathname}?${params.toString().replace(/%2F/gi, '/')}`
+  // Slashes and folder colons stay readable, so the link can be read and typed as well as pasted.
+  const next = `${location.pathname}?${params.toString().replace(/%2F/gi, '/').replace(/%3A/gi, ':')}`
   if (next !== location.pathname + location.search) history.replaceState(null, '', next)
 }
 

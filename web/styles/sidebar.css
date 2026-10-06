@@ -318,3 +318,50 @@
 .folder-row:hover .copy-btn {
   opacity: 1;
 }
+
+/* With several docs folders, each gets a section headed by its name. */
+.docs-folder + .docs-folder {
+  margin-top: 10px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+.docs-folder-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 10px 8px 4px;
+  cursor: pointer;
+  user-select: none;
+}
+.docs-folder-head .chev {
+  align-self: center;
+  margin-top: 0;
+}
+.docs-folder-name {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.docs-folder-path {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--dimmer);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.side-problem {
+  margin: 6px 4px 10px;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in oklab, var(--danger) 45%, var(--line));
+  border-radius: 7px;
+  background: color-mix(in oklab, var(--danger) 9%, transparent);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.docs-folder-name {
+  flex: none;
+  white-space: nowrap;
+}

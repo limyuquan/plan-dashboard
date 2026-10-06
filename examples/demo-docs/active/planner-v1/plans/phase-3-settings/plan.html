@@ -302,7 +302,7 @@ details .body { padding: 12px 0 4px 2ch; }
 <div class="page">
 
   <div class="rule-top"></div>
-  <p class="kicker">Implementation plan<span class="sep">·</span>Phase 3 of plan-dashboard v1<span class="sep">·</span>configurable folder conventions</p>
+  <p class="kicker">Implementation plan<span class="sep">·</span>Phase 3 of Planner v1<span class="sep">·</span>configurable folder conventions</p>
   <h1 class="hero">Your folder layout becomes a setting, not a code change</h1>
   <p class="deck">Today the dashboard only reads one folder shape: <code>active/</code> and <code>done/</code>, a <code>plans/</code> folder, <code>phase-1-…</code> folders, and a fixed list of file names. This phase moves every one of those rules into a single JSON file with a settings page on top, so the dashboard reads the folder you already have. The browser stops guessing where a doc belongs; the server tells it.</p>
   <p class="fineprint">Written before implementation, from the phase brief and the code it hooks into: <code>shared/config.ts</code>, <code>server/config.ts</code>, <code>server/scan.ts</code>, <code>server/routes/config.ts</code>, <code>web/settings/</code>. Line references point at the tree as it will look once built; counts from <code>wc -l</code> and <code>grep -c "it("</code>.</p>
@@ -332,7 +332,7 @@ details .body { padding: 12px 0 4px 2ch; }
     <div class="compare">
       <div><div class="big dim">11</div><div class="c">places the folder rules live today</div></div>
       <div class="vs">→</div>
-      <div><div class="big accent">1</div><div class="c">file: <code>~/.config/plan-dashboard/config.json</code></div></div>
+      <div><div class="big accent">1</div><div class="c">file: <code>~/.config/planner/config.json</code></div></div>
     </div>
     <div class="dots">
       <div><div class="dotgrid" data-count="11" data-on="0" style="--cols:11"></div><div class="c">hard-coded copies, counting each regex and sort order</div></div>
@@ -383,7 +383,7 @@ details .body { padding: 12px 0 4px 2ch; }
       <div class="row">
         <div class="lab">A · server</div>
         <div><span class="t"><code>server/config.ts</code></span> <span class="meta"><code>ConfigStore</code>: load, save, watch. 82 lines.</span>
-          <p><strong>The file on disk, plus this run's flags.</strong> The path is <code>~/.config/plan-dashboard/config.json</code>, or under <code>$XDG_CONFIG_HOME</code> (server/config.ts:7). <code>current</code> merges the saved file with <code>--root</code>/<code>--port</code> (server/config.ts:23); <code>stored</code> returns the file alone, which is what the settings page edits (server/config.ts:29). Saves write a temp file and rename it (server/config.ts:57). Hand edits are noticed by <code>watch()</code> (server/config.ts:67).</p></div>
+          <p><strong>The file on disk, plus this run's flags.</strong> The path is <code>~/.config/planner/config.json</code>, or under <code>$XDG_CONFIG_HOME</code> (server/config.ts:7). <code>current</code> merges the saved file with <code>--root</code>/<code>--port</code> (server/config.ts:23); <code>stored</code> returns the file alone, which is what the settings page edits (server/config.ts:29). Saves write a temp file and rename it (server/config.ts:57). Hand edits are noticed by <code>watch()</code> (server/config.ts:67).</p></div>
       </div>
       <div class="row">
         <div class="lab">M · server</div>

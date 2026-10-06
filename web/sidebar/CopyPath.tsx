@@ -1,10 +1,12 @@
 import { useState } from 'react'
+import { splitDocPath } from '../../shared/keys'
 import { useStore } from '../state/store'
 
-// Copies the absolute path of a file or folder under the docs root, ready to
+// Copies the absolute path of a file or folder in a docs folder, ready to
 // paste into a terminal or hand to an agent, and says so for a moment.
 export function CopyPath({ path, className, title }: { path: string; className: string; title: string }) {
-  const root = useStore((s) => s.tree?.root ?? '')
+  const { folder, rel } = splitDocPath(path)
+  const root = useStore((s) => s.tree?.folders.find((f) => f.name === folder)?.root)
   const [done, setDone] = useState(false)
   return (
     <span
@@ -12,7 +14,7 @@ export function CopyPath({ path, className, title }: { path: string; className: 
       title={title}
       onClick={(e) => {
         e.stopPropagation()
-        void navigator.clipboard.writeText(root ? `${root}/${path}` : path)
+        void navigator.clipboard.writeText(root ? `${root}/${rel}` : path)
         setDone(true)
         setTimeout(() => setDone(false), 1200)
       }}

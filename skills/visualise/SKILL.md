@@ -8,7 +8,7 @@ description: Produce a self-contained HTML page in the house style — implement
 The main thread never writes the HTML. It briefs one render subagent and links the result.
 
 1. **Pick the mode**: `plan` (before implementation), `recap` (after), `explore` (codebase map), `explain` (one concept), `eli5` (standalone picture page), `diff-review` (selectable findings).
-2. **Resolve the output path.** In a plan-dashboard docs folder: `plan.html`, `eli5.html`, `recap.html` in the phase folder; whole-task pages in the task's `plans/` folder; anything else where the user says. Existing files are updated in place.
+2. **Resolve the output path.** In a Planner docs folder: `plan.html`, `eli5.html`, `recap.html` in the phase folder; whole-task pages in the task's `plans/` folder; anything else where the user says. Existing files are updated in place.
 3. **Spawn one subagent** (a capable model; the page is long and the guide is detailed). Its prompt contains, in this order:
    - "Read `render/GUIDE.md` in the visualise skill folder first and follow it." (give the absolute path)
    - the mode, the title, the exact output path

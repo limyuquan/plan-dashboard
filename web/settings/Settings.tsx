@@ -1,66 +1,88 @@
 import { useEffect, useState } from 'react'
-import { FALLBACK_KIND, type Config } from '../../shared/config'
-import type { Preview } from '../../shared/types'
+import { FALLBACK_KIND, type Config, type DocsFolder } from '../../shared/config'
+import type { FolderPreview, Preview } from '../../shared/types'
 import { api } from '../api'
 import { setState } from '../state/store'
 import { pushToast } from '../state/toasts'
-import { CollectionsSection, DocTypesSection, FolderSection, GroupsSection, ServerSection } from './sections'
+import { CollectionsSection, DocTypesSection, FoldersSection, GroupsSection, ServerSection } from './sections'
 
-// How the draft config reads the docs folder, refreshed as you type. This is
-// what makes the folder rules debuggable: you see what they match right away.
+// What one folder's rules find.
+function FolderFinds({ f, draft, many }: { f: FolderPreview; draft: Config; many: boolean }) {
+  const skipped = Object.entries(f.skipped)
+  return (
+    <div className="preview-folder">
+      {many && (
+        <h4 className="preview-folder-name">
+          {f.name} <span>{f.label}</span>
+        </h4>
+      )}
+      {f.problem ? (
+        <p className="preview-error">{f.problem}</p>
+      ) : (
+        <>
+          <div className="preview-counts">
+            <span>
+              <b>{f.tasks}</b> tasks
+            </span>
+            <span>
+              <b>{f.phases}</b> phases
+            </span>
+            <span>
+              <b>{f.docs}</b> docs
+            </span>
+          </div>
+          <ul className="preview-list">
+            {Object.entries(f.byKind).map(([kind, n]) => {
+              const type = draft.docTypes.find((t) => t.id === kind) ?? FALLBACK_KIND
+              return (
+                <li key={kind}>
+                  {n} ×{' '}
+                  <span className="badge" data-color={type.color}>
+                    {type.label}
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+          {f.unnumbered.length > 0 && (
+            <>
+              <h4>Folders not matching the phase pattern</h4>
+              <ul className="preview-list mono">
+                {f.unnumbered.slice(0, 12).map((u) => (
+                  <li key={u}>{u}</li>
+                ))}
+              </ul>
+            </>
+          )}
+          {skipped.length > 0 && (
+            <>
+              <h4>Files left out (type not listed)</h4>
+              <ul className="preview-list mono">
+                {skipped.map(([ext, n]) => (
+                  <li key={ext}>
+                    {n} × .{ext}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </>
+      )}
+    </div>
+  )
+}
+
+// How the draft config reads its folders, refreshed as you type. This is what
+// makes the folder rules debuggable: you see what they match right away.
 function PreviewPanel({ preview, draft }: { preview: Preview | null; draft: Config }) {
   if (!preview) return <aside className="preview">Reading…</aside>
   if (!preview.ok) return <aside className="preview preview-error">{preview.error}</aside>
-  const skipped = Object.entries(preview.skipped)
   return (
     <aside className="preview">
       <h3>What this finds</h3>
-      <div className="preview-counts">
-        <span>
-          <b>{preview.tasks}</b> tasks
-        </span>
-        <span>
-          <b>{preview.phases}</b> phases
-        </span>
-        <span>
-          <b>{preview.docs}</b> docs
-        </span>
-      </div>
-      <ul className="preview-list">
-        {Object.entries(preview.byKind).map(([kind, n]) => {
-          const type = draft.docTypes.find((t) => t.id === kind) ?? FALLBACK_KIND
-          return (
-            <li key={kind}>
-              {n} ×{' '}
-              <span className="badge" data-color={type.color}>
-                {type.label}
-              </span>
-            </li>
-          )
-        })}
-      </ul>
-      {preview.unnumbered.length > 0 && (
-        <>
-          <h4>Folders not matching the phase pattern</h4>
-          <ul className="preview-list mono">
-            {preview.unnumbered.slice(0, 12).map((f) => (
-              <li key={f}>{f}</li>
-            ))}
-          </ul>
-        </>
-      )}
-      {skipped.length > 0 && (
-        <>
-          <h4>Files left out (type not listed)</h4>
-          <ul className="preview-list mono">
-            {skipped.map(([ext, n]) => (
-              <li key={ext}>
-                {n} × .{ext}
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
+      {preview.folders.map((f) => (
+        <FolderFinds key={f.name} f={f} draft={draft} many={preview.folders.length > 1} />
+      ))}
     </aside>
   )
 }
@@ -68,7 +90,7 @@ function PreviewPanel({ preview, draft }: { preview: Preview | null; draft: Conf
 export function Settings() {
   const [saved, setSaved] = useState<Config | null>(null)
   const [file, setFile] = useState('')
-  const [runRoot, setRunRoot] = useState<string | undefined>()
+  const [runFolders, setRunFolders] = useState<DocsFolder[] | undefined>()
   const [draft, setDraft] = useState<Config | null>(null)
   const [preview, setPreview] = useState<Preview | null>(null)
   const [error, setError] = useState('')
@@ -76,12 +98,12 @@ export function Settings() {
 
   useEffect(() => {
     api.config().then(({ config, overrides, file }) => {
-      // A folder given with --root is the natural one to save when the file has none.
-      const start = { ...config, root: config.root ?? overrides.root ?? null }
+      // Folders given with --root are the natural ones to save when the file has none.
+      const start = { ...config, folders: config.folders.length ? config.folders : (overrides.folders ?? []) }
       setSaved(start)
       setDraft(start)
       setFile(file)
-      setRunRoot(overrides.root ?? undefined)
+      setRunFolders(overrides.folders)
     })
   }, [])
 
@@ -123,7 +145,7 @@ export function Settings() {
         </header>
         <div className="settings-body">
           <div className="settings-form">
-            <FolderSection draft={draft} set={set} runRoot={runRoot} />
+            <FoldersSection draft={draft} set={set} runFolders={runFolders} />
             <DocTypesSection draft={draft} set={set} />
             <GroupsSection draft={draft} set={set} />
             <CollectionsSection draft={draft} set={set} />

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { nameForPath } from '../../shared/config'
 import { api } from '../api'
 import { useStore } from '../state/store'
 import { refresh } from '../state/tree'
@@ -6,7 +7,7 @@ import { refresh } from '../state/tree'
 // First run, or the docs folder has gone: ask where the docs are. Everything
 // else starts from the defaults and can be changed in Settings later.
 export function Setup() {
-  const problem = useStore((s) => s.problem)
+  const problem = useStore((s) => s.configProblem)
   const [root, setRoot] = useState('')
   const [error, setError] = useState('')
 
@@ -14,10 +15,10 @@ export function Setup() {
     e.preventDefault()
     try {
       const { config } = await api.config()
-      await api.saveConfig({ ...config, root: root.trim() })
+      await api.saveConfig({ ...config, folders: [{ name: nameForPath(root.trim()), path: root.trim() }] })
       await refresh()
     } catch (err) {
-      setError((err as Error).message.replace(/^root: /, ''))
+      setError((err as Error).message.replace(/^folders[.\d]*path: /, ''))
     }
   }
 
@@ -28,7 +29,7 @@ export function Setup() {
         <p>
           Pick the folder that holds your plan docs. By default the dashboard expects <code>active/</code> and{' '}
           <code>done/</code> folders of tasks, each with a <code>plans/</code> folder of <code>phase-1-…</code> folders;
-          you can change all of that in Settings afterwards.
+          you can change all of that, and add more folders, in Settings afterwards.
         </p>
         {problem && <p className="form-error">{problem}</p>}
         <input

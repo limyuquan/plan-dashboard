@@ -1,22 +1,16 @@
-import { COLORS, type Config, type DocType } from '../../shared/config'
+import { COLORS, layoutFor, type Config, type DocType, type DocsFolder } from '../../shared/config'
 import { Field, ListEditor, Text, listText, textList } from './fields'
 
 type Props = { draft: Config; set: (patch: Partial<Config>) => void }
 
-export function FolderSection({ draft, set, runRoot }: Props & { runRoot?: string }) {
-  const status = draft.statusFolders
-  const hint =
-    runRoot && runRoot !== draft.root
-      ? `Absolute path; ~ is your home folder. This run reads ${runRoot}, given with --root.`
-      : 'Absolute path; ~ is your home folder.'
-  return (
-    <section className="settings-section">
-      <h3>Docs folder</h3>
-      <Field label="Folder" hint={hint}>
-        <Text value={draft.root ?? ''} onChange={(root) => set({ root })} placeholder="~/notes/plans" mono />
-      </Field>
+type Layout = Pick<Config, 'statusFolders' | 'plansFolder' | 'phasePattern' | 'fileTypes'>
+const LAYOUT_KEYS = ['statusFolders', 'plansFolder', 'phasePattern', 'fileTypes'] as const
 
-      <h3>How it is organised</h3>
+// How a docs folder is organised: for every folder, or one folder's own.
+function LayoutFields({ value, set }: { value: Layout; set: (patch: Partial<Layout>) => void }) {
+  const status = value.statusFolders
+  return (
+    <>
       <label className="check">
         <input
           type="checkbox"
@@ -37,7 +31,7 @@ export function FolderSection({ draft, set, runRoot }: Props & { runRoot?: strin
       )}
       <Field label="Plans folder inside each task" hint="Leave empty if a task keeps its plans in its own folder.">
         <Text
-          value={draft.plansFolder}
+          value={value.plansFolder}
           onChange={(plansFolder) => set({ plansFolder })}
           placeholder="(the task folder)"
           mono
@@ -52,14 +46,86 @@ export function FolderSection({ draft, set, runRoot }: Props & { runRoot?: strin
           </>
         }
       >
-        <Text value={draft.phasePattern} onChange={(phasePattern) => set({ phasePattern })} mono />
+        <Text value={value.phasePattern} onChange={(phasePattern) => set({ phasePattern })} mono />
       </Field>
       <Field
         label="File types"
         hint="Extensions to show. html and md render specially; others open as the browser shows them (pdf, txt, png…)."
       >
-        <Text value={listText(draft.fileTypes)} onChange={(t) => set({ fileTypes: textList(t) })} mono />
+        <Text value={listText(value.fileTypes)} onChange={(t) => set({ fileTypes: textList(t) })} mono />
       </Field>
+    </>
+  )
+}
+
+const ownLayout = (f: DocsFolder) => LAYOUT_KEYS.some((k) => f[k] !== undefined)
+
+export function FoldersSection({ draft, set, runFolders }: Props & { runFolders?: DocsFolder[] }) {
+  const update = (i: number, next: DocsFolder) => set({ folders: draft.folders.map((f, j) => (j === i ? next : f)) })
+  return (
+    <section className="settings-section">
+      <h3>Docs folders</h3>
+      <p className="section-hint">
+        Every folder your agents write plans into, each with its own section in the sidebar. The name shows in links to
+        its docs; the first folder's links leave it out.
+        {runFolders?.length ? ` This run reads ${runFolders.map((f) => f.path).join(', ')}, given with --root.` : ''}
+      </p>
+      {draft.folders.map((folder, i) => (
+        <div className="folder-card" key={i}>
+          <div className="field-row">
+            <Field label="Name">
+              <Text value={folder.name} onChange={(name) => update(i, { ...folder, name })} placeholder="my-app" mono />
+            </Field>
+            <Field label="Path" hint="~ is your home folder.">
+              <Text
+                value={folder.path}
+                onChange={(path) => update(i, { ...folder, path })}
+                placeholder="~/notes/plans"
+                mono
+              />
+            </Field>
+            <button
+              className="mini-btn danger folder-remove"
+              title="Remove this folder"
+              onClick={() => set({ folders: draft.folders.filter((_, j) => j !== i) })}
+            >
+              ×
+            </button>
+          </div>
+          <label className="check">
+            <input
+              type="checkbox"
+              checked={ownLayout(folder)}
+              onChange={(e) => {
+                const rest = Object.fromEntries(
+                  Object.entries(folder).filter(([k]) => !(LAYOUT_KEYS as readonly string[]).includes(k)),
+                )
+                const own = Object.fromEntries(LAYOUT_KEYS.map((k) => [k, draft[k]]))
+                update(i, (e.target.checked ? { ...rest, ...own } : rest) as DocsFolder)
+              }}
+            />
+            Organised differently from the layout below
+          </label>
+          {ownLayout(folder) && (
+            <div className="folder-layout">
+              <LayoutFields
+                value={{ ...layoutFor(draft, folder) }}
+                set={(patch) => update(i, { ...folder, ...patch })}
+              />
+            </div>
+          )}
+        </div>
+      ))}
+      <button
+        className="link-btn"
+        onClick={() => set({ folders: [...draft.folders, { name: `folder-${draft.folders.length + 1}`, path: '' }] })}
+      >
+        + Add a docs folder
+      </button>
+
+      <h3>How folders are organised</h3>
+      <p className="section-hint">Used by every folder that does not have its own layout.</p>
+      <LayoutFields value={draft} set={set} />
     </section>
   )
 }

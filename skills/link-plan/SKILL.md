@@ -1,6 +1,6 @@
 ---
 name: link-plan
-description: Show the user a markdown or HTML plan in their plan-dashboard instead of giving them a file path. Use whenever you point the user at a plan, recap, ELI5, explainer, or any other doc in the docs folder.
+description: Show the user a markdown or HTML plan in Planner instead of giving them a file path. Use whenever you point the user at a plan, recap, ELI5, explainer, or any other doc in the docs folder.
 ---
 
 # link-plan
@@ -8,7 +8,7 @@ description: Show the user a markdown or HTML plan in their plan-dashboard inste
 Send the doc to the dashboard tab the user already has open — a clicked link would open yet another tab:
 
 ```bash
-plan-dashboard open '<url>'
+planner open '<url>'
 ```
 
 It starts the dashboard if it is down, and opens a tab only when no dashboard is running. Put the same URL in your message too, so it can be reopened later.

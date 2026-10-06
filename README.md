@@ -1,4 +1,4 @@
-# plan-dashboard
+# Planner
 
 Read a folder of HTML and Markdown plans side by side, in split panes, and see new ones the moment they are written.
 
@@ -7,7 +7,7 @@ write into and keep it open next to your editor.
 
 **[Website](https://limyuquan.github.io/plan-dashboard/)** · [Install](#quick-start) · [Agent skills](#agent-skills)
 
-![plan-dashboard showing three plans of one phase side by side](docs/screenshot.png)
+![Planner showing three plans of one phase side by side](docs/screenshot.png)
 
 - **Split panes** like an editor: split any pane right or down, drag tabs between panes and onto any edge, resize
   freely.
@@ -15,7 +15,7 @@ write into and keep it open next to your editor.
   arrangement is remembered per phase.
 - **Live**: new plans raise a notification, edited plans reload in place, and scroll positions are kept.
 - **Linkable**: the address bar always names the plan on screen, so a link can be pasted into a chat or written into
-  another plan — and `plan-dashboard open <link>` shows it in the tab you already have open.
+  another plan — and `planner open <link>` shows it in the tab you already have open.
 - **Your folder layout**: folder names, phase naming and file types are settings, not code.
 
 ## Why I built this
@@ -42,12 +42,15 @@ npm run build
 node dist/cli.js --root examples/demo-docs    # try it on the demo folder
 ```
 
-Run it without `--root` to choose your own docs folder in the browser. `npm link` puts a `plan-dashboard` command on
-your path.
+Run it without `--root` to choose your docs folder in the browser, or add folders with `planner config add <folder>`
+(`npm link` puts the `planner` command on your path). Or let your agent do it: give it the
+[`planner-setup`](skills/planner-setup) skill and ask it to set Planner up.
 
 ## How your docs are read
 
-By default the dashboard expects this layout, all of which can be changed in **Settings** (⚙):
+Planner reads one or more **docs folders**, for example one per project, each with its own section in the sidebar. By
+default it expects each folder laid out like this; all of it can be changed, for every folder or for one, in **Settings**
+(⚙) or the config file:
 
 ```text
 <docs folder>/
@@ -64,7 +67,7 @@ By default the dashboard expects this layout, all of which can be changed in **S
 ```
 
 - A **doc** is any file with a listed extension (`html` and `md` by default). HTML is shown as written; Markdown is
-  rendered in the dashboard's theme. Other types (`pdf`, `txt`, images) can be added and show as the browser shows
+  rendered in Planner's theme. Other types (`pdf`, `txt`, images) can be added and show as the browser shows
   them.
 - A doc's label in the sidebar is its `<title>`, or the first `#` heading of a Markdown file.
 - **Doc types** give a doc a coloured badge by file name (`plan.html` → _plan_, `eli5*.html` → _eli5_, …). Their order
@@ -74,7 +77,7 @@ By default the dashboard expects this layout, all of which can be changed in **S
 - **Collections** list docs outside any task by a path pattern, e.g. `weekly/*/*.html`.
 
 The settings page previews what a change would find before you save it, including folders the phase pattern misses and
-files left out.
+files left out. `planner config check` prints the same from a terminal.
 
 ![The settings page with a live preview of what the folder rules find](site/media/settings.jpg)
 
@@ -117,7 +120,7 @@ The address bar always names what is on screen:
 
 Workspace names leave out the status folder, so links keep working after a task is settled.
 
-`plan-dashboard open '<link>'` sends a link to the dashboard tab that is already open instead of opening another one
+`planner open '<link>'` sends a link to the dashboard tab that is already open instead of opening another one
 (and starts the dashboard if it is not running). On macOS it also brings that Chrome tab to the front. Agents can use
 it to show you what they wrote.
 
@@ -131,36 +134,76 @@ dashboard's theme changes. A doc can post the same message to its parent to swit
 
 ## Agent skills
 
-[`skills/`](skills) holds the two agent skills I use with the dashboard. Use them as they are, or as a starting point
-for your own:
+[`skills/`](skills) holds the agent skills I use with Planner. Use them as they are, or as a starting point for your own:
 
 - [`visualise`](skills/visualise) has an agent turn a plan, a diff or a codebase into one self-contained HTML page in a
   consistent style: a plan before implementation, a recap after it, a codebase map, an explainer, an ELI5 picture page,
   or a review with selectable findings. [`render/GUIDE.md`](skills/visualise/render/GUIDE.md) is the full brief the
   writing agent follows, and [`render/base.html`](skills/visualise/render/base.html) shows every component once (open
   it in a browser).
-- [`link-plan`](skills/link-plan) tells the agent to show you what it wrote with `plan-dashboard open`, instead of
+- [`link-plan`](skills/link-plan) tells the agent to show you what it wrote with `planner open`, instead of
   pasting a file path.
+- [`planner-setup`](skills/planner-setup) lets an agent set Planner up for you: it finds the folders your plans live
+  in, works out how each is organised, writes the config and checks it with `planner config check` until every folder
+  shows what is really there.
 
 <p><img src="site/media/page-plan.jpg" alt="A plan page written by the visualise skill" width="49%" /> <img src="site/media/page-eli5.jpg" alt="An ELI5 page written by the visualise skill" width="49%" /></p>
 
-The demo folder's `plan-dashboard-v1` task was written this way, about this project's own build.
+The demo folder's `planner-v1` task was written this way, about this project's own build.
 
 They use the `SKILL.md` format that Claude Code and Codex read: copy a folder into your agent's skills directory (for
-example `~/.claude/skills/`). Pages made with `visualise` follow the dashboard's light/dark switch through the theme
+example `~/.claude/skills/`). Pages made with `visualise` follow Planner's light/dark switch through the theme
 hand-off above.
 
 ## Command line
 
 ```text
-plan-dashboard [--root <folder>] [--port <number>] [--config <file>] [--no-open]
-plan-dashboard open <link>
+planner [--root <folder>]... [--port <number>] [--config <file>] [--no-open]
+planner open <link>
+
+planner config path            where the config file is
+planner config show            print it
+planner config add <folder>    add a docs folder (--name <name> to name it)
+planner config remove <name>   remove one
+planner config check           validate, then print what each folder holds; exits non-zero on problems
+planner config schema          the JSON schema, with a description of every key
 ```
 
-Settings live in `~/.config/plan-dashboard/config.json` (or `$XDG_CONFIG_HOME`). The settings page writes it; you can
-also edit it by hand and the dashboard picks up the change. `--root` and `--port` apply to one run only.
+`--root` (repeatable) and `--port` apply to one run only and are never saved. The server listens on `localhost` only.
 
-The server listens on `localhost` only.
+## Configuration
+
+Settings live in `~/.config/planner/config.json` (or under `$XDG_CONFIG_HOME`). The settings page, `planner config`
+and you can all edit it; a running Planner picks up changes by itself. A file with an error is not applied: Planner
+keeps the last good settings and says so in the sidebar until it is fixed. The file names its
+[JSON schema](schema/config.schema.json) in `$schema`, so editors and agents can check it as they write.
+
+```json
+{
+  "folders": [
+    { "name": "work", "path": "~/code/work/docs" },
+    { "name": "side", "path": "~/code/side-project/plans", "statusFolders": null, "plansFolder": "" }
+  ],
+  "phasePattern": "^phase-(?<num>\\d+[a-z]*)-(?<slug>.+)$"
+}
+```
+
+Only the keys you change are needed; the rest are the defaults.
+
+| Key             | Default                                 | Meaning                                                                                                |
+| --------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `folders`       | `[]`                                    | Docs folders: `name` (shown in the sidebar and links), `path`, and any layout key below to override it |
+| `statusFolders` | `{"active":"active","done":"done"}`     | Folders holding active and finished tasks; `null` if tasks sit directly in the docs folder             |
+| `plansFolder`   | `"plans"`                               | Folder inside each task holding its plans; `""` for the task folder itself                             |
+| `phasePattern`  | `^phase-(?<num>\d+[a-z]*)-(?<slug>.+)$` | Phase folder names; `(?<num>…)` is the phase number, `(?<slug>…)` its name                             |
+| `fileTypes`     | `["html","md"]`                         | Extensions to show                                                                                     |
+| `groups`        | Research → `research/`, HTML only       | Extra folders in each task with their own section                                                      |
+| `collections`   | `[]`                                    | Docs outside any task, by path pattern, e.g. `{"label":"Weekly","path":"weekly/*/*.html"}`             |
+| `docTypes`      | plan, eli5, recap, md, …                | Badges by file name; the first match wins, and the order is the reading order                          |
+| `port`          | `4173`                                  | Port to listen on                                                                                      |
+
+Links name a workspace as `?ws=<task>/<phase>` in the first folder and `?ws=<folder>:<task>/<phase>` in the others, so a
+single-folder setup's links never change.
 
 ## Development
 

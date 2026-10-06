@@ -1,13 +1,13 @@
 # Phase 1 — Server and CLI (Recap)
 
 The dashboard used to run only as a dev server inside its own repo. It now ships as a small Node server and a
-`plan-dashboard` command, with the same behaviour.
+`planner` command, with the same behaviour.
 
 ## What landed
 
 | Area | Files | What it does |
 |---|---|---|
-| CLI | `server/cli.ts` | `plan-dashboard` starts the server; `plan-dashboard open <link>` shows a link in the tab you already have open |
+| CLI | `server/cli.ts` | `planner` starts the server; `planner open <link>` shows a link in the tab you already have open |
 | HTTP | `server/app.ts`, `server/http.ts` | plain `node:http`, one route table, the built web app or Vite in dev |
 | Routes | `server/routes/*.ts` | tree, settle, docs, events, settings — one small file each |
 | Live state | `server/docs.ts` | keeps the latest scan, watches files, pushes events |
@@ -22,7 +22,7 @@ The dashboard used to run only as a dev server inside its own repo. It now ships
 
 ```sh
 npm run build && node dist/cli.js --root examples/demo-docs
-plan-dashboard open '?ws=plan-dashboard-v1/phase-2-split-tree-layout&plan=plan'
+planner open '?ws=planner-v1/phase-2-split-tree-layout&plan=plan'
 ```
 
 - [x] Production build serves the app and the docs

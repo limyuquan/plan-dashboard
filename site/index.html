@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>plan-dashboard — keep up with what your coding agents plan</title>
+    <title>Planner — keep up with what your coding agents plan</title>
     <meta
       name="description"
       content="A local, open-source dashboard for the HTML and Markdown plans your coding agents write. Every phase side by side, live as it lands."
     />
-    <meta property="og:title" content="plan-dashboard" />
+    <meta property="og:title" content="Planner" />
     <meta
       property="og:description"
       content="Keep up with what your coding agents plan. Open source, runs on localhost."
@@ -30,7 +30,7 @@
     <header class="nav">
       <a class="brand" href="#">
         <img src="favicon.svg" alt="" width="18" height="18" />
-        plan-dashboard
+        Planner
       </a>
       <nav>
         <a href="#install">Install</a>
@@ -71,7 +71,7 @@
         <div class="hero-toast" aria-hidden="true">
           <div>
             <p class="ht-eyebrow">New plan</p>
-            <p class="ht-title">Plan Dashboard V1</p>
+            <p class="ht-title">Planner V1</p>
             <p class="ht-detail">Phase 3 · settings</p>
             <p class="ht-doc"><b class="badge green">recap</b> What landed</p>
           </div>
@@ -98,8 +98,8 @@
             </div>
             <div class="demo-stage">
               <iframe
-                src="demo/?ws=plan-dashboard-v1/phase-2-split-tree-layout&amp;plan=plan.html"
-                title="plan-dashboard, running with demo plans"
+                src="demo/?ws=planner-v1/phase-2-split-tree-layout&amp;plan=plan.html"
+                title="Planner, running with demo plans"
               ></iframe>
             </div>
             <video class="demo-fallback" autoplay muted loop playsinline poster="media/hero.jpg">
@@ -134,8 +134,8 @@
         <div class="wrap">
           <h2 class="left">Bring your own agent</h2>
           <p class="lede">
-            plan-dashboard doesn't talk to any model. It reads the folder your agents already write plans into, so it
-            works with whichever one you use today.
+            Planner doesn't talk to any model. It reads the folder your agents already write plans into, so it works
+            with whichever one you use today.
           </p>
           <div class="agents">
             <div class="agent"><b>Claude Code</b><code>writes plan.html</code></div>
@@ -206,12 +206,12 @@
           <div class="terminal">
             <div class="term-bar"><i></i><i></i><i></i><span>agent</span></div>
             <pre><code><span class="dim"># the agent finished phase 2 and shows you the plan</span>
-<span class="prompt">$</span> plan-dashboard open \
-    '?ws=plan-dashboard-v1/phase-2-split-tree-layout&amp;plan=plan'
+<span class="prompt">$</span> planner open \
+    '?ws=planner-v1/phase-2-split-tree-layout&amp;plan=plan'
 <span class="ok">✓</span> showed it in your dashboard tab
 
 <span class="dim"># every view has a link that survives settling</span>
-<span class="link">http://localhost:4173/?ws=plan-dashboard-v1/phase-3-settings&amp;plan=plan.html</span></code></pre>
+<span class="link">http://localhost:4173/?ws=planner-v1/phase-3-settings&amp;plan=plan.html</span></code></pre>
           </div>
           <div class="copy">
             <h2 class="left">Let your agent show you.</h2>
@@ -220,7 +220,7 @@
               have open. The address bar always names what's on screen, so links can go in chats and other plans.
             </p>
             <ul class="checks">
-              <li><code>plan-dashboard open &lt;link&gt;</code> reuses your open tab</li>
+              <li><code>planner open &lt;link&gt;</code> reuses your open tab</li>
               <li>Links inside plans open as tabs, absolute paths included</li>
               <li>A ready-made <code>link-plan</code> skill for your agent</li>
             </ul>
@@ -235,15 +235,16 @@
             <img src="media/settings.jpg" alt="The settings page with a live preview of what the folder rules find" />
           </figure>
           <div class="copy">
-            <h2 class="left">Your folder, your rules.</h2>
+            <h2 class="left">Your folders, your rules.</h2>
             <p>
-              Folder names, phase naming, file types and badges are settings, not code. The settings page shows what a
-              change would find before you save it, including the files it would miss.
+              Point Planner at every folder your agents write into, one per project if you like, each organised its own
+              way. Folder names, phase naming, file types and badges are settings, not code, and the settings page shows
+              what a change would find before you save it.
             </p>
             <ul class="checks">
-              <li>Status folders, plan folders and phase patterns</li>
-              <li>Doc types with their own badge and colour</li>
-              <li>A plain JSON file you can keep in your dotfiles</li>
+              <li>Several docs folders, each with its own section and layout</li>
+              <li>Let your agent set it up: <code>planner config add</code> and <code>check</code></li>
+              <li>A plain JSON file with a schema, easy to keep in your dotfiles</li>
             </ul>
           </div>
         </div>
@@ -290,13 +291,13 @@
         <div class="install">
           <pre><code><span class="prompt">$</span> git clone https://github.com/limyuquan/plan-dashboard
 <span class="prompt">$</span> cd plan-dashboard &amp;&amp; npm install &amp;&amp; npm run build
-<span class="prompt">$</span> npm link &amp;&amp; plan-dashboard</code></pre>
+<span class="prompt">$</span> npm link &amp;&amp; planner</code></pre>
           <button
             class="copy-btn"
             type="button"
             data-copy="git clone https://github.com/limyuquan/plan-dashboard
 cd plan-dashboard && npm install && npm run build
-npm link && plan-dashboard"
+npm link && planner"
           >
             Copy
           </button>
@@ -306,7 +307,7 @@ npm link && plan-dashboard"
     </main>
 
     <footer class="foot">
-      <span>plan-dashboard · MIT licensed</span>
+      <span>Planner · MIT licensed</span>
       <nav>
         <a href="https://github.com/limyuquan/plan-dashboard">GitHub</a>
         <a href="https://github.com/limyuquan/plan-dashboard#readme">Docs</a>

@@ -1,6 +1,6 @@
 # Phase 3 — Configurable folder conventions (Recap)
 
-Folder conventions moved out of the code and into `~/.config/plan-dashboard/config.json`.
+Folder conventions moved out of the code and into `~/.config/planner/config.json`.
 
 ## What landed
 

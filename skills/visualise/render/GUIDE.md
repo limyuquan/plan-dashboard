@@ -19,7 +19,7 @@ Files next to this guide:
 
 Two facts decide everything: the page is read by a junior engineer who wants to understand, not admire; and it is read on a dark screen next to a terminal. The look is an editorial report, not a dashboard product.
 
-- **Dark canvas by default, light mode one click away, and the plan dashboard decides.** `--bg #282c34`, white text, grey captions. The theme is the `data-theme` attribute on `<html>` (`dark` | `light`), set by the head script in this order: the `?theme=` query the dashboard adds when it embeds a page, then the browser's memory, then dark. The dashboard also sends `{type: 'plan-theme', theme}` by `postMessage` whenever its own switch flips, and the page's `.theme-toggle` sends the same message back up, so the two never disagree. Both token sets and both scripts are in `base.html`; never hard-code a colour outside the tokens or the switch breaks.
+- **Dark canvas by default, light mode one click away, and Planner decides.** `--bg #282c34`, white text, grey captions. The theme is the `data-theme` attribute on `<html>` (`dark` | `light`), set by the head script in this order: the `?theme=` query Planner adds when it embeds a page, then the browser's memory, then dark. Planner also sends `{type: 'plan-theme', theme}` by `postMessage` whenever its own switch flips, and the page's `.theme-toggle` sends the same message back up, so the two never disagree. Both token sets and both scripts are in `base.html`; never hard-code a colour outside the tokens or the switch breaks.
 - **One accent: purple.** `--accent #b49df0` on dark, `--accent-l #6741c4` on light, the same values the dashboard uses. Diff red/green are the only other colours.
 - **Monospace throughout.** IBM Plex Mono for headlines, body, numbers, and code. No second font.
 - **Hierarchy by size and hairlines, never by boxes.** Huge numerals with tiny grey captions; 1px `--border` rules between things; sections separated by a rule, not a card. No shadows, gradients, rounded panels, icons, or background blobs. Emoji appear only inside ELI5 pictures.
@@ -168,7 +168,7 @@ Bar and cumulative-line charts come from the two `figure.chart` components in `b
 5. Paste `base.html`'s `<style>` and `<script>`; add the Mermaid shell only if used.
 6. Fill sections; draw each ELI5 panel before writing its caption.
 7. Set a real `<title>`: `Phase 2 — Exact HTTP Action Domains (Plan)`. Tooling uses it as the label.
-8. Write to the exact output path given (in a plan-dashboard docs folder: `plan.html`, `eli5.html`, `recap.html` in the phase folder; whole-task pages in the task's `plans/` folder). Update in place; never create `-v2` files.
+8. Write to the exact output path given (in a Planner docs folder: `plan.html`, `eli5.html`, `recap.html` in the phase folder; whole-task pages in the task's `plans/` folder). Update in place; never create `-v2` files.
 9. Never open the file or a browser tab yourself (no `open <path>`); the orchestrator shows it.
 
 ### Checklist before returning

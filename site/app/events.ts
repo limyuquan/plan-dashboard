@@ -11,7 +11,7 @@ export function subscribe(onEvent: (event: ServerEvent) => void): () => void {
   const announce = () => {
     const doc = addIncoming()
     onEvent({ type: 'tree' })
-    onEvent({ type: 'added', doc, place: { task: 'plan dashboard v1', phase: 'Phase 3 · settings' } })
+    onEvent({ type: 'added', doc, place: { task: 'Planner v1', phase: 'Phase 3 · settings' } })
   }
   // Inside the landing page's iframe this watches the visitor's screen.
   const seen = new IntersectionObserver(([entry]) => {

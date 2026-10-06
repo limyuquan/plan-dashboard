@@ -30,7 +30,6 @@ async function webApp(dev: boolean, server: http.Server): Promise<(req: Req, res
     return vite.middlewares
   }
   const dir = path.join(here, 'web')
-  const index = fs.readFileSync(path.join(dir, 'index.html'))
   return (req, res) => {
     const file = path.join(dir, path.normalize(new URL(req.url, 'http://x').pathname))
     if (file.startsWith(dir + path.sep) && fs.statSync(file, { throwIfNoEntry: false })?.isFile()) {
@@ -39,8 +38,11 @@ async function webApp(dev: boolean, server: http.Server): Promise<(req: Req, res
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable')
       return fs.createReadStream(file).pipe(res)
     }
+    // Read on every load: a rebuild replaces the hashed asset files, and a
+    // page cached at startup would keep pointing at the deleted ones.
     res.setHeader('Content-Type', 'text/html; charset=utf-8')
-    res.end(index)
+    res.setHeader('Cache-Control', 'no-store')
+    fs.createReadStream(path.join(dir, 'index.html')).pipe(res)
   }
 }
 
@@ -75,5 +77,5 @@ export async function startServer(config: ConfigStore, { dev }: { dev: boolean }
     server.once('error', reject)
     server.listen(port, 'localhost', resolve)
   })
-  return { url: `http://localhost:${port}`, root: docs.root }
+  return { url: `http://localhost:${port}` }
 }

@@ -26,14 +26,14 @@ function indexTree(tree: Tree) {
   return { docs, workspaces }
 }
 
-function setTree({ tree, problem }: TreeResponse) {
-  if (!tree) return setState({ tree: null, problem, loaded: true })
+function setTree({ tree, configProblem }: TreeResponse) {
+  if (!tree) return setState({ tree: null, configProblem, loaded: true })
   const { docs, workspaces } = indexTree(tree)
   // Keep loose docs opened by link; the tree never lists them.
   for (const [path, doc] of getState().docs) if (!docs.has(path) && !doc.ws) docs.set(path, doc)
   setState((s) => ({
     tree,
-    problem: undefined,
+    configProblem,
     loaded: true,
     docs,
     workspaces,
@@ -51,7 +51,9 @@ function setTree({ tree, problem }: TreeResponse) {
 export const refresh = async () => setTree(await api.tree())
 
 // Settle / restore. The folder really moves, so tabs follow it to its new path.
+// `task` is the task's key ("<folder>:<task>").
 export async function moveTask(task: string, to: 'active' | 'done', announce = true) {
+  const name = task.slice(task.indexOf(':') + 1)
   moving++
   try {
     const moved = await api.move(task, to)
@@ -61,7 +63,7 @@ export async function moveTask(task: string, to: 'active' | 'done', announce = t
       ),
     }))
   } catch (err) {
-    pushToast({ text: `Could not move ${task}`, detail: (err as Error).message })
+    pushToast({ text: `Could not move ${name}`, detail: (err as Error).message })
     return
   } finally {
     moving--
@@ -69,7 +71,7 @@ export async function moveTask(task: string, to: 'active' | 'done', announce = t
   await refresh()
   if (announce) {
     pushToast({
-      text: to === 'done' ? `Settled ${task}` : `Moved ${task} back to active`,
+      text: to === 'done' ? `Settled ${name}` : `Moved ${name} back to active`,
       action: { label: 'Undo', run: () => moveTask(task, to === 'done' ? 'active' : 'done', false) },
     })
   }

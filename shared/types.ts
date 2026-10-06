@@ -2,8 +2,9 @@ import type { Color } from './config'
 
 export type Status = 'active' | 'done'
 
-// One file the dashboard can show. `path` is relative to the docs root and is
-// also its id. `ws` is the workspace it belongs to ("" for loose files).
+// One file the dashboard can show. `path` is "<folder>/<path inside it>" (see
+// shared/keys.ts) and is also its id. `ws` is the workspace it belongs to
+// ("" for loose files).
 export type Doc = { path: string; file: string; kind: string; title: string; ws: string }
 
 // A folder whose files open together as one workspace: a phase, a group like
@@ -11,8 +12,9 @@ export type Doc = { path: string; file: string; kind: string; title: string; ws:
 export type Folder = { key: string; name: string; label: string; num: string; dir: string; docs: Doc[] }
 
 export type Task = {
-  // Also the workspace key of the task's own plans.
+  // Also the workspace key of the task's own plans: "<folder>:<task>".
   key: string
+  folder: string
   name: string
   label: string
   status: Status | null
@@ -23,19 +25,28 @@ export type Task = {
   mtime: number
 }
 
-export type Collection = { label: string; docs: Doc[] }
+export type Collection = { folder: string; label: string; docs: Doc[] }
 
 export type Kind = { id: string; label: string; color: Color }
 
-export type Tree = {
+// One configured docs folder, as the browser sees it.
+export type DocsFolderInfo = {
+  name: string
+  // The real path, and the same as shown to people (~ for the home folder).
   root: string
-  // The root as shown to people: under the home folder it starts with ~.
-  rootLabel: string
+  label: string
+  // Whether its tasks can be settled, i.e. it has status folders.
+  settle: boolean
+  // Set when the folder cannot be read, e.g. it does not exist.
+  problem?: string
+}
+
+export type Tree = {
+  // In the order of the config. The first one's links leave out its name.
+  folders: DocsFolderInfo[]
   tasks: Task[]
   collections: Collection[]
   kinds: Kind[]
-  // Whether tasks can be settled, i.e. status folders are configured.
-  settle: boolean
 }
 
 // Where a doc sits, as the "new plan" toast names it.
@@ -48,10 +59,11 @@ export type ServerEvent =
   | { type: 'changed'; path: string }
   | { type: 'open'; ws: string; plan: string; doc: string }
 
-// The settings page's dry run: how a draft config reads the docs folder.
-export type Preview = {
-  ok: boolean
-  error?: string
+// What one folder's layout finds, for the settings page and `config check`.
+export type FolderPreview = {
+  name: string
+  label: string
+  problem?: string
   tasks: number
   phases: number
   docs: number
@@ -62,5 +74,9 @@ export type Preview = {
   skipped: Record<string, number>
 }
 
-// /api/tree. No tree means there is no docs folder yet, or it has gone.
-export type TreeResponse = { tree: Tree | null; problem?: string }
+// The settings page's dry run: how a draft config reads its folders.
+export type Preview = { ok: boolean; error?: string; folders: FolderPreview[] }
+
+// /api/tree. No tree means no folder is configured yet. configProblem is set
+// when the config file has an error, and the last good settings are in use.
+export type TreeResponse = { tree: Tree | null; configProblem?: string }

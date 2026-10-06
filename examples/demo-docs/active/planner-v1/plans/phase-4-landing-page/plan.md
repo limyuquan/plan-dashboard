@@ -8,7 +8,7 @@ A one-page site that explains the dashboard in ten seconds and gets people to a 
    open side by side, and the install line.
 2. **Split panes** — a short recording: drag a tab to an edge, split, resize.
 3. **Live** — an agent writes a plan, the toast appears, the pane reloads in place.
-4. **Agents show you what they wrote** — `plan-dashboard open <link>` in a terminal block.
+4. **Agents show you what they wrote** — `planner open <link>` in a terminal block.
 5. **Your folder, your rules** — the settings page with its live preview.
 6. **Plans worth reading** — the `visualise` skill and a page it rendered.
 
