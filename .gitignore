@@ -6,3 +6,4 @@ site/app/generated
 site/llms-full.txt
 test-results
 playwright-report
+site/docs

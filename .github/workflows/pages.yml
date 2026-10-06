@@ -14,6 +14,7 @@ on:
         schema/**,
         README.md,
         CONTRIBUTING.md,
+        docs/**,
         .github/workflows/pages.yml,
       ]
   workflow_dispatch:
@@ -42,6 +43,8 @@ jobs:
       - run: npm ci
       # The live demo in the hero: the real web app with an in-memory backend.
       - run: npm run build:demo
+      # The docs site, from the Markdown pages in docs/.
+      - run: npm run build:docs
       # llms-full.txt: the README, every skill and the config schema in one file for agents.
       - run: npm run build:llms
       - uses: actions/configure-pages@v6

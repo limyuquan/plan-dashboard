@@ -29,10 +29,11 @@ web/             the React app
   settings/      the settings page and first-run screen
   styles/        one stylesheet per area, tokens.css for colours
 examples/        a demo docs folder, also used by the tests
+docs/            the documentation, one Markdown page each; nav.json orders them
 e2e/             browser tests (Playwright) against the built app
 skills/          agent skills that write and show plans (not part of the app)
-site/            the landing page; site/app builds the web app with an in-memory backend
-                 for its live demo (npm run build:demo)
+site/            the landing page; site/app is the live demo (npm run build:demo), and
+                 build-docs.ts turns docs/ into the docs site (npm run build:docs)
 ```
 
 Two rules keep it this way:

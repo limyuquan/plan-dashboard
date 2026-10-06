@@ -89,7 +89,7 @@ const ESCAPES: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;'
 const escapeHtml = (s: string) => s.replace(/[&<>]/g, (c) => ESCAPES[c])
 
 // GitHub-style anchors, so a table of contents inside a plan still jumps.
-function slugger() {
+export function slugger() {
   const seen = new Map<string, number>()
   return (text: string) => {
     const base = text

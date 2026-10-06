@@ -1,12 +1,13 @@
 // Builds site/llms-full.txt: every doc an agent might need, in one plain file,
 // made from the files themselves so it can never drift from them:
-//   - llms.txt (the index), then the README without its images
+//   - llms.txt (the index), then every docs page in order, without images
 //   - the full text of each agent skill
 //   - the config JSON schema
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { configJsonSchema } from '../shared/schema'
+import { readPages } from './build-docs'
 
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const read = (rel: string) => fs.readFileSync(path.join(repo, rel), 'utf8').trim()
@@ -27,7 +28,7 @@ const skills = fs
 const parts = [
   read('site/llms.txt'),
   '---',
-  withoutImages(read('README.md')),
+  ...readPages().map((page) => withoutImages(page.markdown)),
   '---',
   '# Agent skills, in full',
   "Each is a folder with a SKILL.md that Claude Code, Codex and similar agents read. Copy a folder into the agent's skills directory (for example ~/.claude/skills/) to use it.",

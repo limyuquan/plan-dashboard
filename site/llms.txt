@@ -12,9 +12,23 @@ What agents most often need:
 
 ## Docs
 
-- [Full documentation](https://limyuquan.github.io/planner/llms-full.txt): everything in one file: the README (features, folder layout, links, keyboard, command line, local HTTP API, every config key), the full text of each agent skill, and the config JSON schema
-- [README](https://raw.githubusercontent.com/limyuquan/planner/main/README.md): the same docs as Markdown
-- [Config JSON schema](https://raw.githubusercontent.com/limyuquan/planner/main/schema/config.schema.json): every config key with a description; config files point to it with `$schema`
+Each page is also Markdown at its URL with `.md`; the HTML docs are at https://limyuquan.github.io/planner/docs/.
+
+- [Everything in one file](https://limyuquan.github.io/planner/llms-full.txt): every page below, the full text of each agent skill, and the config JSON schema
+- [Introduction](https://limyuquan.github.io/planner/docs/introduction.md): what Planner is and does
+- [Installation](https://limyuquan.github.io/planner/docs/installation.md): install, start, update, run from source
+- [Quick tour](https://limyuquan.github.io/planner/docs/quick-tour.md): five minutes on the demo folder
+- [Reading plans](https://limyuquan.github.io/planner/docs/reading-plans.md): sidebar, workspaces, panes, tabs, live updates, search, settling
+- [Keyboard shortcuts](https://limyuquan.github.io/planner/docs/keyboard-shortcuts.md): defaults, and the hotkeys config
+- [Links](https://limyuquan.github.io/planner/docs/links.md): link format, `planner open`, links inside plans, theme hand-off
+- [Docs folders](https://limyuquan.github.io/planner/docs/docs-folders.md): how a folder is read: tasks, phases, doc types, groups, collections, several folders
+- [Configuration](https://limyuquan.github.io/planner/docs/configuration.md): the config file and every key
+- [Working with agents](https://limyuquan.github.io/planner/docs/agents.md): setting Planner up with an agent, showing plans, docs for agents
+- [Agent skills](https://limyuquan.github.io/planner/docs/skills.md): planner-setup, link-plan and visualise
+- [Command line](https://limyuquan.github.io/planner/docs/command-line.md): `planner`, `planner open`, `planner config …`
+- [HTTP API](https://limyuquan.github.io/planner/docs/http-api.md): the local API for scripts and agents
+- [Troubleshooting](https://limyuquan.github.io/planner/docs/troubleshooting.md): common problems
+- [Config JSON schema](https://raw.githubusercontent.com/limyuquan/planner/main/schema/config.schema.json): every config key with a description
 
 ## Agent skills
 
