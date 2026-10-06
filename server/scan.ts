@@ -3,6 +3,7 @@ import fsp from 'node:fs/promises'
 import path from 'node:path'
 import { FALLBACK_KIND, wildcard, type Config } from '../shared/config'
 import type { Collection, Doc, Folder, Kind, Place, Preview, Task, Tree } from '../shared/types'
+import { homeRelative } from './config'
 import { readTitle } from './titles'
 
 // The docs folder read through a config, plus what the settings preview and
@@ -179,7 +180,11 @@ export async function scan(root: string, config: Config): Promise<Scan> {
 
   preview.tasks = tasks.length
   preview.phases = tasks.reduce((n, t) => n + t.phases.length, 0)
-  return { tree: { root, tasks, collections, kinds, settle: !!config.statusFolders }, index, preview }
+  return {
+    tree: { root, rootLabel: homeRelative(root), tasks, collections, kinds, settle: !!config.statusFolders },
+    index,
+    preview,
+  }
 }
 
 // Files matching a path pattern like "weekly/*/*.html", one segment at a time.

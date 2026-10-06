@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import { configSchema, type Config } from '../../shared/config'
 import type { Preview } from '../../shared/types'
-import { expandHome } from '../config'
+import { expandHome, homeRelative } from '../config'
 import { fromDashboard, json, readJson } from '../http'
 import { scan } from '../scan'
 import type { ApiRoutes } from './context'
@@ -23,7 +23,8 @@ function check(body: unknown): { config: Config; root: string } | { error: strin
 }
 
 export const configRoutes: ApiRoutes = {
-  'GET /api/config': (_req, res, _url, { config }) => json(res, 200, { ...config.stored, file: config.file }),
+  'GET /api/config': (_req, res, _url, { config }) =>
+    json(res, 200, { ...config.stored, file: homeRelative(config.file) }),
 
   'PUT /api/config': async (req, res, _url, { config }) => {
     if (!fromDashboard(req)) return json(res, 403, { error: 'not from the dashboard' })

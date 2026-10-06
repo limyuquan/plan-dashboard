@@ -7,6 +7,12 @@ import { DEFAULT_CONFIG, withDefaults, type Config } from '../shared/config'
 export const defaultConfigPath = () =>
   path.join(process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config'), 'plan-dashboard', 'config.json')
 
+// A path as shown to people: under the home folder it starts with ~.
+export function homeRelative(p: string) {
+  const home = os.homedir()
+  return p === home || p.startsWith(home + path.sep) ? `~${p.slice(home.length)}` : p
+}
+
 export const expandHome = (p: string) => (p === '~' || p.startsWith('~/') ? path.join(os.homedir(), p.slice(1)) : p)
 
 // The settings the server runs with. The file holds what the user saved;

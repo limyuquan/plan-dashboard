@@ -169,8 +169,8 @@ export function Sidebar() {
           )
         })}
       </div>
-      <div className="side-foot" title="Docs folder">
-        {tree?.root}
+      <div className="side-foot" title={tree?.root}>
+        {tree?.rootLabel}
       </div>
       <div
         className="side-resize"

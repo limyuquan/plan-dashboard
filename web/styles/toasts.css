@@ -99,3 +99,8 @@
 .toast-close:hover {
   color: var(--text);
 }
+
+/* A new-plan toast names a task, written like the sidebar writes it. */
+.toast[data-lasting] .toast-text {
+  text-transform: capitalize;
+}

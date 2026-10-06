@@ -29,6 +29,8 @@ export type Kind = { id: string; label: string; color: Color }
 
 export type Tree = {
   root: string
+  // The root as shown to people: under the home folder it starts with ~.
+  rootLabel: string
   tasks: Task[]
   collections: Collection[]
   kinds: Kind[]
