@@ -25,6 +25,8 @@ web/             the React app
   styles/        one stylesheet per area, tokens.css for colours
 examples/        a demo docs folder, also used by the tests
 skills/          agent skills that write and show plans (not part of the app)
+site/            the landing page; site/app builds the web app with an in-memory backend
+                 for its live demo (npm run build:demo)
 ```
 
 Two rules keep it this way:

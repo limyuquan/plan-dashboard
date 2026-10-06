@@ -121,21 +121,6 @@ main,
 }
 
 /* ---------- hero ---------- */
-.hero {
-  position: relative;
-  max-width: var(--max);
-  margin: 0 auto;
-  padding: 120px 24px 40px;
-  text-align: center;
-}
-.hero::before {
-  content: '';
-  position: absolute;
-  inset: 40px 10% auto;
-  height: 420px;
-  background: radial-gradient(ellipse at center, rgba(180, 157, 240, 0.13), transparent 65%);
-  pointer-events: none;
-}
 h1 {
   position: relative;
   margin: 0;
@@ -192,74 +177,6 @@ h1 {
   font-size: 12.5px;
 }
 
-/* Floating tiles around the headline. */
-.tiles {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.tile {
-  position: absolute;
-  display: grid;
-  place-items: center;
-  width: 58px;
-  height: 58px;
-  border: 1px solid var(--line-strong);
-  border-radius: 15px;
-  background: linear-gradient(180deg, #1b1b1f, #121214);
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  animation: float 7s ease-in-out infinite;
-}
-.tile svg {
-  width: 24px;
-  height: 24px;
-  fill: none;
-  stroke: #d8d8de;
-  stroke-width: 1.6;
-  stroke-linejoin: round;
-}
-.tile .badge {
-  font: 600 11px/1 var(--mono);
-}
-.t1 {
-  top: 96px;
-  left: 9%;
-  transform: rotate(-8deg);
-}
-.t2 {
-  top: 70px;
-  right: 22%;
-  animation-delay: -2s;
-}
-.t3 {
-  top: 150px;
-  right: 7%;
-  transform: rotate(7deg);
-  animation-delay: -4s;
-}
-.t4 {
-  top: 250px;
-  left: 15%;
-  animation-delay: -3s;
-}
-.t5 {
-  top: 64px;
-  left: 30%;
-  animation-delay: -5s;
-}
-.t6 {
-  top: 290px;
-  right: 13%;
-  animation-delay: -1s;
-}
-@keyframes float {
-  50% {
-    translate: 0 -9px;
-  }
-}
-
 /* Doc-type badges, the same colours as in the app. */
 .badge {
   padding: 3px 7px;
@@ -293,12 +210,6 @@ h1 {
   box-shadow:
     0 30px 80px rgba(0, 0, 0, 0.55),
     0 0 0 1px rgba(0, 0, 0, 0.6);
-}
-.hero-shot {
-  margin-top: 64px;
-  box-shadow:
-    0 40px 120px rgba(0, 0, 0, 0.6),
-    0 0 80px rgba(180, 157, 240, 0.08);
 }
 
 /* ---------- sections ---------- */
@@ -596,12 +507,6 @@ cite a:hover {
   .pages {
     grid-template-columns: 1fr;
   }
-  .tiles {
-    display: none;
-  }
-  .hero {
-    padding-top: 80px;
-  }
 }
 @media (max-width: 560px) {
   .nav nav a:not(.pill) {
@@ -618,11 +523,6 @@ cite a:hover {
     flex-direction: column;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .tile {
-    animation: none;
-  }
-}
 
 /* Exceptions to the full-width media rule and the inline code chip. */
 .brand img {
@@ -634,4 +534,355 @@ cite a:hover {
   border: 0;
   background: none;
   color: var(--dimmer);
+}
+
+/* ---------- hero: the headline inside a wireframe of the app ---------- */
+.hero {
+  position: relative;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 32px 40px;
+  text-align: center;
+}
+.hero-frame {
+  position: absolute;
+  left: 32px;
+  right: 32px;
+  top: 36px;
+  height: 560px;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 70%);
+  -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 55%, transparent 100%);
+}
+.hf-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  border-bottom: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.02);
+}
+.hf-pane {
+  display: flex;
+  gap: 6px;
+  padding: 9px 10px;
+  border-right: 1px solid var(--line-strong);
+}
+.hf-pane:last-child {
+  border-right: 0;
+}
+.hf-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  color: var(--dimmer);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.hf-tab.on {
+  background: #1d1d22;
+  color: #c9c9cf;
+}
+.hf-tab i {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: rgba(90, 159, 218, 0.2);
+  color: #9cc6ee;
+  font: 600 11px var(--mono);
+  font-style: normal;
+}
+.hf-tab .badge,
+.hero-toast .badge {
+  padding: 1px 6px;
+  font: 500 10px var(--mono);
+}
+.hf-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--line-strong);
+}
+.hf-line.l1 {
+  left: 33.33%;
+}
+.hf-line.l2 {
+  left: 66.66%;
+}
+/* The right-hand pane splits below, over and over: the app's own move. */
+.hf-split {
+  position: absolute;
+  left: 66.66%;
+  right: 0;
+  top: 55%;
+  height: 1px;
+  background: var(--accent);
+  box-shadow: 0 0 12px rgba(180, 157, 240, 0.6);
+  transform-origin: left;
+  animation: hf-split 6s ease-in-out infinite;
+}
+.hf-drop {
+  position: absolute;
+  left: calc(66.66% + 1px);
+  right: 0;
+  top: 55%;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(180, 157, 240, 0.7);
+  background: rgba(180, 157, 240, 0.07);
+  color: var(--accent);
+  font: 11px var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  animation: hf-drop 6s ease-in-out infinite;
+}
+@keyframes hf-split {
+  0%,
+  30% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  45%,
+  85% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+@keyframes hf-drop {
+  0%,
+  8% {
+    opacity: 0;
+  }
+  15%,
+  32% {
+    opacity: 1;
+  }
+  40%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* A new-plan notification, as the app shows it, landing in the left pane. */
+.hero-toast {
+  position: absolute;
+  left: 52px;
+  top: 470px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 11px 11px 13px;
+  border: 1px solid color-mix(in oklab, var(--accent) 40%, var(--line-strong));
+  border-left: 2px solid var(--accent);
+  border-radius: 10px;
+  background: #17171b;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6);
+  text-align: left;
+  animation: hero-toast 7s ease-in-out infinite;
+}
+.hero-toast p {
+  margin: 0;
+}
+.ht-eyebrow {
+  color: var(--accent);
+  font: 10px var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.ht-title {
+  margin-top: 2px !important;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+.ht-detail {
+  color: var(--dim);
+  font-size: 11.5px;
+}
+.ht-doc {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px !important;
+  overflow: hidden;
+  color: #c9c9cf;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.ht-btn {
+  flex: none;
+  padding: 5px 10px;
+  border-radius: 7px;
+  background: var(--accent);
+  color: #1a1030;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+@keyframes hero-toast {
+  0%,
+  10% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  18%,
+  86% {
+    opacity: 1;
+    transform: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.hero-copy {
+  position: relative;
+  padding-top: 170px;
+}
+.hero-copy h1 {
+  text-shadow:
+    0 0 40px var(--bg),
+    0 0 80px var(--bg);
+}
+.hero-copy::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 120px;
+  z-index: -1;
+  width: min(760px, 100%);
+  height: 380px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse, var(--bg) 40%, transparent 72%);
+}
+
+/* The real app, running in the page. */
+.demo {
+  position: relative;
+  margin-top: 64px;
+}
+.demo-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin: 0 0 16px;
+  color: var(--dim);
+  font-size: 13.5px;
+}
+.live-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 3px rgba(111, 207, 151, 0.18);
+}
+.demo-window {
+  box-shadow:
+    0 40px 120px rgba(0, 0, 0, 0.6),
+    0 0 80px rgba(180, 157, 240, 0.08);
+  text-align: left;
+}
+.demo-chrome {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  background: #0d0d0f;
+}
+.demo-chrome i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2a2a2f;
+}
+.demo-chrome span {
+  margin: 0 auto;
+  padding: 3px 40px;
+  border-radius: 6px;
+  background: var(--raised);
+  color: var(--dimmer);
+  font: 11.5px var(--mono);
+}
+/* Drawn at 125% and scaled to 80%, so the app has a laptop's worth of room. */
+.demo-stage {
+  height: 760px;
+  overflow: hidden;
+}
+.demo-window iframe {
+  display: block;
+  width: 125%;
+  height: 950px;
+  border: 0;
+  background: var(--bg);
+  transform: scale(0.8);
+  transform-origin: 0 0;
+}
+.demo-fallback {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .hf-tabs .hf-pane:nth-child(n + 2) .hf-tab:not(.on) {
+    display: none;
+  }
+  .hero-toast {
+    display: none;
+  }
+  .hero-copy {
+    padding-top: 130px;
+  }
+  .demo-stage {
+    display: none;
+  }
+  .demo-fallback {
+    display: block;
+  }
+  .demo-hint {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hf-split,
+  .hf-drop,
+  .hero-toast {
+    animation: none;
+  }
+}
+
+/* The wireframe's tabs shrink with the page instead of widening it. */
+.hf-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.hf-pane {
+  overflow: hidden;
+}
+@media (max-width: 600px) {
+  .hero {
+    padding: 0 16px 32px;
+  }
+  .hero-frame {
+    left: 16px;
+    right: 16px;
+  }
+  .hf-tab:not(.on) {
+    display: none;
+  }
+}
+
+/* Grid children may shrink below their content, so code blocks scroll inside. */
+.feature > * {
+  min-width: 0;
+}
+:not(pre) > code {
+  overflow-wrap: anywhere;
 }

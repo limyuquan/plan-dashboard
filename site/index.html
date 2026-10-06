@@ -50,36 +50,65 @@
     <main>
       <!-- Hero -->
       <section class="hero">
-        <div class="tiles" aria-hidden="true">
-          <span class="tile t1"><b class="badge violet">plan</b></span>
-          <span class="tile t2"><b class="badge teal">eli5</b></span>
-          <span class="tile t3"><b class="badge green">recap</b></span>
-          <span class="tile t4"><b class="badge grey">md</b></span>
-          <span class="tile t5"
-            ><svg viewBox="0 0 24 24">
-              <rect x="3" y="4" width="18" height="16" rx="2.5" />
-              <path d="M12 4v16M12 12h9" /></svg
-          ></span>
-          <span class="tile t6"
-            ><svg viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z" /></svg
-          ></span>
+        <div class="hero-frame" aria-hidden="true">
+          <div class="hf-tabs">
+            <div class="hf-pane">
+              <span class="hf-tab on"><i>2</i><b class="badge violet">plan</b> Split one pane</span>
+              <span class="hf-tab"><b class="badge grey">md</b> notes</span>
+            </div>
+            <div class="hf-pane">
+              <span class="hf-tab on"><i>2</i><b class="badge teal">eli5</b> Rooms and walls</span>
+            </div>
+            <div class="hf-pane">
+              <span class="hf-tab on"><i>2</i><b class="badge green">recap</b> What landed</span>
+            </div>
+          </div>
+          <div class="hf-line l1"></div>
+          <div class="hf-line l2"></div>
+          <div class="hf-split"></div>
+          <div class="hf-drop"><span>split here</span></div>
         </div>
-        <h1>Keep up with what<br />your agents plan.</h1>
-        <p class="sub">
-          A local dashboard for the HTML and Markdown plans your coding agents write. Every phase side by side, live the
-          moment it lands. Works with any agent that writes files.
-        </p>
-        <div class="cta">
-          <a class="btn primary" href="#install">Get started</a>
-          <a class="btn ghost" href="https://github.com/limyuquan/plan-dashboard">View the code →</a>
+        <div class="hero-toast" aria-hidden="true">
+          <div>
+            <p class="ht-eyebrow">New plan</p>
+            <p class="ht-title">Plan Dashboard V1</p>
+            <p class="ht-detail">Phase 3 · settings</p>
+            <p class="ht-doc"><b class="badge green">recap</b> What landed</p>
+          </div>
+          <span class="ht-btn">Workspace</span>
         </div>
-        <p class="tiny">Free and open source · MIT · runs on localhost</p>
 
-        <figure class="window hero-shot">
-          <video autoplay muted loop playsinline poster="media/hero.jpg">
-            <source src="media/hero.mp4" type="video/mp4" />
-          </video>
-        </figure>
+        <div class="hero-copy">
+          <h1>Keep up with what<br />your agents plan.</h1>
+          <p class="sub">
+            A local dashboard for the HTML and Markdown plans your coding agents write. Every phase side by side, live
+            the moment it lands. Works with any agent that writes files.
+          </p>
+          <div class="cta">
+            <a class="btn primary" href="#install">Get started</a>
+            <a class="btn ghost" href="https://github.com/limyuquan/plan-dashboard">View the code →</a>
+          </div>
+          <p class="tiny">Free and open source · MIT · runs on localhost</p>
+        </div>
+
+        <div class="demo">
+          <p class="demo-hint">
+            <span class="live-dot"></span> This is the real app. Drag a tab onto an edge to split, drag a divider to
+            resize, and watch for a new plan.
+          </p>
+          <figure class="window demo-window">
+            <div class="demo-chrome"><i></i><i></i><i></i><span>localhost:4173</span></div>
+            <div class="demo-stage">
+              <iframe
+                src="demo/?ws=plan-dashboard-v1/phase-2-split-tree-layout&amp;plan=plan.html"
+                title="plan-dashboard, running with demo plans"
+              ></iframe>
+            </div>
+            <video class="demo-fallback" autoplay muted loop playsinline poster="media/hero.jpg">
+              <source src="media/hero.mp4" type="video/mp4" />
+            </video>
+          </figure>
+        </div>
       </section>
 
       <!-- Why -->

@@ -1,3 +1,5 @@
 node_modules
 dist
 *.tmp
+site/demo
+site/app/generated

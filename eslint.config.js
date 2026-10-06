@@ -4,11 +4,11 @@ import globals from 'globals'
 import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
-  { ignores: ['dist', 'examples'] },
+  { ignores: ['dist', 'examples', 'site/demo'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ['web/**/*.{ts,tsx}'],
+    files: ['web/**/*.{ts,tsx}', 'site/app/**/*.ts'],
     languageOptions: { globals: globals.browser },
     plugins: { 'react-hooks': reactHooks },
     rules: reactHooks.configs.recommended.rules,

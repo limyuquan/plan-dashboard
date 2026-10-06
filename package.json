@@ -20,7 +20,8 @@
     "test": "vitest run",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:demo": "tsx site/app/build.ts"
   },
   "dependencies": {
     "chokidar": "^5.0.0",
