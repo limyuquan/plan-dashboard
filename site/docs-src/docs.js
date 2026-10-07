@@ -44,8 +44,18 @@
   addEventListener('scroll', mark, { passive: true })
   mark()
 
-  // Small screens: the navigation opens over the page.
-  document.querySelector('.menu')?.addEventListener('click', () => document.body.classList.toggle('nav-open'))
+  // Small screens: the menu button opens the navigation over the page, scrolled to this page.
+  const menuButton = document.querySelector('.menu')
+  const setNav = (open) => {
+    document.body.classList.toggle('nav-open', open)
+    menuButton.setAttribute('aria-expanded', open)
+    if (open) document.querySelector('.sidenav .active')?.scrollIntoView({ block: 'center' })
+  }
+  menuButton.addEventListener('click', () => setNav(!document.body.classList.contains('nav-open')))
+  document.addEventListener('click', (e) => {
+    if (document.body.classList.contains('nav-open') && !e.target.closest('.sidenav, .menu')) setNav(false)
+  })
+  addEventListener('keydown', (e) => e.key === 'Escape' && setNav(false))
 
   // Search every page's sections; "/" jumps to the box.
   const input = document.querySelector('.search input')

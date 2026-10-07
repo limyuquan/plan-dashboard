@@ -67,13 +67,37 @@ a {
 }
 .menu {
   display: none;
-  margin-left: auto;
-  padding: 4px 10px;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  padding: 0;
   border: 1px solid var(--line-strong);
-  border-radius: 6px;
+  border-radius: 8px;
   background: none;
   color: var(--text);
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.menu:focus {
+  outline: none;
+}
+.menu:focus-visible {
+  outline: 2px solid var(--line-strong);
+  outline-offset: 2px;
+}
+.menu svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.menu .close,
+.menu[aria-expanded='true'] .open {
+  display: none;
+}
+.menu[aria-expanded='true'] .close {
+  display: inline;
 }
 .search {
   position: relative;
@@ -92,6 +116,9 @@ a {
 }
 .search input:focus {
   border-color: #444;
+}
+.search input::-webkit-search-cancel-button {
+  display: none;
 }
 .search kbd {
   position: absolute;
@@ -210,6 +237,9 @@ a {
   background: var(--raised);
   color: var(--text);
   font-weight: 500;
+}
+.nav-more {
+  display: none;
 }
 
 .toc a {
@@ -530,31 +560,69 @@ article img {
   .layout {
     display: block;
   }
+  .top {
+    padding: 0 16px;
+  }
   .menu {
-    display: block;
+    display: grid;
+    order: 1;
   }
   .top-links,
   .search kbd {
     display: none;
   }
   .search {
-    margin-left: 8px;
     flex: 1;
     width: auto;
+    min-width: 0;
+    margin-left: 4px;
+  }
+  .search input {
+    padding-right: 12px;
   }
   .results {
-    width: calc(100vw - 32px);
-  }
-  .sidenav {
-    display: none;
     position: fixed;
-    inset: var(--top) 0 0 0;
+    top: calc(var(--top) + 6px);
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: calc(100dvh - var(--top) - 24px);
+  }
+  body.nav-open {
+    overflow: hidden;
+  }
+  /* The navigation opens as a full-screen sheet under the top bar. */
+  .sidenav {
+    position: fixed;
+    inset: var(--top) 0 0;
     z-index: 15;
+    align-self: auto;
     height: auto;
+    padding: 20px 16px calc(40px + env(safe-area-inset-bottom));
     background: var(--bg);
     border: 0;
+    overscroll-behavior: contain;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition:
+      opacity 0.18s,
+      transform 0.18s,
+      visibility 0s 0.18s;
   }
   body.nav-open .sidenav {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.18s,
+      transform 0.18s;
+  }
+  .sidenav a {
+    padding: 8px 10px;
+    font-size: 15px;
+  }
+  .nav-more {
     display: block;
   }
   .content {

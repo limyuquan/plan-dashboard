@@ -17,6 +17,8 @@ const src = path.join(repo, 'docs')
 const out = path.join(repo, 'site', 'docs')
 const SITE = 'https://limyuquan.github.io/planner'
 const REPO = 'https://github.com/limyuquan/planner'
+// In the top bar on wide screens, at the end of the menu on small ones.
+const MORE_LINKS = `<a href="../../">Website</a><a href="../../llms.txt">llms.txt</a><a href="${REPO}">GitHub</a>`
 
 type Nav = { group: string; pages: string[] }[]
 type Heading = { depth: number; id: string; text: string }
@@ -131,6 +133,7 @@ function navHtml(pages: Page[], current: string) {
           )
           .join('')}</div>`,
     )
+    .concat(`<div class="nav-group nav-more"><p class="nav-title">More</p>${MORE_LINKS}</div>`)
     .join('')
 }
 
@@ -162,17 +165,15 @@ function pageHtml(page: Page, pages: Page[], html: string, lede: string, heading
 <header class="top">
   <a class="brand" href="../../"><img src="../../favicon.svg" alt="" width="18" height="18">Planner</a>
   <span class="slash">/</span><a class="brand-docs" href="../">Docs</a>
-  <button class="menu" type="button" aria-label="Menu">☰</button>
+  <button class="menu" type="button" aria-label="Menu" aria-expanded="false">
+    <svg viewBox="0 0 16 16" width="16" height="16"><path class="open" d="M2 4h12M2 8h12M2 12h12"/><path class="close" d="M3.5 3.5l9 9M12.5 3.5l-9 9"/></svg>
+  </button>
   <div class="search">
     <input type="search" placeholder="Search docs" aria-label="Search docs" autocomplete="off">
     <kbd>/</kbd>
     <div class="results" hidden></div>
   </div>
-  <nav class="top-links">
-    <a href="../../">Website</a>
-    <a href="../../llms.txt">llms.txt</a>
-    <a href="${REPO}">GitHub</a>
-  </nav>
+  <nav class="top-links">${MORE_LINKS}</nav>
 </header>
 <div class="layout">
   <aside class="sidenav">${navHtml(pages, page.slug)}</aside>
