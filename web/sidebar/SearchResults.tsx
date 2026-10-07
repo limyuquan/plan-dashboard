@@ -30,11 +30,16 @@ export function SearchResults({ q }: { q: string }) {
     )
     return () => clearTimeout(timer)
   }, [q])
+  if (q.length > 0 && q.length < 3) return <div className="empty-note">Type 3+ characters to search inside plans</div>
   const hits = q.length >= 3 && found.q === q ? found.hits : []
   if (!hits.length) return null
   return (
     <div className="search-results">
-      <div className="side-label">Found in plans</div>
+      <div className="side-label">
+        <span>Found in plans</span>
+        <span>({hits.length})</span>
+        <span className="rule" />
+      </div>
       {hits.slice(0, 15).map(({ doc, snippet }) => (
         <div
           key={doc.path}

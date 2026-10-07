@@ -5,29 +5,41 @@ import { allPaths } from '../layout/model'
 import { useStore } from '../state/store'
 import { moveTask } from '../state/tree'
 import { enter, landingKey, openDoc, resetLayout } from '../state/workspaces'
-import { Chevron } from '../icons'
+import { Check, Chevron, Columns2, RotateCcw, Smile, SquareSplitHorizontal, Undo2 } from '../icons'
 import { setTaskIcon } from '../state/icons'
 import { KindBadge } from './badges'
 import { IconPicker } from './IconPicker'
 import { CopyPath } from './CopyPath'
 
-// Beside a task or folder: "ws" makes it your workspace. On the one you are
-// already in it becomes ↺, which lays it out again from its docs.
-function WsButton({ wsKey }: { wsKey: string }) {
-  const current = useStore((s) => s.current === wsKey)
-  return (
-    <span
-      className="ws-btn"
-      data-cur={current || undefined}
-      title={current ? 'Lay this workspace out again (picks up new docs)' : 'Make this your workspace'}
+// Beside a task or folder: "Open" makes it your workspace. On the one you are
+// already in it is a reset icon, which lays it out again from its docs.
+function WsButton({ wsKey, current }: { wsKey: string; current: boolean }) {
+  return current ? (
+    <button
+      type="button"
+      className="icon-btn sm ws-btn"
+      data-cur
+      title="Lay this workspace out again (picks up new docs)"
       onClick={(e) => {
         e.stopPropagation()
-        if (current) resetLayout(wsKey)
-        else enter(wsKey)
+        resetLayout(wsKey)
       }}
     >
-      {current ? '↺' : 'ws'}
-    </span>
+      <RotateCcw />
+    </button>
+  ) : (
+    <button
+      type="button"
+      className="link-btn ws-btn"
+      title="Make this your workspace"
+      onClick={(e) => {
+        e.stopPropagation()
+        enter(wsKey)
+      }}
+    >
+      <Columns2 />
+      Open
+    </button>
   )
 }
 
@@ -52,15 +64,18 @@ export function DocRow({ doc }: { doc: Doc }) {
     >
       <KindBadge kind={doc.kind} />
       <span className="doc-title">{doc.title}</span>
-      <span
-        className="split-btn"
-        title="Open in the next pane (or shift-click)"
-        onClick={(e) => {
-          e.stopPropagation()
-          openDoc(doc.path, 'next')
-        }}
-      >
-        ⇥
+      <span className="row-acts">
+        <button
+          type="button"
+          className="icon-btn sm split-btn"
+          title="Open in the next pane (or shift-click)"
+          onClick={(e) => {
+            e.stopPropagation()
+            openDoc(doc.path, 'next')
+          }}
+        >
+          <SquareSplitHorizontal />
+        </button>
       </span>
     </div>
   )
@@ -73,13 +88,14 @@ export function FolderRow({ folder, open, onToggle }: { folder: Folder; open: bo
   return (
     <div className="folder" data-empty={empty || undefined}>
       <div className="folder-row" data-cur={cur || undefined} onClick={() => !empty && onToggle()}>
-        {!empty && <Chevron dir={open ? 'down' : 'right'} className="chev" />}
+        {empty ? <span className="chev" /> : <Chevron dir={open ? 'down' : 'right'} className="chev" />}
         <span className="folder-num">{folder.num ? `Phase ${folder.num}` : folder.label}</span>
         {folder.num && <span className="folder-label">{folder.label}</span>}
-        {empty && <span className="tag">empty</span>}
+        {empty && <span className="badge">empty</span>}
+        <span className="row-meta">{cur && <WsButton wsKey={folder.key} current />}</span>
         <span className="row-acts">
-          <CopyPath path={folder.dir} className="ws-btn copy-btn" title="Copy the folder path" />
-          {!empty && <WsButton wsKey={folder.key} />}
+          <CopyPath path={folder.dir} className="icon-btn sm copy-btn" title="Copy the folder path" />
+          {!empty && !cur && <WsButton wsKey={folder.key} current={false} />}
         </span>
       </div>
       {open && folder.docs.map((d) => <DocRow key={d.path} doc={d} />)}
@@ -105,6 +121,8 @@ type TaskRowProps = {
 
 export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping, drag }: TaskRowProps) {
   const here = useStore((s) => s.current === task.key || s.current.startsWith(`${task.key}/`))
+  const wsKey = landingKey(task)
+  const wsCur = useStore((s) => s.current === wsKey)
   const unseen = useStore((s) => s.unseen.has(task.key))
   const settle = useStore((s) => s.tree?.folders.find((f) => f.name === task.folder)?.settle)
   const empty = !task.docs.length && !task.phases.length && !task.groups.length
@@ -141,33 +159,45 @@ export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping
       >
         <Chevron dir={open ? 'down' : 'right'} className="chev" />
         {task.icon && <span className="task-icon">{task.icon}</span>}
-        <span className="task-name">{task.label}</span>
-        {unseen && <span className="dot" title="New plan since you last looked" />}
-        {settle && task.status && (
-          <span
-            className="task-act"
-            title={task.status === 'active' ? 'Move to the done folder' : 'Move back to the active folder'}
-            onClick={(e) => {
-              e.stopPropagation()
-              void moveTask(task.key, task.status === 'active' ? 'done' : 'active')
-            }}
-          >
-            {task.status === 'active' ? 'settle' : 'restore'}
-          </span>
-        )}
+        <span className="task-name" title={task.label}>
+          {task.label}
+        </span>
+        <span className="row-meta">
+          {unseen && (
+            <span className="pill-new" title="New plan since you last looked">
+              New
+            </span>
+          )}
+          {wsCur && <WsButton wsKey={wsKey} current />}
+        </span>
         <span className="row-acts">
-          <span
-            className="ws-btn copy-btn"
+          {settle && task.status && (
+            <button
+              type="button"
+              className="link-btn task-act"
+              title={task.status === 'active' ? 'Move to the done folder' : 'Move back to the active folder'}
+              onClick={(e) => {
+                e.stopPropagation()
+                void moveTask(task.key, task.status === 'active' ? 'done' : 'active')
+              }}
+            >
+              {task.status === 'active' ? <Check /> : <Undo2 />}
+              {task.status === 'active' ? 'settle' : 'restore'}
+            </button>
+          )}
+          <button
+            type="button"
+            className="icon-btn sm"
             title="Set an icon for this task"
             onClick={(e) => {
               e.stopPropagation()
               setPicking(true)
             }}
           >
-            ☺
-          </span>
-          <CopyPath path={task.dir} className="ws-btn copy-btn" title="Copy the task folder path" />
-          <WsButton wsKey={landingKey(task)} />
+            <Smile />
+          </button>
+          <CopyPath path={task.dir} className="icon-btn sm copy-btn" title="Copy the task folder path" />
+          {!wsCur && <WsButton wsKey={wsKey} current={false} />}
         </span>
       </div>
       {open && (
@@ -178,7 +208,7 @@ export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping
           {[...task.phases, ...task.groups].map((f) => (
             <FolderRow key={f.key} folder={f} open={isOpen(f.key)} onToggle={() => onToggleFolder(f.key)} />
           ))}
-          {empty && <div className="empty-note">nothing to read yet</div>}
+          {empty && <div className="empty-note">Nothing to read yet</div>}
         </div>
       )}
     </div>

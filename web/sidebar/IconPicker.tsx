@@ -46,11 +46,12 @@ export function IconPicker({ current, onPick, onClose }: Props) {
   }, [onClose])
 
   return (
-    <div className="icon-picker" ref={ref} onClick={(e) => e.stopPropagation()}>
+    <div className="icon-picker popover" ref={ref} onClick={(e) => e.stopPropagation()}>
       <div className="icon-grid">
         {SUGGESTED.map((icon) => (
           <button
             key={icon}
+            type="button"
             className="icon-choice"
             data-cur={icon === current || undefined}
             onClick={() => onPick(icon)}
@@ -74,8 +75,8 @@ export function IconPicker({ current, onPick, onClose }: Props) {
           onChange={(e) => setTyped(e.target.value)}
         />
         {current && (
-          <button type="button" className="link-btn dim" onClick={() => onPick(null)}>
-            remove
+          <button type="button" className="link-btn" onClick={() => onPick(null)}>
+            Remove
           </button>
         )}
       </form>

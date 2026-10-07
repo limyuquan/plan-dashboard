@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { X } from '../icons'
 import { CopyPath } from '../sidebar/CopyPath'
 import { KindBadge, PhaseBadge } from '../sidebar/badges'
 import { useStore } from '../state/store'
@@ -89,17 +90,18 @@ export function TabStrip({ pane }: { pane: Pane }) {
             {num && <PhaseBadge num={num} />}
             {doc && <KindBadge kind={doc.kind} />}
             <span className="tab-title">{doc?.title ?? path.split('/').pop()}</span>
-            <CopyPath path={path} className="tab-copy" title="Copy the file path" />
-            <span
-              className="tab-close"
+            <CopyPath path={path} className="icon-btn sm tab-copy" title="Copy the file path" />
+            <button
+              type="button"
+              className="icon-btn sm tab-close"
               title="Close"
               onClick={(e) => {
                 e.stopPropagation()
                 close(path)
               }}
             >
-              ×
-            </span>
+              <X />
+            </button>
           </div>
         )
       })}

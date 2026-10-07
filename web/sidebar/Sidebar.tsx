@@ -4,7 +4,7 @@ import { SEARCH_FOCUS, SIDEBAR_TOGGLE } from '../commands'
 import { trackMouse } from '../drag'
 import { useStore, setState } from '../state/store'
 import { toggleTheme, useTheme } from '../theme'
-import { Chevron } from '../icons'
+import { Chevron, CircleAlert, FolderOpen, Moon, PanelLeftClose, PanelLeftOpen, Search, Settings, Sun } from '../icons'
 import { usePersisted } from '../usePersisted'
 import { DocRow, TaskRow } from './rows'
 import { SearchResults } from './SearchResults'
@@ -28,12 +28,16 @@ function filterTask(task: Task, q: string): Task | null {
 const toggled = (list: string[], item: string) =>
   list.includes(item) ? list.filter((x) => x !== item) : [...list, item]
 
-function Fold({ label, open, onToggle }: { label: string; open: boolean; onToggle: () => void }) {
+type FoldProps = { label: string; open: boolean; onToggle: () => void; count?: number }
+
+// A section header that opens and shuts; a shut one can show how many it holds.
+function Fold({ label, open, onToggle, count }: FoldProps) {
   return (
     <div className="side-label fold" onClick={onToggle}>
-      {label}
+      <span>{label}</span>
+      {!open && count !== undefined && <span>({count})</span>}
       <span className="rule" />
-      <Chevron dir={open ? 'down' : 'right'} className="chev" />
+      <Chevron dir={open ? 'down' : 'right'} />
     </div>
   )
 }
@@ -88,8 +92,7 @@ export function Sidebar() {
   if (collapsed) {
     return (
       <div className="rail" onClick={() => setCollapsed(false)} title="Show the sidebar">
-        <Chevron dir="right" className="rail-chev" />
-        <span className="rail-text">plans</span>
+        <PanelLeftOpen />
         {anyUnseen && <span className="dot" />}
       </div>
     )
@@ -159,15 +162,23 @@ export function Sidebar() {
     const settled = section(`settled:${folder.name}`)
     return (
       <>
-        {folder.problem && <div className="side-problem">{folder.problem}</div>}
-        <div className="side-label">{folder.settle ? 'Active' : 'Tasks'}</div>
+        {folder.problem && (
+          <div className="side-problem">
+            <CircleAlert />
+            <span>{folder.problem}</span>
+          </div>
+        )}
+        <div className="side-label">
+          <span>{folder.settle ? 'Active' : 'Tasks'}</span>
+          <span className="rule" />
+        </div>
         {taskRows(active)}
         {!active.length && !folder.problem && (
-          <div className="empty-note">{q ? 'nothing matches' : 'no tasks yet'}</div>
+          <div className="empty-note">{q ? 'Nothing matches' : 'No tasks yet'}</div>
         )}
         {folder.settle && (
           <>
-            <Fold label="Settled" {...settled} />
+            <Fold label="Settled" count={done.length} {...settled} />
             {(settled.open || q) && taskRows(done)}
           </>
         )}
@@ -192,34 +203,41 @@ export function Sidebar() {
   return (
     <aside className="sidebar" style={{ width }}>
       <div className="side-head">
-        <input
-          ref={searchRef}
-          className="input search"
-          placeholder="Search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()}
-        />
+        <label className="search-box">
+          <Search />
+          <input
+            ref={searchRef}
+            className="search"
+            placeholder="Search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Escape' && e.currentTarget.blur()}
+          />
+        </label>
         <button
+          type="button"
           className="icon-btn"
           title={theme === 'dark' ? 'Switch to light' : 'Switch to dark'}
           onClick={toggleTheme}
         >
-          {theme === 'dark' ? '☀' : '☾'}
+          {theme === 'dark' ? <Sun /> : <Moon />}
         </button>
-        <button className="icon-btn" title="Settings" onClick={() => setState({ settingsOpen: true })}>
-          ⚙
+        <button type="button" className="icon-btn" title="Settings" onClick={() => setState({ settingsOpen: true })}>
+          <Settings />
         </button>
-        <button className="icon-btn" title="Hide the sidebar" onClick={() => setCollapsed(true)}>
-          ‹
+        <button type="button" className="icon-btn" title="Hide the sidebar" onClick={() => setCollapsed(true)}>
+          <PanelLeftClose />
         </button>
       </div>
       <div className="side-scroll">
         <SearchResults q={q} />
         {configProblem && (
           <div className="side-problem" title={configProblem}>
-            The config file has an error, so the last good settings are in use. Open settings, or run{' '}
-            <code>planner config check</code>.
+            <CircleAlert />
+            <span>
+              The config file has an error, so the last good settings are in use. Open settings, or run{' '}
+              <code>planner config check</code>.
+            </span>
           </div>
         )}
         {many
@@ -232,8 +250,8 @@ export function Sidebar() {
                     title={folder.root}
                     onClick={() => setClosedFolders((l) => toggled(l, folder.name))}
                   >
-                    <Chevron dir={shut && !q ? 'right' : 'down'} className="chev" />
-                    {folder.icon && <span className="task-icon">{folder.icon}</span>}
+                    <Chevron dir={shut && !q ? 'right' : 'down'} />
+                    {folder.icon && <span className="docs-folder-icon">{folder.icon}</span>}
                     <span className="docs-folder-name">{folder.name}</span>
                     <span className="docs-folder-path">{folder.label}</span>
                   </div>
@@ -244,7 +262,8 @@ export function Sidebar() {
           : folders[0] && folderBody(folders[0])}
       </div>
       <div className="side-foot" title={folders.map((f) => f.root).join('\n')}>
-        {many ? `${folders.length} docs folders` : folders[0]?.label}
+        <FolderOpen />
+        <span>{many ? `${folders.length} docs folders` : folders[0]?.label}</span>
       </div>
       <div
         className="side-resize"

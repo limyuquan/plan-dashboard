@@ -23,7 +23,7 @@
   overflow: hidden;
 }
 
-/* Dividers have a 6px grab area but show a 2px line. */
+/* Dividers have a 6px grab area but draw a 1px line, 2px while hovered. */
 .divider {
   flex: none;
   position: relative;
@@ -40,6 +40,7 @@
   content: '';
   position: absolute;
   background: var(--line);
+  transition: background var(--dur) 80ms;
 }
 .divider[data-dir='row']::after {
   inset: 0 2px;
@@ -48,7 +49,7 @@
   inset: 2px 0;
 }
 .divider:hover::after {
-  background: var(--accent);
+  background: var(--line-strong);
 }
 
 .pane {
@@ -69,17 +70,13 @@
 .tabbar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-1);
   height: 36px;
   flex: none;
-  padding: 0 6px;
+  padding: 0 var(--sp-1);
   border-bottom: 1px solid var(--line);
-  background: var(--sidebar);
+  background: var(--bg);
   overflow: hidden;
-}
-.pane[data-focused] .tabbar {
-  background: var(--sidebar-focus);
-  box-shadow: inset 0 -2px 0 color-mix(in oklab, var(--accent) 55%, transparent);
 }
 
 /* No scrollbar-width on purpose: it would hand the strip macOS's overlay
@@ -89,44 +86,62 @@
   align-self: stretch;
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: var(--sp-1);
   overflow-x: auto;
 }
 .tabs::-webkit-scrollbar {
-  height: 5px;
+  height: 4px;
 }
 .tabs::-webkit-scrollbar-track {
   background: transparent;
 }
 .tabs::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
-  border-radius: 3px;
+  background: var(--scrollbar);
+  border-radius: 2px;
 }
 .tabs::-webkit-scrollbar-thumb:hover {
-  background: var(--dimmer);
+  background: var(--text-3);
 }
 
 .tab {
+  position: relative;
   flex: none;
   display: flex;
   align-items: center;
   gap: 6px;
-  max-width: 300px;
-  padding: 5px 7px;
-  border-radius: 6px;
-  color: var(--dim);
+  height: var(--control-h);
+  max-width: 240px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-md);
+  color: var(--text-2);
   cursor: pointer;
   user-select: none;
+  transition:
+    background var(--dur),
+    color var(--dur);
 }
 .tab:hover {
-  background: var(--sel);
+  background: var(--hover);
 }
 .tab[data-active] {
-  background: var(--raised);
+  background: var(--active);
   color: var(--text);
+  font-weight: var(--w-medium);
 }
-.tab .badge {
-  margin-top: 0;
+/* With several panes, the focused one underlines its active tab. */
+.split .pane[data-focused] .tab[data-active]::after {
+  content: '';
+  position: absolute;
+  left: var(--sp-2);
+  right: var(--sp-2);
+  bottom: 0;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--accent);
+}
+.split .pane:not([data-focused]) .tab[data-active] {
+  background: var(--hover);
+  color: var(--text-2);
 }
 /* Where a dragged tab will be inserted. */
 .tab[data-marker='before'] {
@@ -137,57 +152,36 @@
 }
 
 .tab-title {
-  font-size: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.tab-copy {
-  color: var(--dimmer);
-  padding: 0 2px;
+/* Copy and close keep their place, so a tab is no wider while hovered. */
+.tab-copy,
+.tab-close {
+  width: 20px;
+  height: 20px;
   opacity: 0;
+  transition: opacity var(--dur);
 }
 .tab:hover .tab-copy,
-.tab[data-active] .tab-copy {
+.tab:hover .tab-close,
+.tab[data-active] .tab-close {
   opacity: 1;
-}
-.tab-copy:hover {
-  color: var(--accent);
-}
-.tab-close {
-  color: var(--dimmer);
-  padding: 0 2px;
-}
-.tab-close:hover {
-  color: var(--danger);
 }
 
 .pane-acts {
   display: flex;
   gap: 2px;
   flex: none;
-}
-.pane-act {
-  display: flex;
-  align-items: center;
-  border: 0;
-  background: none;
-  color: var(--dimmer);
-  padding: 3px 7px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.pane-act:hover {
-  background: var(--sel);
-  color: var(--text);
-}
-.chev-icon {
-  width: 12px;
-  height: 12px;
-  display: block;
+  margin-left: auto;
+  padding-left: var(--sp-1);
+  border-left: 1px solid var(--line);
 }
 .pane-close:hover {
-  background: color-mix(in oklab, var(--danger) 22%, var(--bg));
+  background: var(--danger-soft);
+}
+.pane-close:hover .lucide {
   color: var(--danger);
 }
 
@@ -196,6 +190,11 @@
   width: 100%;
   border: 0;
   background: var(--bg);
+  opacity: 0;
+  transition: opacity var(--dur);
+}
+.viewer[data-loaded] {
+  opacity: 1;
 }
 
 .blank {
@@ -204,21 +203,28 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  color: var(--dimmer);
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  color: var(--text-2);
   text-align: center;
-  padding: 16px;
+}
+.blank .lucide {
+  width: var(--icon-size-lg);
+  height: var(--icon-size-lg);
+}
+.blank p {
+  margin: 0;
 }
 .blank-hint {
-  font-size: 11px;
-  color: var(--faint);
+  font-size: var(--fs-sm);
+  color: var(--text-3);
 }
 
 /* Invisible drop targets over a pane while something is dragged. */
 .drop-zones {
   position: absolute;
   inset: 0;
-  z-index: 10;
+  z-index: var(--z-dropzone);
 }
 .dz {
   position: absolute;
@@ -227,14 +233,20 @@
 /* Shows the space the dropped tab will take. */
 .drop-preview {
   position: absolute;
-  z-index: 11;
   pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--accent);
-  background: color-mix(in oklab, var(--accent) 16%, transparent);
-  color: var(--accent);
-  font-size: 11px;
-  letter-spacing: 0.08em;
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.drop-label {
+  display: flex;
+  align-items: center;
+  height: var(--control-h);
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  font-weight: var(--w-medium);
+  color: var(--text);
 }

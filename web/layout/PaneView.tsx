@@ -1,22 +1,31 @@
 import { useState } from 'react'
 import { useStore } from '../state/store'
 import { apply, closePaneWithUndo, currentLayout, setFocus } from '../state/workspaces'
-import { Chevron } from '../icons'
+import {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  FileText,
+  SquareSplitHorizontal,
+  SquareSplitVertical,
+  X,
+} from '../icons'
 import { Viewer } from '../viewer/Viewer'
 import { roomIn } from './area'
 import { drop, zonesFor, type Zone } from './dnd'
 import { canShift, moveToNewPane, shift, type Dir, type Pane, type Side } from './model'
 import { TabStrip } from './TabStrip'
 
-const MOVES: [Dir, string][] = [
-  ['left', 'to the pane on the left'],
-  ['right', 'to the pane on the right'],
-  ['up', 'to the pane above'],
-  ['down', 'to the pane below'],
+const MOVES: [Dir, typeof ArrowLeft, string][] = [
+  ['left', ArrowLeft, 'to the pane on the left'],
+  ['right', ArrowRight, 'to the pane on the right'],
+  ['up', ArrowUp, 'to the pane above'],
+  ['down', ArrowDown, 'to the pane below'],
 ]
-const SPLITS: [Side, string, string][] = [
-  ['right', '⊞', 'on the right'],
-  ['bottom', '⊟', 'below'],
+const SPLITS: [Side, typeof ArrowLeft, string][] = [
+  ['right', SquareSplitHorizontal, 'on the right'],
+  ['bottom', SquareSplitVertical, 'below'],
 ]
 
 // The buttons at the end of a pane's tab bar. Each only shows when it can do
@@ -28,31 +37,38 @@ function PaneActions({ pane, only }: { pane: Pane; only: boolean }) {
   return (
     <div className="pane-acts">
       {path &&
-        MOVES.filter(([dir]) => canShift(layout, pane.id, dir)).map(([dir, where]) => (
+        MOVES.filter(([dir]) => canShift(layout, pane.id, dir)).map(([dir, Icon, where]) => (
           <button
             key={`move-${dir}`}
-            className="pane-act"
+            type="button"
+            className="icon-btn sm pane-act"
             title={`Move this tab ${where}`}
             onClick={() => apply(shift(layout, pane.id, dir, room)!)}
           >
-            <Chevron dir={dir} />
+            <Icon />
           </button>
         ))}
       {path &&
         pane.tabs.length > 1 &&
-        SPLITS.filter(([side]) => room(pane.id, side)).map(([side, glyph, where]) => (
+        SPLITS.filter(([side]) => room(pane.id, side)).map(([side, Icon, where]) => (
           <button
             key={`split-${side}`}
-            className="pane-act"
+            type="button"
+            className="icon-btn sm pane-act"
             title={`Split this tab into a new pane ${where}`}
             onClick={() => apply(moveToNewPane(layout, pane.id, path, pane.id, side))}
           >
-            {glyph}
+            <Icon />
           </button>
         ))}
       {!only && (
-        <button className="pane-act pane-close" title="Close this pane" onClick={() => closePaneWithUndo(pane.id)}>
-          ×
+        <button
+          type="button"
+          className="icon-btn sm pane-act pane-close"
+          title="Close this pane"
+          onClick={() => closePaneWithUndo(pane.id)}
+        >
+          <X />
         </button>
       )}
     </div>
@@ -112,7 +128,7 @@ function DropZones({ pane }: { pane: Pane }) {
       ))}
       {hover && (
         <div className="drop-preview" style={PREVIEW[hover]}>
-          <span>{hover === 'center' ? 'open here' : 'split here'}</span>
+          <span className="popover drop-label">{hover === 'center' ? 'Open here' : 'Split here'}</span>
         </div>
       )}
     </div>
@@ -137,6 +153,7 @@ export function PaneView({ pane }: { pane: Pane }) {
           <Viewer key={pane.active} path={pane.active} paneId={pane.id} />
         ) : (
           <div className="blank">
+            <FileText />
             <p>Pick a plan from the left.</p>
             <p className="blank-hint">Shift-click a plan, or drag one here, to read two side by side.</p>
           </div>
