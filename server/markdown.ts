@@ -8,10 +8,10 @@ export type Theme = 'dark' | 'light'
 const PALETTE: Record<Theme, string> = {
   dark: `
     color-scheme: dark;
-    --bg: #0a0a0a; --text: #e4e4e7; --dim: #a3a3a3; --line: rgb(255 255 255 / 0.1);
-    --accent: #a78bfa; --code: #e4e4e7; --chip: rgb(255 255 255 / 0.08); --block: #121212;
-    --pre-text: #d4d4d8; --strong: #ffffff; --quote: rgb(255 255 255 / 0.18); --head: #121212;
-    --zebra: rgb(255 255 255 / 0.025); --select: rgb(167 139 250 / 0.3);`,
+    --bg: #151517; --text: #e4e4e7; --dim: #a3a3a3; --line: rgb(255 255 255 / 0.1);
+    --accent: #a78bfa; --code: #ececf0; --chip: rgb(255 255 255 / 0.11); --block: #1e1e21;
+    --pre-text: #d4d4d8; --strong: #ffffff; --quote: rgb(255 255 255 / 0.18); --head: #1e1e21;
+    --zebra: rgb(255 255 255 / 0.03); --select: rgb(167 139 250 / 0.3);`,
   light: `
     color-scheme: light;
     --bg: #fcfcfc; --text: #27272a; --dim: #65656e; --line: rgb(0 0 0 / 0.1);
