@@ -18,8 +18,6 @@ export function Viewer({ path, paneId }: { path: string; paneId: string }) {
   const version = useStore((s) => s.versions[path] ?? 0)
   const [firstTheme] = useState(theme)
   const markdown = path.endsWith('.md')
-  // The frame stays invisible until its page has loaded, so no blank flashes.
-  const [loaded, setLoaded] = useState(false)
 
   // A doc's own light/dark switch reports back, and the dashboard follows.
   useEffect(() => {
@@ -37,7 +35,6 @@ export function Viewer({ path, paneId }: { path: string; paneId: string }) {
     if (!frame) return
     let detach = () => {}
     const wire = () => {
-      setLoaded(true)
       detach()
       detach = attachFrame(frame, { path, theme, onLink: followHref, onFocus: () => setFocus(paneId) })
       restoreScroll(frame, path)
@@ -59,5 +56,5 @@ export function Viewer({ path, paneId }: { path: string; paneId: string }) {
   }, [finding, path])
 
   const src = `${docUrl(path)}?theme=${markdown ? theme : firstTheme}${version ? `&v=${version}` : ''}`
-  return <iframe ref={ref} className="viewer" data-loaded={loaded || undefined} src={src} title={path} />
+  return <iframe ref={ref} className="viewer" src={src} title={path} />
 }

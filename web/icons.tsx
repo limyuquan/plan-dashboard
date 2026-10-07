@@ -11,6 +11,7 @@ export {
   CircleAlert,
   Columns2,
   Copy,
+  Ellipsis,
   FileText,
   FolderOpen,
   Keyboard,

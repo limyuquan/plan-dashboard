@@ -103,10 +103,13 @@
 .side-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: var(--sp-2) var(--sp-2) var(--sp-6);
+  padding: var(--sp-1) var(--sp-2) var(--sp-6);
 }
 
 /* Section headers: a label, a rule, and a chevron on the ones that fold. */
+.side-scroll > .side-label:first-child {
+  margin-top: 0;
+}
 .side-label {
   display: flex;
   align-items: center;
@@ -386,7 +389,45 @@
   color: var(--text-3);
 }
 
-/* The icon picker, under the task row that opened it. */
+/* The task settings menu and the icon picker, under the task row that opened them. */
+.task-menu {
+  position: absolute;
+  top: calc(var(--row-h-lg) + 2px);
+  right: var(--sp-1);
+  z-index: var(--z-popover);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 190px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  height: 30px;
+  padding: 0 var(--sp-2);
+  border: 0;
+  border-radius: var(--r-md);
+  background: none;
+  color: var(--text);
+  font-size: var(--fs-md);
+  text-align: left;
+  white-space: nowrap;
+  transition: background var(--dur);
+}
+.menu-item .lucide {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+}
+.menu-item:hover,
+.menu-item:focus-visible {
+  background: var(--hover);
+}
+.menu-item:hover .lucide,
+.menu-item:focus-visible .lucide {
+  color: currentColor;
+}
 .icon-picker {
   position: absolute;
   top: calc(var(--row-h-lg) + 2px);

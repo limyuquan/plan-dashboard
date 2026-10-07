@@ -5,14 +5,15 @@ import { allPaths } from '../layout/model'
 import { useStore } from '../state/store'
 import { moveTask } from '../state/tree'
 import { enter, landingKey, openDoc, resetLayout } from '../state/workspaces'
-import { Check, Chevron, Columns2, RotateCcw, Smile, SquareSplitHorizontal, Undo2 } from '../icons'
+import { Check, Chevron, Columns2, Ellipsis, RotateCcw, SquareSplitHorizontal, Undo2 } from '../icons'
 import { setTaskIcon } from '../state/icons'
 import { KindBadge } from './badges'
 import { IconPicker } from './IconPicker'
 import { CopyPath } from './CopyPath'
+import { TaskMenu } from './TaskMenu'
 
-// Beside a task or folder: "Open" makes it your workspace. On the one you are
-// already in it is a reset icon, which lays it out again from its docs.
+// Beside a phase: "Open" makes it your workspace. On the one you are already
+// in it is a reset icon, which lays it out again from its docs.
 function WsButton({ wsKey, current }: { wsKey: string; current: boolean }) {
   return current ? (
     <button
@@ -92,7 +93,7 @@ export function FolderRow({ folder, open, onToggle }: { folder: Folder; open: bo
         <span className="folder-num">{folder.num ? `Phase ${folder.num}` : folder.label}</span>
         {folder.num && <span className="folder-label">{folder.label}</span>}
         {empty && <span className="badge">empty</span>}
-        <span className="row-meta">{cur && <WsButton wsKey={folder.key} current />}</span>
+        <span className="row-meta">{!empty && cur && <WsButton wsKey={folder.key} current />}</span>
         <span className="row-acts">
           <CopyPath path={folder.dir} className="icon-btn sm copy-btn" title="Copy the folder path" />
           {!empty && !cur && <WsButton wsKey={folder.key} current={false} />}
@@ -127,8 +128,21 @@ export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping
   const settle = useStore((s) => s.tree?.folders.find((f) => f.name === task.folder)?.settle)
   const empty = !task.docs.length && !task.phases.length && !task.groups.length
   const [picking, setPicking] = useState(false)
+  const [menu, setMenu] = useState(false)
   return (
     <div className="task">
+      {menu && (
+        <TaskMenu
+          wsKey={wsKey}
+          current={wsCur}
+          dir={task.dir}
+          onChangeIcon={() => {
+            setMenu(false)
+            setPicking(true)
+          }}
+          onClose={() => setMenu(false)}
+        />
+      )}
       {picking && (
         <IconPicker
           current={task.icon}
@@ -168,7 +182,6 @@ export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping
               New
             </span>
           )}
-          {wsCur && <WsButton wsKey={wsKey} current />}
         </span>
         <span className="row-acts">
           {settle && task.status && (
@@ -188,16 +201,14 @@ export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping
           <button
             type="button"
             className="icon-btn sm"
-            title="Set an icon for this task"
+            title="Task settings"
             onClick={(e) => {
               e.stopPropagation()
-              setPicking(true)
+              setMenu((v) => !v)
             }}
           >
-            <Smile />
+            <Ellipsis />
           </button>
-          <CopyPath path={task.dir} className="icon-btn sm copy-btn" title="Copy the task folder path" />
-          {!wsCur && <WsButton wsKey={wsKey} current={false} />}
         </span>
       </div>
       {open && (

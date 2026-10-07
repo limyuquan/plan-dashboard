@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
+import { useDismiss } from './useDismiss'
 
 const SUGGESTED = [
   '📐',
@@ -34,16 +35,7 @@ export function IconPicker({ current, onPick, onClose }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const [typed, setTyped] = useState('')
 
-  useEffect(() => {
-    const away = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && onClose()
-    const esc = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
-    window.addEventListener('mousedown', away)
-    window.addEventListener('keydown', esc)
-    return () => {
-      window.removeEventListener('mousedown', away)
-      window.removeEventListener('keydown', esc)
-    }
-  }, [onClose])
+  useDismiss(ref, onClose)
 
   return (
     <div className="icon-picker popover" ref={ref} onClick={(e) => e.stopPropagation()}>
