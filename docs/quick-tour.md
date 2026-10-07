@@ -12,7 +12,7 @@ node dist/cli.js --root examples/demo-docs
 
 ## 1. Open a phase
 
-The sidebar lists tasks; click **Planner V1** to see its phases. Click `ws` next to **Phase 2** to make it your
+The sidebar lists tasks; click **Planner V1** to see its phases. Hover **Phase 2** and click **Open** to make it your
 workspace: its plan, ELI5 and recap open side by side, one pane each.
 
 ## 2. Arrange the panes
@@ -21,7 +21,7 @@ workspace: its plan, ELI5 and recap open side by side, one pane each.
 - Drag the divider between panes to resize them.
 - Click a tab and press `Option` + `→` to send it to the next pane.
 
-Planner remembers this arrangement for Phase 2. Click `↺` next to the phase to lay it out from scratch again.
+Planner remembers this arrangement for Phase 2. Hover the phase and click its circular arrow to lay it out from scratch again.
 
 ## 3. Catch a new plan
 

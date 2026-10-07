@@ -20,8 +20,8 @@ Shortcuts also work while a plan has focus, but never while you type in a field.
 
 ## Change a shortcut
 
-In **Settings** (⚙ in the sidebar) → **Keyboard shortcuts**, click **record** next to an action and press the keys.
-`×` removes a combo, and **reset** brings back the default.
+In **Settings** (the gear in the sidebar) → **Keyboard shortcuts**, click **Record** next to an action and press the keys.
+`×` removes a combo, and **Reset** brings back the default.
 
 Or edit `hotkeys` in the [config file](configuration.md): each action takes a list of combos.
 

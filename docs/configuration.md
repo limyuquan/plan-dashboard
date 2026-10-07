@@ -91,7 +91,7 @@ Giving `docTypes` replaces the whole default list, so include every type you wan
 ### Icons
 
 An icon is an emoji or a short symbol. Set them on doc types (shown in badges), on folders (shown in their sidebar
-section), and on tasks with `taskIcons` or the `☺` on a task row.
+section), and on tasks with `taskIcons` or **Change icon…** in a task's **…** menu.
 
 ## Older config files
 
