@@ -8,6 +8,7 @@ import {
   modifiersOf,
   type HotkeyAction,
 } from '../../shared/hotkeys'
+import { Keyboard, Plus, X } from '../icons'
 
 const LABELS: Record<HotkeyAction, string> = {
   moveTabLeft: 'Move tab left',
@@ -58,7 +59,7 @@ export function HotkeysSection({ draft, set }: Props) {
   })
 
   return (
-    <section className="settings-section">
+    <section className="settings-section" id="hotkeys">
       <h3>Keyboard shortcuts</h3>
       <p className="section-hint">They also work while a plan has the focus, but not while you type in a field.</p>
       <div className="hotkeys">
@@ -72,7 +73,8 @@ export function HotkeysSection({ draft, set }: Props) {
                   <span className="hotkey" key={combo}>
                     <kbd>{shown(action, combo)}</kbd>
                     <button
-                      className="mini-btn danger"
+                      type="button"
+                      className="icon-btn sm"
                       title="Remove"
                       onClick={() =>
                         setAction(
@@ -81,19 +83,33 @@ export function HotkeysSection({ draft, set }: Props) {
                         )
                       }
                     >
-                      ×
+                      <X />
                     </button>
                   </span>
                 ))}
-                {!keys[action].length && <span className="hotkey-none">none</span>}
+                {!keys[action].length && <span className="hotkey-none">None</span>}
               </span>
               <span className="hotkey-acts">
-                <button className="link-btn" onClick={() => setRecording(recording === action ? null : action)}>
-                  {recording === action ? 'press keys… (Esc to cancel)' : '+ record'}
+                <button
+                  type="button"
+                  className="link-btn"
+                  onClick={() => setRecording(recording === action ? null : action)}
+                >
+                  {recording === action ? (
+                    <>
+                      <Keyboard />
+                      Press keys… Esc cancels
+                    </>
+                  ) : (
+                    <>
+                      <Plus />
+                      Record
+                    </>
+                  )}
                 </button>
                 {changed && (
-                  <button className="link-btn dim" onClick={() => setAction(action, undefined)}>
-                    reset
+                  <button type="button" className="link-btn" onClick={() => setAction(action, undefined)}>
+                    Reset
                   </button>
                 )}
               </span>

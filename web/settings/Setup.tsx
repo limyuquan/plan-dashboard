@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { nameForPath } from '../../shared/config'
 import { api } from '../api'
+import { CircleAlert, FolderOpen } from '../icons'
 import { useStore } from '../state/store'
 import { refresh } from '../state/tree'
 
@@ -25,13 +26,19 @@ export function Setup() {
   return (
     <div className="setup">
       <form className="setup-card" onSubmit={submit}>
+        <FolderOpen />
         <h1>Where are your plans?</h1>
         <p>
           Pick the folder that holds your plan docs. By default the dashboard expects <code>active/</code> and{' '}
           <code>done/</code> folders of tasks, each with a <code>plans/</code> folder of <code>phase-1-…</code> folders;
           you can change all of that, and add more folders, in Settings afterwards.
         </p>
-        {problem && <p className="form-error">{problem}</p>}
+        {problem && (
+          <p className="form-error">
+            <CircleAlert />
+            {problem}
+          </p>
+        )}
         <input
           className="input"
           data-mono
@@ -40,7 +47,12 @@ export function Setup() {
           value={root}
           onChange={(e) => setRoot(e.target.value)}
         />
-        {error && <p className="form-error">{error}</p>}
+        {error && (
+          <p className="form-error">
+            <CircleAlert />
+            {error}
+          </p>
+        )}
         <button className="btn primary" disabled={!root.trim()}>
           Use this folder
         </button>

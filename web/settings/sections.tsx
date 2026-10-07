@@ -1,4 +1,5 @@
 import { COLORS, layoutFor, type Config, type DocType, type DocsFolder } from '../../shared/config'
+import { Plus, X } from '../icons'
 import { Field, ListEditor, Text, listText, textList } from './fields'
 
 type Props = { draft: Config; set: (patch: Partial<Config>) => void }
@@ -63,7 +64,7 @@ const ownLayout = (f: DocsFolder) => LAYOUT_KEYS.some((k) => f[k] !== undefined)
 export function FoldersSection({ draft, set, runFolders }: Props & { runFolders?: DocsFolder[] }) {
   const update = (i: number, next: DocsFolder) => set({ folders: draft.folders.map((f, j) => (j === i ? next : f)) })
   return (
-    <section className="settings-section">
+    <section className="settings-section" id="folders">
       <h3>Docs folders</h3>
       <p className="section-hint">
         Every folder your agents write plans into, each with its own section in the sidebar. The name shows in links to
@@ -94,11 +95,12 @@ export function FoldersSection({ draft, set, runFolders }: Props & { runFolders?
               />
             </Field>
             <button
-              className="mini-btn danger folder-remove"
+              type="button"
+              className="icon-btn sm danger folder-remove"
               title="Remove this folder"
               onClick={() => set({ folders: draft.folders.filter((_, j) => j !== i) })}
             >
-              ×
+              <X />
             </button>
           </div>
           <label className="check">
@@ -126,10 +128,12 @@ export function FoldersSection({ draft, set, runFolders }: Props & { runFolders?
         </div>
       ))}
       <button
+        type="button"
         className="link-btn"
         onClick={() => set({ folders: [...draft.folders, { name: `folder-${draft.folders.length + 1}`, path: '' }] })}
       >
-        + Add a docs folder
+        <Plus />
+        Add a docs folder
       </button>
 
       <h3>How folders are organised</h3>
@@ -141,7 +145,7 @@ export function FoldersSection({ draft, set, runFolders }: Props & { runFolders?
 
 export function DocTypesSection({ draft, set }: Props) {
   return (
-    <section className="settings-section">
+    <section className="settings-section" id="doc-types">
       <h3>Doc types</h3>
       <p className="section-hint">
         A file takes the first type whose name pattern matches (<code>*</code> matches anything). The order here is also
@@ -197,7 +201,7 @@ export function DocTypesSection({ draft, set }: Props) {
 
 export function GroupsSection({ draft, set }: Props) {
   return (
-    <section className="settings-section">
+    <section className="settings-section" id="groups">
       <h3>Extra folders in a task</h3>
       <p className="section-hint">
         Folders inside each task that get their own section after the phases, like research notes.
@@ -240,7 +244,7 @@ export function GroupsSection({ draft, set }: Props) {
 
 export function CollectionsSection({ draft, set }: Props) {
   return (
-    <section className="settings-section">
+    <section className="settings-section" id="collections">
       <h3>Collections</h3>
       <p className="section-hint">
         Docs outside any task, found by a path pattern under the docs folder, e.g. <code>weekly/*/*.html</code>. Each
@@ -287,7 +291,7 @@ export function CollectionsSection({ draft, set }: Props) {
 
 export function ServerSection({ draft, set, savedPort }: Props & { savedPort: number }) {
   return (
-    <section className="settings-section">
+    <section className="settings-section" id="server">
       <h3>Server</h3>
       <Field
         label="Port"

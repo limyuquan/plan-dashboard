@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { ChevronDown, ChevronUp, Plus, X } from '../icons'
 
 export function Field({ label, hint, children }: { label: string; hint?: ReactNode; children: ReactNode }) {
   return (
@@ -56,31 +57,40 @@ export function ListEditor<T>(props: {
           <span className="list-acts">
             {props.ordered && (
               <>
-                <button className="mini-btn" title="Move up" disabled={i === 0} onClick={() => move(i, -1)}>
-                  ↑
+                <button
+                  type="button"
+                  className="icon-btn sm"
+                  title="Move up"
+                  disabled={i === 0}
+                  onClick={() => move(i, -1)}
+                >
+                  <ChevronUp />
                 </button>
                 <button
-                  className="mini-btn"
+                  type="button"
+                  className="icon-btn sm"
                   title="Move down"
                   disabled={i === items.length - 1}
                   onClick={() => move(i, 1)}
                 >
-                  ↓
+                  <ChevronDown />
                 </button>
               </>
             )}
             <button
-              className="mini-btn danger"
+              type="button"
+              className="icon-btn sm danger"
               title="Remove"
               onClick={() => onChange(items.filter((_, j) => j !== i))}
             >
-              ×
+              <X />
             </button>
           </span>
         </div>
       ))}
-      <button className="link-btn" onClick={() => onChange([...items, props.blank()])}>
-        + {props.addLabel}
+      <button type="button" className="link-btn" onClick={() => onChange([...items, props.blank()])}>
+        <Plus />
+        {props.addLabel}
       </button>
     </div>
   )

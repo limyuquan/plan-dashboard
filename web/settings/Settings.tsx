@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { FALLBACK_KIND, type Config, type DocsFolder } from '../../shared/config'
 import type { FolderPreview, Preview } from '../../shared/types'
 import { api } from '../api'
+import { CircleAlert, X } from '../icons'
 import { setState } from '../state/store'
 import { pushToast } from '../state/toasts'
 import { HotkeysSection } from './HotkeysSection'
@@ -18,7 +19,10 @@ function FolderFinds({ f, draft, many }: { f: FolderPreview; draft: Config; many
         </h4>
       )}
       {f.problem ? (
-        <p className="preview-error">{f.problem}</p>
+        <p className="preview-error">
+          <CircleAlert />
+          {f.problem}
+        </p>
       ) : (
         <>
           <div className="preview-counts">
@@ -77,7 +81,15 @@ function FolderFinds({ f, draft, many }: { f: FolderPreview; draft: Config; many
 // makes the folder rules debuggable: you see what they match right away.
 function PreviewPanel({ preview, draft }: { preview: Preview | null; draft: Config }) {
   if (!preview) return <aside className="preview">Reading…</aside>
-  if (!preview.ok) return <aside className="preview preview-error">{preview.error}</aside>
+  if (!preview.ok)
+    return (
+      <aside className="preview">
+        <p className="preview-error">
+          <CircleAlert />
+          {preview.error}
+        </p>
+      </aside>
+    )
   return (
     <aside className="preview">
       <h3>What this finds</h3>
@@ -87,6 +99,15 @@ function PreviewPanel({ preview, draft }: { preview: Preview | null; draft: Conf
     </aside>
   )
 }
+
+const SECTIONS = [
+  ['folders', 'Docs folders'],
+  ['doc-types', 'Doc types'],
+  ['groups', 'Extra folders'],
+  ['collections', 'Collections'],
+  ['hotkeys', 'Keyboard shortcuts'],
+  ['server', 'Server'],
+]
 
 export function Settings() {
   const [saved, setSaved] = useState<Config | null>(null)
@@ -134,17 +155,29 @@ export function Settings() {
 
   return (
     <div className="modal-backdrop" onMouseDown={(e) => e.target === e.currentTarget && close()}>
-      <div className="modal settings">
+      <div className="modal popover">
         <header className="modal-head">
           <h2>Settings</h2>
           <span className="modal-file" title="Where these are saved; you can edit it by hand too">
             {file}
           </span>
-          <button className="icon-btn" title="Close" onClick={close}>
-            ×
+          <button type="button" className="icon-btn" title="Close" onClick={close}>
+            <X />
           </button>
         </header>
         <div className="settings-body">
+          <nav className="settings-nav">
+            {SECTIONS.map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                className="link-btn"
+                onClick={() => document.getElementById(id)?.scrollIntoView({ block: 'start' })}
+              >
+                {label}
+              </button>
+            ))}
+          </nav>
           <div className="settings-form">
             <FoldersSection draft={draft} set={set} runFolders={runFolders} />
             <DocTypesSection draft={draft} set={set} />
@@ -156,11 +189,16 @@ export function Settings() {
           <PreviewPanel preview={preview} draft={draft} />
         </div>
         <footer className="modal-foot">
-          {error && <span className="form-error">{error}</span>}
-          <button className="btn" onClick={close}>
+          {error && (
+            <span className="form-error">
+              <CircleAlert />
+              {error}
+            </span>
+          )}
+          <button type="button" className="btn" onClick={close}>
             Cancel
           </button>
-          <button className="btn primary" disabled={preview?.ok === false} onClick={save}>
+          <button type="button" className="btn primary" disabled={preview?.ok === false} onClick={save}>
             Save
           </button>
         </footer>
