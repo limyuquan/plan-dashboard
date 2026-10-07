@@ -244,8 +244,7 @@
   display: none;
 }
 /* The actions a row shows on hover. They paint the row's own colour behind
-   themselves, so a long title is covered rather than pushed. On the current
-   workspace they stop short of its reset button. */
+   themselves, so a long title is covered rather than pushed. */
 .row-acts {
   position: absolute;
   right: var(--sp-1);
@@ -263,9 +262,6 @@
 :is(.task-row, .folder-row, .doc):is(:hover, :focus-within) > .row-acts {
   opacity: 1;
   pointer-events: auto;
-}
-:is(.task-row, .folder-row):has(> .row-meta > .ws-btn) > .row-acts {
-  right: calc(var(--sp-1) + var(--control-h-sm) + var(--sp-1));
 }
 .row-acts .task-act {
   text-transform: capitalize;

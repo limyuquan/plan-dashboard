@@ -93,10 +93,9 @@ export function FolderRow({ folder, open, onToggle }: { folder: Folder; open: bo
         <span className="folder-num">{folder.num ? `Phase ${folder.num}` : folder.label}</span>
         {folder.num && <span className="folder-label">{folder.label}</span>}
         {empty && <span className="badge">empty</span>}
-        <span className="row-meta">{!empty && cur && <WsButton wsKey={folder.key} current />}</span>
         <span className="row-acts">
           <CopyPath path={folder.dir} className="icon-btn sm copy-btn" title="Copy the folder path" />
-          {!empty && !cur && <WsButton wsKey={folder.key} current={false} />}
+          {!empty && <WsButton wsKey={folder.key} current={cur} />}
         </span>
       </div>
       {open && folder.docs.map((d) => <DocRow key={d.path} doc={d} />)}
@@ -180,10 +179,9 @@ export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping
               New
             </span>
           )}
-          {wsCur && <WsButton wsKey={wsKey} current />}
         </span>
         <span className="row-acts">
-          {!wsCur && <WsButton wsKey={wsKey} current={false} />}
+          <WsButton wsKey={wsKey} current={wsCur} />
           {settle && task.status && (
             <button
               type="button"
