@@ -1,17 +1,37 @@
-const TURN = { left: 0, up: 90, right: 180, down: 270 }
+import { ChevronRight, FaceSlightlySmiling, FilePlusCorner } from 'lucide-react'
 
-// One chevron shape, turned to face the way it points.
-export function Chevron({ dir, className = 'chev-icon' }: { dir: keyof typeof TURN; className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 12 12" aria-hidden style={{ transform: `rotate(${TURN[dir]}deg)` }}>
-      <path
-        d="M7.5 2.5 4 6l3.5 3.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
+export {
+  ArrowDown,
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  CircleAlert,
+  Columns2,
+  Copy,
+  FileText,
+  FolderOpen,
+  Keyboard,
+  Moon,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Plus,
+  RotateCcw,
+  Search,
+  Settings,
+  SquareSplitHorizontal,
+  SquareSplitVertical,
+  Sun,
+  Undo2,
+  X,
+} from 'lucide-react'
+export { FaceSlightlySmiling as Smile, FilePlusCorner as FilePlus2 }
+
+const TURN = { left: 180, up: 270, right: 0, down: 90 }
+
+// One chevron, turned to face the way it points.
+export function Chevron({ dir, className }: { dir: keyof typeof TURN; className?: string }) {
+  return <ChevronRight size={16} className={className} style={{ transform: `rotate(${TURN[dir]}deg)` }} />
 }

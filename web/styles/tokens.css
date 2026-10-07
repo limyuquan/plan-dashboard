@@ -1,28 +1,79 @@
+/* Every colour, size, radius, shadow and duration the app uses. Component CSS
+   only refers to these, so a change here is a change everywhere. */
 :root {
   color-scheme: dark;
-  --bg: #0b0b0d;
-  --sidebar: #101012;
-  --sidebar-focus: #131317;
-  --card: #17171b; /* search box, toast, and other small surfaces */
-  --raised: #26262d; /* the active tab and controls that sit on top */
-  --line: #232327;
-  --line-strong: #35353c;
-  --text: #e9e9ec;
-  --dim: #85858e;
-  --dimmer: #5c5c65;
-  --faint: #46464e;
-  --sel: #1d1d22;
-  --accent: #b49df0;
+  --bg: #0a0a0a;
+  --sidebar: #000000;
+  --surface: #121212;
+  --text: #f5f5f5;
+  --text-2: #a3a3a3;
+  --text-3: #8a8a8a;
+  --icon: #767676;
+  --line: rgb(255 255 255 / 0.08);
+  --line-strong: rgb(255 255 255 / 0.14);
+  --hover: rgb(255 255 255 / 0.06);
+  --active: rgb(255 255 255 / 0.09);
+  --row-hover: #141414;
+  --row-selected: #1a1a1a;
+  --accent: #a78bfa;
   --on-accent: #1a1030;
-  --danger: #d9697f;
-  --shadow: rgba(0, 0, 0, 0.45);
-  --font: ui-sans-serif, -apple-system, 'SF Pro Text', system-ui, sans-serif;
-  --mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  --accent-soft: color-mix(in oklab, var(--accent) 14%, transparent);
+  --danger: #f87171;
+  --danger-soft: color-mix(in oklab, var(--danger) 14%, transparent);
+  --scrollbar: rgb(255 255 255 / 0.14);
+  --shadow-pop: 0 16px 40px -18px rgb(0 0 0 / 0.8);
 
-  /* Badge colours. Both the tint behind a badge and its text are mixed out of
-     the theme's own colours, so one list serves light and dark. */
-  --tint-bg: 22%;
-  --tint-fg: 80%;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  --fs-xs: 11px;
+  --lh-xs: 14px;
+  --fs-sm: 12px;
+  --lh-sm: 16px;
+  --fs-md: 14px;
+  --lh-md: 20px;
+  --fs-lg: 16px;
+  --lh-lg: 24px;
+  --fs-xl: 20px;
+  --lh-xl: 28px;
+  --w-regular: 400;
+  --w-medium: 500;
+  --w-semibold: 600;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-6: 24px;
+  --row-h: 32px;
+  --row-h-lg: 36px;
+  --control-h: 28px;
+  --control-h-sm: 24px;
+  --icon-size: 16px;
+  --icon-size-sm: 14px;
+  --icon-size-lg: 24px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 10px;
+  --r-xl: 14px;
+
+  --dur: 150ms;
+  --dur-pop: 200ms;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --z-resize: 5;
+  --z-dropzone: 10;
+  --z-popover: 30;
+  --z-toast: 50;
+  --z-modal: 80;
+  --z-shield: 100;
+
+  --focus-ring: 0 0 0 2px var(--accent);
+  --focus-ring-soft: 0 0 0 3px color-mix(in oklab, var(--accent) 28%, transparent);
+
+  /* Badge colours: the hue is mixed into the surface behind the badge and into
+     the text on it, so one list of hues serves both themes. */
+  --tint-bg: 14%;
+  --tint-fg: 55%;
   --hue-grey: #7e7e88;
   --hue-violet: #9a76d0;
   --hue-blue: #5a9fda;
@@ -36,41 +87,51 @@
 
 [data-theme='light'] {
   color-scheme: light;
-  --bg: #f2f2f4;
-  --sidebar: #f8f8fa;
-  --sidebar-focus: #ffffff;
-  --card: #ffffff;
-  --raised: #e4e4e9;
-  --line: #e0e0e5;
-  --line-strong: #b9b9c2;
-  --text: #1c1c20;
-  --dim: #5f5f68;
-  --dimmer: #8a8a93;
-  --faint: #aaaab2;
-  --sel: #eaeaef;
-  --accent: #6741c4;
+  --bg: #fcfcfc;
+  --sidebar: #f6f6f7;
+  --surface: #ffffff;
+  --text: #1f1f23;
+  --text-2: #65656e;
+  --text-3: #6e6e76;
+  --icon: #7c7c84;
+  --line: rgb(0 0 0 / 0.08);
+  --line-strong: rgb(0 0 0 / 0.16);
+  --hover: rgb(0 0 0 / 0.045);
+  --active: rgb(0 0 0 / 0.07);
+  --row-hover: #ebebee;
+  --row-selected: #e4e4e8;
+  --accent: #6d4fd6;
   --on-accent: #ffffff;
-  --danger: #bd3550;
-  --shadow: rgba(0, 0, 0, 0.13);
-  --tint-bg: 15%;
-  --tint-fg: 68%;
+  --accent-soft: color-mix(in oklab, var(--accent) 10%, transparent);
+  --danger: #c2334d;
+  --danger-soft: color-mix(in oklab, var(--danger) 8%, transparent);
+  --scrollbar: rgb(0 0 0 / 0.16);
+  --shadow-pop: 0 16px 40px -18px rgb(0 0 0 / 0.35);
+  --tint-bg: 12%;
+  --tint-fg: 50%;
 }
 
-/* A badge: its hue tinted into the surface, with a readable version on top. */
 .badge,
 .phase-badge {
   --hue: var(--hue-grey);
-  background: color-mix(in oklab, var(--hue) var(--tint-bg), var(--card));
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  border-radius: 4px;
+  font-size: var(--fs-xs);
+  line-height: var(--lh-xs);
+  background: color-mix(in oklab, var(--hue) var(--tint-bg), var(--surface));
   color: color-mix(in oklab, var(--hue) var(--tint-fg), var(--text));
 }
 .badge {
-  flex: none;
-  margin-top: 2px;
-  font-size: 9px;
-  line-height: 1.5;
-  letter-spacing: 0.03em;
-  padding: 0 5px;
-  border-radius: 4px;
+  padding: 0 6px;
+  font-weight: var(--w-medium);
+  white-space: nowrap;
+}
+.badge-icon {
+  margin-right: 3px;
+  font-size: 12px;
 }
 .badge[data-color='violet'] {
   --hue: var(--hue-violet);
@@ -99,14 +160,10 @@
 
 /* One colour per phase number, cycling, so tabs from one phase match. */
 .phase-badge {
-  flex: none;
-  min-width: 19px;
+  justify-content: center;
+  min-width: 18px;
   padding: 0 4px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.6;
-  text-align: center;
+  font-weight: var(--w-semibold);
   font-variant-numeric: tabular-nums;
 }
 .phase-badge[data-tone='0'] {

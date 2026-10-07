@@ -13,13 +13,14 @@ body,
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font);
-  font-size: 13px;
+  font: var(--fs-md) / var(--lh-md) var(--font);
   -webkit-font-smoothing: antialiased;
 }
 
 button {
   font: inherit;
+  color: inherit;
+  cursor: pointer;
 }
 code {
   font-family: var(--mono);
@@ -35,73 +36,248 @@ code {
 .shield {
   position: fixed;
   inset: 0;
-  z-index: 100;
+  z-index: var(--z-shield);
 }
 
-.icon-btn {
+/* Icons are grey until the button or row holding them is hovered. */
+svg.lucide {
   flex: none;
-  padding: 4px 8px;
-  border: 0;
-  border-radius: 6px;
-  background: none;
-  color: var(--dimmer);
-  cursor: pointer;
-  font-size: 15px;
-  line-height: 1;
+  width: var(--icon-size);
+  height: var(--icon-size);
+  color: var(--icon);
 }
-.icon-btn:hover {
-  background: var(--sel);
-  color: var(--text);
+.icon-btn.sm .lucide,
+.link-btn .lucide,
+.side-label .lucide,
+.form-error .lucide,
+.side-problem .lucide,
+.preview-error .lucide {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+}
+.btn .lucide,
+.icon-btn:hover .lucide,
+.icon-btn:focus-visible .lucide,
+.link-btn:hover .lucide,
+.link-btn:focus-visible .lucide {
+  color: currentColor;
+}
+
+button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .btn {
-  padding: 6px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: var(--control-h);
+  padding: 0 var(--sp-3);
   border: 1px solid var(--line-strong);
-  border-radius: 7px;
-  background: var(--raised);
+  border-radius: var(--r-md);
+  background: var(--surface);
   color: var(--text);
-  cursor: pointer;
+  font-weight: var(--w-medium);
+  white-space: nowrap;
+  transition:
+    background var(--dur),
+    border-color var(--dur),
+    box-shadow var(--dur);
 }
 .btn:hover {
-  border-color: var(--accent);
+  background: var(--hover);
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.55;
+  pointer-events: none;
 }
 .btn.primary {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--on-accent);
-  font-weight: 500;
 }
 .btn.primary:hover {
-  filter: brightness(1.1);
+  background: color-mix(in oklab, var(--accent) 90%, var(--text));
 }
-.btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-  filter: none;
+.btn.danger {
+  border-color: transparent;
+  background: none;
+  color: var(--text-2);
+}
+.btn.danger:hover {
+  color: var(--danger);
+  background: var(--danger-soft);
+}
+
+.icon-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-h);
+  height: var(--control-h);
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-md);
+  background: none;
+  transition: background var(--dur);
+}
+.icon-btn:hover {
+  background: var(--hover);
+}
+.icon-btn:hover .lucide {
+  color: var(--text);
+}
+.icon-btn.sm {
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+}
+.icon-btn.danger:hover .lucide {
+  color: var(--danger);
+}
+
+/* A quiet text button, with an optional small icon in front. */
+.link-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: var(--control-h-sm);
+  padding: 0 var(--sp-2);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: none;
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  font-weight: var(--w-medium);
+  white-space: nowrap;
+  transition:
+    background var(--dur),
+    color var(--dur);
+}
+.link-btn:hover {
+  color: var(--text);
+  background: var(--hover);
 }
 
 .input {
   min-width: 0;
-  padding: 6px 9px;
-  border-radius: 7px;
-  border: 1px solid var(--line);
-  background: var(--card);
+  height: var(--control-h);
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
   color: var(--text);
   font: inherit;
   outline: none;
+  transition:
+    border-color var(--dur),
+    box-shadow var(--dur);
 }
 .input:focus {
-  border-color: var(--line-strong);
+  border-color: var(--accent);
+  box-shadow: var(--focus-ring-soft);
 }
 .input::placeholder {
-  color: var(--dimmer);
+  color: var(--text-3);
 }
 .input[data-mono] {
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 13px;
+}
+select.input {
+  appearance: none;
+  padding-right: var(--sp-6);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+}
+
+kbd {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--surface);
+  font: var(--fs-xs) var(--mono);
+}
+
+.popover {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-pop);
+  padding: var(--sp-2);
+  animation: pop var(--dur-pop) var(--ease);
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+
+/* Marks a task with a plan you have not looked at yet. */
+.pill-new {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: var(--fs-xs);
+  line-height: var(--lh-xs);
+  font-weight: var(--w-medium);
+  color: var(--accent);
+  background: var(--accent-soft);
 }
 
 .form-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
   color: var(--danger);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-sm);
   white-space: pre-wrap;
+}
+.form-error .lucide {
+  color: currentColor;
+}
+
+.side-scroll,
+.settings-form,
+.preview {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar) transparent;
+}
+.side-scroll::-webkit-scrollbar,
+.settings-form::-webkit-scrollbar,
+.preview::-webkit-scrollbar {
+  width: 6px;
+}
+.side-scroll::-webkit-scrollbar-thumb,
+.settings-form::-webkit-scrollbar-thumb,
+.preview::-webkit-scrollbar-thumb {
+  background: var(--scrollbar);
+  border-radius: 3px;
+}
+.side-scroll::-webkit-scrollbar-thumb:hover,
+.settings-form::-webkit-scrollbar-thumb:hover,
+.preview::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }
