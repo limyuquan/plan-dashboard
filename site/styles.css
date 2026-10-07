@@ -372,6 +372,11 @@ cite a:hover {
   font: 12.8px/1.75 var(--mono);
   color: #d9d9de;
 }
+/* On narrow screens the long address wraps instead of scrolling. */
+.install pre {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
 .prompt {
   color: var(--accent);
 }
@@ -439,9 +444,10 @@ cite a:hover {
   border-radius: 12px;
   background: #0d0d0f;
 }
+/* Bottom right, beside the short last line, so it never covers the command. */
 .copy-btn {
   position: absolute;
-  top: 12px;
+  bottom: 12px;
   right: 12px;
   padding: 5px 11px;
   border: 1px solid var(--line-strong);
