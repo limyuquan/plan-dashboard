@@ -8,11 +8,11 @@ const svg = (dot: boolean) =>
   'data:image/svg+xml,' +
   encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">` +
-      `<rect width="32" height="32" rx="7" fill="#17171c"/>` +
-      `<g fill="#9a9aa4"><rect x="7" y="9" width="15" height="3" rx="1.5"/>` +
+      `<rect width="32" height="32" rx="7" fill="#0a0a0a"/>` +
+      `<g fill="#8a8a8a"><rect x="7" y="9" width="15" height="3" rx="1.5"/>` +
       `<rect x="7" y="15" width="15" height="3" rx="1.5"/>` +
       `<rect x="7" y="21" width="9" height="3" rx="1.5"/></g>` +
-      (dot ? `<circle cx="24" cy="8" r="7" fill="#8b5cf6" stroke="#0b0b0d" stroke-width="2"/>` : '') +
+      (dot ? `<circle cx="24" cy="8" r="7" fill="#a78bfa" stroke="#0a0a0a" stroke-width="2"/>` : '') +
       `</svg>`,
   )
 

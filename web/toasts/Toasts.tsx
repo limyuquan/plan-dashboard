@@ -1,3 +1,4 @@
+import { FilePlus2, X } from '../icons'
 import { KindBadge } from '../sidebar/badges'
 import { useStore } from '../state/store'
 import { dismissToast } from '../state/toasts'
@@ -7,9 +8,10 @@ export function Toasts() {
   return (
     <div className="toasts">
       {toasts.map((t) => (
-        <div key={t.id} className="toast" data-lasting={t.lasting || undefined}>
+        <div key={t.id} className="toast popover" data-lasting={t.lasting || undefined}>
+          {t.doc && <FilePlus2 />}
           <div className="toast-body">
-            {t.doc && <div className="toast-eyebrow">new plan</div>}
+            {t.doc && <div className="toast-eyebrow">New plan</div>}
             <div className="toast-text">{t.text}</div>
             {t.detail && <div className="toast-detail">{t.detail}</div>}
             {t.doc && (
@@ -21,7 +23,8 @@ export function Toasts() {
           </div>
           {t.action && (
             <button
-              className="toast-action"
+              type="button"
+              className={t.lasting ? 'btn primary toast-action' : 'btn toast-action'}
               onClick={() => {
                 t.action!.run()
                 dismissToast(t.id)
@@ -30,8 +33,8 @@ export function Toasts() {
               {t.action.label}
             </button>
           )}
-          <button className="toast-close" title="Close" onClick={() => dismissToast(t.id)}>
-            ×
+          <button type="button" className="icon-btn sm toast-close" title="Close" onClick={() => dismissToast(t.id)}>
+            <X />
           </button>
         </div>
       ))}

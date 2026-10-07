@@ -8,43 +8,43 @@ export type Theme = 'dark' | 'light'
 const PALETTE: Record<Theme, string> = {
   dark: `
     color-scheme: dark;
-    --bg: #282c34; --text: #e9e9ec; --dim: #9da5b4; --line: #3a3f4b;
-    --accent: #b49df0; --code: #e8b48f; --block: #2f343e; --chip: #353b45;
-    --strong: #ffffff; --pre-text: #d3d3db; --quote: #4b5263; --head: #2f343e;
-    --zebra: #2b3038; --select: #4b3f72;`,
+    --bg: #0a0a0a; --text: #e4e4e7; --dim: #a3a3a3; --line: rgb(255 255 255 / 0.1);
+    --accent: #a78bfa; --code: #e4e4e7; --chip: rgb(255 255 255 / 0.08); --block: #121212;
+    --pre-text: #d4d4d8; --strong: #ffffff; --quote: rgb(255 255 255 / 0.18); --head: #121212;
+    --zebra: rgb(255 255 255 / 0.025); --select: rgb(167 139 250 / 0.3);`,
   light: `
     color-scheme: light;
-    --bg: #ffffff; --text: #1c1c20; --dim: #63636c; --line: #e2e2e7;
-    --accent: #6741c4; --code: #a2522c; --block: #f7f7f9; --chip: #f0f0f3;
-    --strong: #000000; --pre-text: #2c2c33; --quote: #d5d5dc; --head: #f2f2f5;
-    --zebra: #fafafb; --select: #e5ddf8;`,
+    --bg: #fcfcfc; --text: #27272a; --dim: #65656e; --line: rgb(0 0 0 / 0.1);
+    --accent: #6d4fd6; --code: #27272a; --chip: rgb(0 0 0 / 0.06); --block: #f4f4f5;
+    --pre-text: #3f3f46; --strong: #000000; --quote: rgb(0 0 0 / 0.16); --head: #f4f4f5;
+    --zebra: rgb(0 0 0 / 0.02); --select: rgb(109 79 214 / 0.2);`,
 }
 
 const STYLE = `
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    padding: 30px 32px 90px;
+    padding: 40px 36px 120px;
     background: var(--bg);
     color: var(--text);
-    font: 14px/1.65 ui-sans-serif, -apple-system, "SF Pro Text", system-ui, sans-serif;
+    font: 15px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  .md { max-width: 76ch; margin: 0 auto; }
+  .md { max-width: 68ch; margin: 0 auto; }
   ::selection { background: var(--select); }
 
-  h1, h2, h3, h4, h5, h6 { line-height: 1.3; font-weight: 600; margin: 1.9em 0 0.6em; }
-  h1 { font-size: 23px; margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
-  h2 { font-size: 18px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
-  h3 { font-size: 15px; }
-  h4, h5, h6 { font-size: 13.5px; color: var(--dim); }
+  h1, h2, h3, h4, h5, h6 { line-height: 1.25; font-weight: 600; margin: 1.8em 0 0.6em; }
+  h1 { font-size: 26px; margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  h2 { font-size: 19px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 16px; }
+  h4, h5, h6 { font-size: 14px; color: var(--dim); }
 
-  p, ul, ol, blockquote, pre, table { margin: 0.85em 0; }
+  p, ul, ol, blockquote, pre, table { margin: 0.8em 0; }
   a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
   strong { color: var(--strong); font-weight: 600; }
   hr { border: none; border-top: 1px solid var(--line); margin: 2em 0; }
-  img { max-width: 100%; border-radius: 6px; }
+  img { max-width: 100%; border-radius: 8px; }
 
   ul, ol { padding-left: 24px; }
   li { margin: 0.3em 0; }
@@ -54,8 +54,8 @@ const STYLE = `
   input[type="checkbox"] { margin-right: 7px; accent-color: var(--accent); }
 
   code {
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    font-size: 0.88em;
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
     background: var(--chip);
     color: var(--code);
     padding: 1px 5px;
@@ -65,14 +65,14 @@ const STYLE = `
     background: var(--block);
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 13px 15px;
+    padding: 14px 16px;
     overflow-x: auto;
   }
-  pre code { background: none; color: var(--pre-text); padding: 0; font-size: 0.85em; line-height: 1.55; }
+  pre code { background: none; color: var(--pre-text); padding: 0; font-size: 13px; line-height: 1.55; }
 
   blockquote {
-    border-left: 3px solid var(--quote);
-    padding-left: 15px;
+    border-left: 2px solid var(--quote);
+    padding-left: 14px;
     color: var(--dim);
   }
   blockquote > :first-child { margin-top: 0; }
@@ -80,8 +80,8 @@ const STYLE = `
 
   /* A wide table scrolls on its own rather than stretching a narrow pane. */
   table { display: block; width: max-content; max-width: 100%; overflow-x: auto; border-collapse: collapse; }
-  th, td { border: 1px solid var(--line); padding: 7px 11px; text-align: left; vertical-align: top; }
-  th { background: var(--head); font-weight: 600; }
+  th, td { border: 1px solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--head); font-weight: 500; }
   tbody tr:nth-child(even) { background: var(--zebra); }
 `
 
