@@ -133,8 +133,6 @@ export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping
     <div className="task">
       {menu && (
         <TaskMenu
-          wsKey={wsKey}
-          current={wsCur}
           dir={task.dir}
           onChangeIcon={() => {
             setMenu(false)
@@ -182,8 +180,10 @@ export function TaskRow({ task, open, onToggle, isOpen, onToggleFolder, dropping
               New
             </span>
           )}
+          {wsCur && <WsButton wsKey={wsKey} current />}
         </span>
         <span className="row-acts">
+          {!wsCur && <WsButton wsKey={wsKey} current={false} />}
           {settle && task.status && (
             <button
               type="button"
