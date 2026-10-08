@@ -16,7 +16,7 @@ planner config check           # validate, then print what each folder holds
 planner config schema          # the JSON schema, with a description of every key
 ```
 
-If `planner` is not installed: `npm install -g https://github.com/limyuquan/planner/releases/latest/download/planner.tgz` (needs Node.js 20.19 or newer).
+If `planner` is not installed: `npm install -g @limyuquan/planner` (needs Node.js 20.19 or newer).
 
 ## Steps
 

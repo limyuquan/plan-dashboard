@@ -41,7 +41,7 @@ instead of opening a new one. It keeps me in the loop without slowing the agents
 Needs Node.js 20.19 or newer.
 
 ```sh
-npm install -g https://github.com/limyuquan/planner/releases/latest/download/planner.tgz
+npm install -g @limyuquan/planner
 planner
 ```
 

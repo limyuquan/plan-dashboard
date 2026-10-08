@@ -10,10 +10,10 @@ Install Planner with one command, then point it at the folder your agents write 
 ## Install
 
 ```sh
-npm install -g https://github.com/limyuquan/planner/releases/latest/download/planner.tgz
+npm install -g @limyuquan/planner
 ```
 
-This installs the `planner` command from the latest release. To update, run the same line again.
+This installs the `planner` command. To update, run the same line again.
 
 ## Start it
 
@@ -50,7 +50,7 @@ node dist/cli.js --root examples/demo-docs
 ## Uninstall
 
 ```sh
-npm uninstall -g planner
+npm uninstall -g @limyuquan/planner
 ```
 
 Your settings stay in `~/.config/planner/` until you delete that folder.

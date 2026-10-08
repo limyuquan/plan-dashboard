@@ -1,5 +1,5 @@
 {
-  "name": "planner",
+  "name": "@limyuquan/planner",
   "version": "0.1.0",
   "description": "Read your coding agents' HTML and Markdown plans side by side, in split panes, live as they are written.",
   "author": "Lim Yu Quan",
@@ -11,6 +11,9 @@
   "files": [
     "dist"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20.19"
   },

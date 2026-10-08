@@ -1,8 +1,7 @@
 name: Release
 
-# Pushing a tag like v0.2.0 builds Planner and attaches it to a GitHub release
-# as planner.tgz, which is what the install line points at:
-#   npm install -g https://github.com/limyuquan/planner/releases/latest/download/planner.tgz
+# Pushing a tag like v0.2.0 builds Planner and attaches it to a GitHub release as
+# planner.tgz. Publishing to npm (@limyuquan/planner) is done by hand with `npm publish`.
 on:
   push:
     tags: ['v*']
