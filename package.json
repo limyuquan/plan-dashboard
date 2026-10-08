@@ -2,6 +2,7 @@
   "name": "planner",
   "version": "0.1.0",
   "description": "Read your coding agents' HTML and Markdown plans side by side, in split panes, live as they are written.",
+  "author": "Lim Yu Quan",
   "license": "MIT",
   "type": "module",
   "bin": {
